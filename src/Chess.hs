@@ -1,5 +1,6 @@
-module Chess(board, Color(..), Piece(..), Square, Position, startPosition) where
+module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece) where
 
+import Data.List
 import Data.Tuple
 
 data Color = White | Black deriving (Eq, Ord, Show)
@@ -18,3 +19,16 @@ startPosition = zip board ([Just $ Rook White, Just $ Knight White, Just $ Bisho
               ++ (take 8 $ repeat (Just $ Pawn Black))
               ++           [Just $ Rook Black, Just $ Knight Black, Just $ Bishop Black, Just $ Queen Black, Just $ King Black, Just $ Bishop Black, Just $ Knight Black, Just $ Rook Black])
 
+
+movePiece :: Position -> Square -> Square -> Position
+movePiece pos from to = case (pieceAt pos from) of (Just piece) -> replacePieceAt (removePieceAt pos from) to piece
+                                                   Nothing -> pos
+
+removePieceAt :: Position -> Square -> Position
+removePieceAt pos square = fmap (\t -> if (fst t == square) then (fst t, Nothing) else t) pos
+
+replacePieceAt :: Position -> Square -> Piece -> Position
+replacePieceAt pos square piece = fmap (\t -> if (fst t == square) then (fst t, Just piece) else t) pos
+
+pieceAt :: Position -> Square -> Maybe Piece
+pieceAt pos square = find (\t -> fst t == square) pos >>= snd
