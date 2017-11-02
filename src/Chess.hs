@@ -1,5 +1,6 @@
-module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece, whitePawnMovesTotal) where
+module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece, whitePawnMovesTotal, whiteKnightMovesTotal) where
 
+import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Tuple
@@ -15,6 +16,9 @@ board = fmap swap $ ((,)) <$> [1..8] <*> ['a'..'h']
 
 row = (snd . fst)
 col = (fst . fst)
+
+squareTo :: Square -> Int -> Int -> Square
+squareTo (c,r) cols rows = (chr (ord c + cols), r + rows)
 
 startPosition :: Position
 startPosition = zip board ([Just $ Rook White, Just $ Knight White, Just $ Bishop White, Just $ Queen White, Just $ King White, Just $ Bishop White, Just $ Knight White, Just $ Rook White]
@@ -37,15 +41,52 @@ replacePieceAt pos square piece = fmap (\t -> if (fst t == square) then (fst t, 
 pieceAt :: Position -> Square -> Maybe Piece
 pieceAt pos square = find (\t -> fst t == square) pos >>= snd
 
-whitePawnMovesTotal :: Position -> [Position]
-whitePawnMovesTotal pos = whitePawnMoves pos $ findAll pos (Pawn White)
-
 findAll :: Position -> Piece -> [(Square, Piece)]
 findAll pos piece = let allPieces = filter (\t -> snd t == Just piece) pos
     in fmap (\t -> (fst t, fromJust (snd t))) allPieces
+
+stripOutsideBoard :: [Position] -> [Position]
+stripOutsideBoard pos = filter (\p -> anyRowOutside p || anyColOutside p) pos
+    where anyRowOutside = any (\sp -> (row sp) > 8 || (row sp) < 1)
+          anyColOutside = any (\sp -> (col sp) > 'h' || (col sp) < 'a')
+
+
+-- pawns
+whiteMovesTotal :: Position -> [Position]
+whiteMovesTotal pos = stripOutsideBoard $
+    whitePawnMovesTotal pos ++
+    whiteKnightMovesTotal pos ++ [] -- todo append
+
+whitePawnMovesTotal :: Position -> [Position]
+whitePawnMovesTotal pos = whitePawnMoves pos $ findAll pos (Pawn White)
 
 whitePawnMoves :: Position -> [(Square, Piece)] -> [Position]
 whitePawnMoves pos pawns = pawns >>= (whitePawnMove pos)
 
 whitePawnMove :: Position -> (Square, Piece) -> [Position]
-whitePawnMove pos sp = movePiece pos (fst sp) (fmap (+1) (fst sp)) : if ((row sp) == 2) then [movePiece pos (fst sp) (fmap (+2) (fst sp))] else []
+whitePawnMove pos sp =
+    movePiece pos (fst sp) (fmap (+1) (fst sp)) :
+    if ((row sp) == 2) then [movePiece pos (fst sp) (fmap (+2) (fst sp))] else []
+
+-- knights
+whiteKnightMovesTotal :: Position -> [Position]
+whiteKnightMovesTotal pos = whiteKnightMoves pos $ findAll pos (Knight White)
+
+whiteKnightMoves :: Position -> [(Square, Piece)] -> [Position]
+whiteKnightMoves pos knights = knights >>= (whiteKnightMove pos)
+
+whiteKnightMove :: Position -> (Square, Piece) -> [Position]
+whiteKnightMove pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresKnight (fst sp))
+
+toSquaresKnight :: Square -> [Square]
+toSquaresKnight s = [
+        squareTo s (-1) 2,
+        squareTo s (-1) (-2),
+        squareTo s 1 2,
+        squareTo s 1 (-2),
+        squareTo s 2 1,
+        squareTo s 2 (-1),
+        squareTo s (-2) 1,
+        squareTo s (-2) (-1)]
+
+

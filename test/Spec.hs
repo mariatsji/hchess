@@ -18,3 +18,6 @@ main = hspec $ do
         it "finds 16 opening white pawn moves" $ do
             let whitePawnMoves = Chess.whitePawnMovesTotal Chess.startPosition
             length whitePawnMoves `shouldBe` (16 :: Int)
+        it "finds 4 opening knight moves" $ do
+            let whiteKnightMoves = Chess.whiteKnightMovesTotal Chess.startPosition
+            length whiteKnightMoves `shouldBe`(4 :: Int)
