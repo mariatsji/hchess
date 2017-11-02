@@ -1,4 +1,4 @@
-module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece, whitePawnMovesTotal, whiteKnightMovesTotal) where
+module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece, whitePawnMovesNaive, whiteKnightMovesNaive) where
 
 import Data.Char
 import Data.List
@@ -51,32 +51,32 @@ stripOutsideBoard pos = filter (\p -> anyRowOutside p || anyColOutside p) pos
           anyColOutside = any (\sp -> (col sp) > 'h' || (col sp) < 'a')
 
 
--- pawns
-whiteMovesTotal :: Position -> [Position]
-whiteMovesTotal pos = stripOutsideBoard $
-    whitePawnMovesTotal pos ++
-    whiteKnightMovesTotal pos ++ [] -- todo append
+-- naive inside board
+whiteMoves :: Position -> [Position]
+whiteMoves pos = stripOutsideBoard $
+    whitePawnMovesNaive pos ++
+    whiteKnightMovesNaive pos ++ [] -- todo append more
 
-whitePawnMovesTotal :: Position -> [Position]
-whitePawnMovesTotal pos = whitePawnMoves pos $ findAll pos (Pawn White)
+whitePawnMovesNaive :: Position -> [Position]
+whitePawnMovesNaive pos = whitePawnMovesNaive' pos $ findAll pos (Pawn White)
 
-whitePawnMoves :: Position -> [(Square, Piece)] -> [Position]
-whitePawnMoves pos pawns = pawns >>= (whitePawnMove pos)
+whitePawnMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
+whitePawnMovesNaive' pos pawns = pawns >>= (whiteSinglePawnMoveNaive pos)
 
-whitePawnMove :: Position -> (Square, Piece) -> [Position]
-whitePawnMove pos sp =
-    movePiece pos (fst sp) (fmap (+1) (fst sp)) :
+whiteSinglePawnMoveNaive :: Position -> (Square, Piece) -> [Position]
+whiteSinglePawnMoveNaive pos sp =
+    movePiece pos (fst sp) (squareTo (fst sp) 1 0) :
     if ((row sp) == 2) then [movePiece pos (fst sp) (fmap (+2) (fst sp))] else []
 
 -- knights
-whiteKnightMovesTotal :: Position -> [Position]
-whiteKnightMovesTotal pos = whiteKnightMoves pos $ findAll pos (Knight White)
+whiteKnightMovesNaive :: Position -> [Position]
+whiteKnightMovesNaive pos = whiteKnightMovesNaive' pos $ findAll pos (Knight White)
 
-whiteKnightMoves :: Position -> [(Square, Piece)] -> [Position]
-whiteKnightMoves pos knights = knights >>= (whiteKnightMove pos)
+whiteKnightMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
+whiteKnightMovesNaive' pos knights = knights >>= (whiteKnightSingleMoveNaive pos)
 
-whiteKnightMove :: Position -> (Square, Piece) -> [Position]
-whiteKnightMove pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresKnight (fst sp))
+whiteKnightSingleMoveNaive :: Position -> (Square, Piece) -> [Position]
+whiteKnightSingleMoveNaive pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresKnight (fst sp))
 
 toSquaresKnight :: Square -> [Square]
 toSquaresKnight s = [
@@ -88,5 +88,6 @@ toSquaresKnight s = [
         squareTo s 2 (-1),
         squareTo s (-2) 1,
         squareTo s (-2) (-1)]
+
 
 

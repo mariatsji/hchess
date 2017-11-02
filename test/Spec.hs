@@ -16,8 +16,8 @@ main = hspec $ do
             let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
             Printer.pretty newPos
         it "finds 16 opening white pawn moves" $ do
-            let whitePawnMoves = Chess.whitePawnMovesTotal Chess.startPosition
-            length whitePawnMoves `shouldBe` (16 :: Int)
-        it "finds 4 opening knight moves" $ do
-            let whiteKnightMoves = Chess.whiteKnightMovesTotal Chess.startPosition
-            length whiteKnightMoves `shouldBe`(4 :: Int)
+            let p = Chess.whitePawnMovesNaive Chess.startPosition
+            length p `shouldBe` (16 :: Int)
+        it "finds 16 opening knight moves even though some are outside board" $ do
+            let k = Chess.whiteKnightMovesNaive Chess.startPosition
+            length k `shouldBe`(16 :: Int)
