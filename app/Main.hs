@@ -1,6 +1,5 @@
 module Main where
 
-import Lib
 import Chess
 import Printer
 

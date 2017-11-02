@@ -15,9 +15,11 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
-                      ,Chess
+  exposed-modules:     Chess
+                      ,Printer
   build-depends:       base >= 4.7 && < 5
+                      ,utf8-string ==1.0.1.1
+                      ,bytestring
   default-language:    Haskell2010
 
 executable hchess-exe
@@ -25,8 +27,6 @@ executable hchess-exe
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
-                     , utf8-string ==1.0.1.1
-                     , bytestring
                      , hchess
   default-language:    Haskell2010
 
