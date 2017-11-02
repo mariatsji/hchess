@@ -39,6 +39,8 @@ sortP :: Position -> Position
 sortP = sortBy compareS
 
 compareS :: (Square, Maybe Piece) -> (Square, Maybe Piece) -> Ordering
-compareS a b = if (snd (fst a) == snd (fst b))
-    then compare (fst (fst a)) (fst (fst b))
-    else compare (snd (fst a)) (snd (fst b))
+compareS a b = if row a == row b
+    then compare (col a) (col b)
+    else compare (row a) (row b)
+        where row = (snd . fst)
+              col = (fst . fst)
