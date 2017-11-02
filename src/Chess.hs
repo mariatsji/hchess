@@ -1,4 +1,4 @@
-module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece, whitePawnMovesNaive, whiteKnightMovesNaive) where
+module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece, whitePawnMovesNaive, whiteKnightMovesNaive, blackPawnMovesNaive) where
 
 import Data.Char
 import Data.List
@@ -60,13 +60,24 @@ whiteMoves pos = stripOutsideBoard $
 whitePawnMovesNaive :: Position -> [Position]
 whitePawnMovesNaive pos = whitePawnMovesNaive' pos $ findAll pos (Pawn White)
 
+blackPawnMovesNaive :: Position -> [Position]
+blackPawnMovesNaive pos = blackPawnMovesNaive' pos $ findAll pos (Pawn Black)
+
 whitePawnMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
 whitePawnMovesNaive' pos pawns = pawns >>= (whiteSinglePawnMoveNaive pos)
+
+blackPawnMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
+blackPawnMovesNaive' pos pawns = pawns >>= (blackSinglePawnMoveNaive pos)
 
 whiteSinglePawnMoveNaive :: Position -> (Square, Piece) -> [Position]
 whiteSinglePawnMoveNaive pos sp =
     movePiece pos (fst sp) (squareTo (fst sp) 1 0) :
     if ((row sp) == 2) then [movePiece pos (fst sp) (fmap (+2) (fst sp))] else []
+
+blackSinglePawnMoveNaive :: Position -> (Square, Piece) -> [Position]
+blackSinglePawnMoveNaive pos sp =
+     movePiece pos (fst sp) (squareTo (fst sp) (-1) 0) :
+     if ((row sp) == 7) then [movePiece pos (fst sp) (fmap (+(-2)) (fst sp))] else []
 
 -- knights
 whiteKnightMovesNaive :: Position -> [Position]
@@ -88,6 +99,4 @@ toSquaresKnight s = [
         squareTo s 2 (-1),
         squareTo s (-2) 1,
         squareTo s (-2) (-1)]
-
-
 

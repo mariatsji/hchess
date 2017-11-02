@@ -20,4 +20,8 @@ main = hspec $ do
             length p `shouldBe` (16 :: Int)
         it "finds 16 opening knight moves even though some are outside board" $ do
             let k = Chess.whiteKnightMovesNaive Chess.startPosition
-            length k `shouldBe`(16 :: Int)
+            length k `shouldBe` (16 :: Int)
+        it "finds 16 opening black pawn moves" $ do
+            let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
+            let p = Chess.blackPawnMovesNaive newPos
+            length p `shouldBe` (16 :: Int)
