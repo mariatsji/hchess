@@ -15,3 +15,6 @@ main = hspec $ do
         it "moves E2-E4 from start pos" $ do
             let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
             Printer.pretty newPos
+        it "finds 16 opening white pawn moves" $ do
+            let whitePawnMoves = Chess.whitePawnMovesTotal Chess.startPosition
+            length whitePawnMoves `shouldBe` (16 :: Int)
