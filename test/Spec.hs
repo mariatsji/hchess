@@ -3,6 +3,7 @@ import Test.QuickCheck
 import Control.Exception (evaluate)
 
 import Chess
+import Move
 import Printer
 
 main :: IO ()
@@ -25,3 +26,10 @@ main = hspec $ do
             let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
             let p = Chess.blackPawnMovesNaive newPos
             length p `shouldBe` (16 :: Int)
+
+    describe "Move" $ do
+        it "parses a move text command" $ do
+            let newP = Move.parseMove "e2-e4" Chess.startPosition
+            length newP `shouldBe` (64:: Int)
+            newP `shouldNotBe` Chess.startPosition
+            Printer.pretty newP

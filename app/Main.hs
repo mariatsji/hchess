@@ -2,25 +2,22 @@ module Main where
 
 import Chess
 import Data.Char
+import Data.Maybe
+import Move
 import Printer
 import System.IO
-import Text.Regex.TDFA
-
 
 main :: IO ()
 main = do
-    Printer.pretty Chess.startPosition
+    gameLoop Chess.startPosition
+
+gameLoop :: Position -> IO ()
+gameLoop pos = do
+    Printer.pretty pos
     putStrLn "Enter move (e.g. e2-e4) >"
-    line <- readLn
-    let newPos = parseMove line Chess.startPosition
+    l <- getLine
+    let newPos = parseMove l pos
     Printer.pretty newPos
-    return ()
-
-
-parseMove :: String -> Position -> Position
-parseMove s pos
-    | s =~ "[a-h][1-8].[a-h][1-8]" = Chess.movePiece pos (parseFrom s) (parseTo s)
-    | otherwise = pos
-
-parseFrom x = (x !! 0, digitToInt (x !! 1))
-parseTo x = (x !! 3, digitToInt (x !! 4))
+    if (null l)
+        then return()
+        else gameLoop newPos
