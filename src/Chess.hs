@@ -1,7 +1,9 @@
-module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece, whitePawnMovesNaive, whiteKnightMovesNaive, blackPawnMovesNaive) where
+module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece,
+whitePawnMovesNaive, whiteKnightMovesNaive, blackPawnMovesNaive, blackKnightMovesNaive) where
 
 import Data.Char
 import Data.List
+import Data.List.Unique
 import Data.Maybe
 import Data.Tuple
 
@@ -81,13 +83,17 @@ blackSinglePawnMoveNaive pos sp =
 
 -- knights
 whiteKnightMovesNaive :: Position -> [Position]
-whiteKnightMovesNaive pos = whiteKnightMovesNaive' pos $ findAll pos (Knight White)
+whiteKnightMovesNaive pos = knightMovesNaive' pos $ findAll pos (Knight White)
 
-whiteKnightMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
-whiteKnightMovesNaive' pos knights = knights >>= (whiteKnightSingleMoveNaive pos)
+knightMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
+knightMovesNaive' pos knights = knights >>= (knightSingleMoveNaive pos)
 
-whiteKnightSingleMoveNaive :: Position -> (Square, Piece) -> [Position]
-whiteKnightSingleMoveNaive pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresKnight (fst sp))
+knightSingleMoveNaive :: Position -> (Square, Piece) -> [Position]
+knightSingleMoveNaive pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresKnight (fst sp))
+
+blackKnightMovesNaive :: Position -> [Position]
+blackKnightMovesNaive pos = knightMovesNaive' pos $ findAll pos (Knight Black)
+
 
 toSquaresKnight :: Square -> [Square]
 toSquaresKnight s = [
@@ -100,3 +106,18 @@ toSquaresKnight s = [
         squareTo s (-2) 1,
         squareTo s (-2) (-1)]
 
+-- bishops
+whiteBishopMovesNaive :: Position -> [Position]
+whiteBishopMovesNaive pos = bishopMovesNaive' pos $ findAll pos (Bishop White)
+
+blackBishopMovesNaive :: Position -> [Position]
+blackBishopMovesNaive pos = bishopMovesNaive' pos $ findAll pos (Bishop Black)
+
+bishopMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
+bishopMovesNaive' pos bishops = bishops >>= (bishopSingleMoveNaive pos)
+
+bishopSingleMoveNaive :: Position -> (Square, Piece) -> [Position]
+bishopSingleMoveNaive pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresBishop (fst sp))
+
+toSquaresBishop :: Square -> [Square]
+toSquaresBishop s = unique $ [squareTo s a b |  a <- [-7..7], b <- [-7..7], (abs a) == (abs b)]
