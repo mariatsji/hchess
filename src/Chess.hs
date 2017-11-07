@@ -3,7 +3,6 @@ whitePawnMovesNaive, blackPawnMovesNaive, whiteKnightMovesNaive, blackKnightMove
 
 import Data.Char
 import Data.List
-import Data.List.Unique
 import Data.Maybe
 import Data.Tuple
 
@@ -18,6 +17,9 @@ board = fmap swap $ ((,)) <$> [1..8] <*> ['a'..'h']
 
 row = (snd . fst)
 col = (fst . fst)
+
+unique :: Eq a => [a] -> [a]
+unique = foldl (\a c -> if (elem c a) then a else c : a) []
 
 squareTo :: Square -> Int -> Int -> Square
 squareTo (c,r) cols rows = (chr (ord c + cols), r + rows)
