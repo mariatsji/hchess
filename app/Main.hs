@@ -9,11 +9,11 @@ import System.IO
 
 main :: IO ()
 main = do
+    Printer.pretty Chess.startPosition
     gameLoop Chess.startPosition
 
 gameLoop :: Position -> IO ()
 gameLoop pos = do
-    Printer.pretty pos
     putStrLn "Enter move (e.g. e2-e4) >"
     l <- getLine
     let newPos = parseMove l pos
