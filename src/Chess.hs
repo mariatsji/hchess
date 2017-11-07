@@ -1,5 +1,5 @@
 module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece,
-whitePawnMovesNaive, whiteKnightMovesNaive, blackPawnMovesNaive, blackKnightMovesNaive) where
+whitePawnMovesNaive, blackPawnMovesNaive, whiteKnightMovesNaive, blackKnightMovesNaive) where
 
 import Data.Char
 import Data.List
@@ -120,4 +120,22 @@ bishopSingleMoveNaive :: Position -> (Square, Piece) -> [Position]
 bishopSingleMoveNaive pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresBishop (fst sp))
 
 toSquaresBishop :: Square -> [Square]
-toSquaresBishop s = unique $ [squareTo s a b |  a <- [-7..7], b <- [-7..7], (abs a) == (abs b)]
+toSquaresBishop s = unique $ [squareTo s a b |  a <- [-7..7], b <- [-7..7], (abs a) == (abs b), (a,b) /= (0,0)]
+
+-- rooks
+whiteRookMovesNaive :: Position -> [Position]
+whiteRookMovesNaive pos = rookMovesNaive pos $ findAll pos (Rook White)
+
+blackRookMovesNaive :: Position -> [Position]
+blackRookMovesNaive pos = rookMovesNaive pos $ findAll pos (Rook Black)
+
+rookMovesNaive :: Position -> [(Square, Piece)] -> [Position]
+rookMovesNaive pos rooks = rooks >>= (rookSingleMoveNaive' pos)
+
+rookSingleMoveNaive' :: Position -> (Square, Piece) -> [Position]
+rookSingleMoveNaive' pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresRook (fst sp))
+
+toSquaresRook :: Square -> [Square]
+toSquaresRook s = unique $ [squareTo s a b |  a <- [-7..7], b <- [-7..7], a == 0 || b == 0, (a,b) /= (0,0)]
+
+-- queens
