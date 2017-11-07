@@ -11,7 +11,7 @@ import GHC.Exts
 
 pretty :: Position -> IO ()
 pretty pos = do
-    mapM UP.putStrLn $ fmap prettyRow $ rowify $ sortP pos
+    mapM_ UP.putStrLn $ fmap prettyRow $ rowify $ sortP pos
     return ()
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
@@ -42,5 +42,5 @@ compareS :: (Square, Maybe Piece) -> (Square, Maybe Piece) -> Ordering
 compareS a b = if row a == row b
     then compare (col a) (col b)
     else compare (row a) (row b)
-        where row = (snd . fst)
-              col = (fst . fst)
+        where row = snd . fst
+              col = fst . fst

@@ -18,6 +18,6 @@ gameLoop pos = do
     l <- getLine
     let newPos = parseMove l pos
     Printer.pretty newPos
-    if (null l)
+    if null l
         then return()
         else gameLoop newPos

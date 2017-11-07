@@ -13,13 +13,13 @@ type Square = (Char, Int)
 type Position = [(Square, Maybe Piece)]
 
 board :: [Square]
-board = fmap swap $ ((,)) <$> [1..8] <*> ['a'..'h']
+board = fmap swap $ (,) <$> [1..8] <*> ['a'..'h']
 
-row = (snd . fst)
-col = (fst . fst)
+row = snd . fst
+col = fst . fst
 
 unique :: Eq a => [a] -> [a]
-unique = foldl (\a c -> if (elem c a) then a else c : a) []
+unique = foldl (\a c -> if c `elem` a then a else c : a) []
 
 squareTo :: Square -> Int -> Int -> Square
 squareTo (c,r) cols rows = (chr (ord c + cols), r + rows)
@@ -37,10 +37,10 @@ movePiece pos from to = case (pieceAt pos from) of (Just piece) -> replacePieceA
                                                    Nothing -> pos
 
 removePieceAt :: Position -> Square -> Position
-removePieceAt pos square = fmap (\t -> if (fst t == square) then (fst t, Nothing) else t) pos
+removePieceAt pos square = fmap (\t -> if fst t == square then (fst t, Nothing) else t) pos
 
 replacePieceAt :: Position -> Square -> Piece -> Position
-replacePieceAt pos square piece = fmap (\t -> if (fst t == square) then (fst t, Just piece) else t) pos
+replacePieceAt pos square piece = fmap (\t -> if fst t == square then (fst t, Just piece) else t) pos
 
 pieceAt :: Position -> Square -> Maybe Piece
 pieceAt pos square = find (\t -> fst t == square) pos >>= snd
@@ -50,9 +50,9 @@ findAll pos piece = let allPieces = filter (\t -> snd t == Just piece) pos
     in fmap (\t -> (fst t, fromJust (snd t))) allPieces
 
 stripOutsideBoard :: [Position] -> [Position]
-stripOutsideBoard pos = filter (\p -> anyRowOutside p || anyColOutside p) pos
-    where anyRowOutside = any (\sp -> (row sp) > 8 || (row sp) < 1)
-          anyColOutside = any (\sp -> (col sp) > 'h' || (col sp) < 'a')
+stripOutsideBoard = filter (\p -> anyRowOutside p || anyColOutside p)
+    where anyRowOutside = any (\sp -> row sp > 8 || row sp < 1)
+          anyColOutside = any (\sp -> col sp > 'h' || col sp < 'a')
 
 
 -- naive inside board
@@ -68,30 +68,30 @@ blackPawnMovesNaive :: Position -> [Position]
 blackPawnMovesNaive pos = blackPawnMovesNaive' pos $ findAll pos (Pawn Black)
 
 whitePawnMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
-whitePawnMovesNaive' pos pawns = pawns >>= (whiteSinglePawnMoveNaive pos)
+whitePawnMovesNaive' pos pawns = pawns >>= whiteSinglePawnMoveNaive pos
 
 blackPawnMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
-blackPawnMovesNaive' pos pawns = pawns >>= (blackSinglePawnMoveNaive pos)
+blackPawnMovesNaive' pos pawns = pawns >>= blackSinglePawnMoveNaive pos
 
 whiteSinglePawnMoveNaive :: Position -> (Square, Piece) -> [Position]
 whiteSinglePawnMoveNaive pos sp =
     movePiece pos (fst sp) (squareTo (fst sp) 1 0) :
-    if ((row sp) == 2) then [movePiece pos (fst sp) (fmap (+2) (fst sp))] else []
+    [movePiece pos (fst sp) (fmap (+2) (fst sp)) | row sp == 2]
 
 blackSinglePawnMoveNaive :: Position -> (Square, Piece) -> [Position]
 blackSinglePawnMoveNaive pos sp =
      movePiece pos (fst sp) (squareTo (fst sp) (-1) 0) :
-     if ((row sp) == 7) then [movePiece pos (fst sp) (fmap (+(-2)) (fst sp))] else []
+     [movePiece pos (fst sp) (fmap (+(-2)) (fst sp)) | row sp == 7]
 
 -- knights
 whiteKnightMovesNaive :: Position -> [Position]
 whiteKnightMovesNaive pos = knightMovesNaive' pos $ findAll pos (Knight White)
 
 knightMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
-knightMovesNaive' pos knights = knights >>= (knightSingleMoveNaive pos)
+knightMovesNaive' pos knights = knights >>= knightSingleMoveNaive pos
 
 knightSingleMoveNaive :: Position -> (Square, Piece) -> [Position]
-knightSingleMoveNaive pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresKnight (fst sp))
+knightSingleMoveNaive pos sp = fmap (movePiece pos (fst sp)) (toSquaresKnight (fst sp))
 
 blackKnightMovesNaive :: Position -> [Position]
 blackKnightMovesNaive pos = knightMovesNaive' pos $ findAll pos (Knight Black)
@@ -116,13 +116,13 @@ blackBishopMovesNaive :: Position -> [Position]
 blackBishopMovesNaive pos = bishopMovesNaive' pos $ findAll pos (Bishop Black)
 
 bishopMovesNaive' :: Position -> [(Square, Piece)] -> [Position]
-bishopMovesNaive' pos bishops = bishops >>= (bishopSingleMoveNaive pos)
+bishopMovesNaive' pos bishops = bishops >>= bishopSingleMoveNaive pos
 
 bishopSingleMoveNaive :: Position -> (Square, Piece) -> [Position]
-bishopSingleMoveNaive pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresBishop (fst sp))
+bishopSingleMoveNaive pos sp = fmap (movePiece pos (fst sp)) (toSquaresBishop (fst sp))
 
 toSquaresBishop :: Square -> [Square]
-toSquaresBishop s = unique $ [squareTo s a b |  a <- [-7..7], b <- [-7..7], (abs a) == (abs b), (a,b) /= (0,0)]
+toSquaresBishop s = unique [squareTo s a b |  a <- [-7..7], b <- [-7..7], abs a == abs b, (a,b) /= (0,0)]
 
 -- rooks
 whiteRookMovesNaive :: Position -> [Position]
@@ -132,12 +132,12 @@ blackRookMovesNaive :: Position -> [Position]
 blackRookMovesNaive pos = rookMovesNaive pos $ findAll pos (Rook Black)
 
 rookMovesNaive :: Position -> [(Square, Piece)] -> [Position]
-rookMovesNaive pos rooks = rooks >>= (rookSingleMoveNaive' pos)
+rookMovesNaive pos rooks = rooks >>= rookSingleMoveNaive' pos
 
 rookSingleMoveNaive' :: Position -> (Square, Piece) -> [Position]
-rookSingleMoveNaive' pos sp = fmap (\s -> movePiece pos (fst sp) s) (toSquaresRook (fst sp))
+rookSingleMoveNaive' pos sp = fmap (movePiece pos (fst sp)) (toSquaresRook (fst sp))
 
 toSquaresRook :: Square -> [Square]
-toSquaresRook s = unique $ [squareTo s a b |  a <- [-7..7], b <- [-7..7], a == 0 || b == 0, (a,b) /= (0,0)]
+toSquaresRook s = unique [squareTo s a b |  a <- [-7..7], b <- [-7..7], a == 0 || b == 0, (a,b) /= (0,0)]
 
 -- queens
