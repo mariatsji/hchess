@@ -23,8 +23,8 @@ main = hspec $ do
 
     describe "Move" $ do
         it "finds 20 possible opening moves for white" $ do
-            let tree = (Chess.positionTree Chess.startPosition White)
-            mapM Printer.pretty tree
+            let tree = Chess.positionTree [Chess.startPosition]
+            mapM_ Printer.pretty tree
             length tree  `shouldBe` (20 :: Int)
         it "parses a move text command" $ do
             let newP = Move.parseMove "e2-e4" Chess.startPosition

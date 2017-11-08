@@ -74,8 +74,13 @@ isBlack (_, Just p)
 blackPieces :: Position -> [(Square, Piece)]
 blackPieces pos = (\t -> (fst t, fromJust (snd t))) <$> filter isBlack pos
 
-positionTree :: Position -> Color -> [Position]
-positionTree pos colr = whitePieces pos >>= (\(s,p) -> positionsPrPiece pos (s,p))
+whiteToPlay :: [Position] -> Bool
+whiteToPlay = odd . length
+
+positionTree :: [Position] -> [Position] -- we know whos turn it is
+positionTree pos
+    | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
+    | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (toSquaresPawn (s, p))
