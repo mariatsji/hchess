@@ -1,11 +1,14 @@
-module Chess(board, Color(..), Piece(..), Square, Position, startPosition, movePiece, whitePieces, blackPieces, positionTree) where
+module Chess(board, Color(..), Piece(..), Square,
+Position, startPosition, movePiece, whitePieces, blackPieces,
+positionTree, canGoThere, finalDestinationNotOccupiedBySelf, points, points') where
 
+import Control.Arrow
 import Data.Char
 import Data.List
 import Data.Maybe
 import Data.Tuple
 
-data Color = White | Black deriving (Eq, Ord, Show)
+data Color = White | Black deriving (Eq, Ord, Enum, Show)
 data Piece = Pawn Color | Knight Color | Bishop Color | Rook Color | Queen Color | King Color deriving (Eq, Ord, Show)
 
 type Square = (Char, Int)
@@ -48,15 +51,19 @@ straight' :: (Int, Int) -> (Int, Int) -> Bool -- is the distance reachable throu
 straight' x y = abs (snd y - snd x) == 0 || abs (fst y - fst x) == 0
 
 points' :: (Int, Int) -> (Int, Int) -> [(Int, Int)] -- all visited squares
-points' x y = [(a,b) | a <- [min (fst x) (fst y)..max (fst x) (fst y)], b <- [min (snd x) (snd y)..max (snd x) (snd y)], (a == b) || straight' x y, (a,b) /= x, (a,b) /= y]
+points' (c1, r1) (c2, r2) = [(a,b) | a <- [min c1 c2..max c1 c2], b <- [min r1 r2..max r1 r2], (a,b) /= (c1, r1), (a,b) /= (c2,r2)]
 
 points :: Square -> Square -> [Square]
-points x y = toSquare <$> points' (ord (fst x), snd x) (ord (fst x), snd x)
-    where toSquare (i, j) = (chr i, j)
+points (c1, r1) (c2, r2) = first chr <$> points' (ord c1, r1) (ord c2, r2)
 
 canGoThere :: Position -> Square -> Square -> Bool
-canGoThere pos from to = all isNothing (fmap (pieceAt pos) (points from to)) && finalDestinationNotOccupiedBySelf from to
-    where finalDestinationNotOccupiedBySelf f t = fmap color (pieceAt pos to) /= fmap color (pieceAt pos from)
+canGoThere pos from to = all isNothing (fmap (pieceAt pos) (points from to)) && finalDestinationNotOccupiedBySelf pos from to
+
+finalDestinationNotOccupiedBySelf :: Position -> Square -> Square -> Bool
+finalDestinationNotOccupiedBySelf pos f t = fmap color (pieceAt pos t) /= fmap color (pieceAt pos f)
+
+enemyAt :: Position -> Square -> Square -> Bool
+enemyAt pos f t = fmap (succ . color) (pieceAt pos t) == fmap color (pieceAt pos f)
 
 removePieceAt :: Position -> Square -> Position
 removePieceAt pos square = fmap (\t -> if fst t == square then (fst t, Nothing) else t) pos
@@ -98,26 +105,26 @@ positionTree pos
     | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position] -- wedge canGoThere into here
-positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (toSquaresPawn (s, p))
-                                       (Knight _) -> fmap (movePiece pos s) (toSquaresKnight s)
-                                       (Bishop _) -> fmap (movePiece pos s) (toSquaresBishop s)
-                                       (Rook _) -> fmap (movePiece pos s) (toSquaresRook s)
-                                       (Queen _) -> fmap (movePiece pos s) (toSquaresQueen s)
-                                       (King _) -> fmap (movePiece pos s) (toSquaresKing s)
+positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresPawn pos (s, p))
+                                       (Knight _) -> fmap (movePiece pos s) (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
+                                       (Bishop _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
+                                       (Rook _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresRook s)
+                                       (Queen _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
+                                       (King _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
 -- pawns
-toSquaresPawn :: (Square, Piece) -> [Square]
-toSquaresPawn (s, p)
+toSquaresPawn :: Position -> (Square, Piece) -> [Square]
+toSquaresPawn pos (s, p)
         | color p == White = filter insideBoard $
             if snd s == 2 then [squareTo s 2 0] else [] ++
                 [squareTo s 1 0] ++
-                [squareTo s 1 (-1)] ++
-                [squareTo s 1 1]
+                [squareTo s 1 (-1) | enemyAt pos s $ squareTo s 1 (-1)] ++
+                [squareTo s 1 1 | enemyAt pos s $ squareTo s 1 1]
         | otherwise = filter insideBoard $
             if snd s == 7 then [squareTo s (-2) 0] else [] ++
                 [squareTo s (-1) 0] ++
-                [squareTo s (-1) (-1)] ++
-                [squareTo s (-1) 1]
+                [squareTo s (-1) (-1) | enemyAt pos s $ squareTo s (-1) (-1)] ++
+                [squareTo s (-1) 1 | enemyAt pos s $ squareTo s (-1) 1]
 
 
 -- knights
