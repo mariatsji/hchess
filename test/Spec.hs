@@ -16,16 +16,12 @@ main = hspec $ do
         it "moves E2-E4 from start pos" $ do
             let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
             Printer.pretty newPos
-        it "finds 16 opening white pawn moves" $ do
-            let p = Chess.whitePawnMovesNaive Chess.startPosition
-            length p `shouldBe` (16 :: Int)
-        it "finds 16 opening knight moves even though some are outside board" $ do
-            let k = Chess.whiteKnightMovesNaive Chess.startPosition
-            length k `shouldBe` (16 :: Int)
-        it "finds 16 opening black pawn moves" $ do
-            let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
-            let p = Chess.blackPawnMovesNaive newPos
-            length p `shouldBe` (16 :: Int)
+        it "finds 16 white pieces in startpos" $ do
+            length (Chess.whitePieces Chess.startPosition) `shouldBe` (16 :: Int)
+        it "finds 16 black pieces in startpos" $ do
+            length (Chess.blackPieces Chess.startPosition) `shouldBe` (16 :: Int)
+        it "finds 20 possible opening moves for white" $ do
+            length (Chess.positionTree Chess.startPosition White) `shouldBe` (20 :: Int)
 
     describe "Move" $ do
         it "parses a move text command" $ do
