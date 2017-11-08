@@ -40,8 +40,23 @@ startPosition = zip board ([Just $ Rook White, Just $ Knight White, Just $ Bisho
 
 
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos from to = case pieceAt pos from of (Just piece) -> replacePieceAt (removePieceAt pos from) to piece
-                                                 Nothing -> pos
+movePiece pos from to =
+    case pieceAt pos from of (Just piece) -> replacePieceAt (removePieceAt pos from) to piece
+                             Nothing -> pos
+
+straight' :: (Int, Int) -> (Int, Int) -> Bool -- is the distance reachable through same row or col?
+straight' x y = abs (snd y - snd x) == 0 || abs (fst y - fst x) == 0
+
+points' :: (Int, Int) -> (Int, Int) -> [(Int, Int)] -- all visited squares
+points' x y = [(a,b) | a <- [min (fst x) (fst y)..max (fst x) (fst y)], b <- [min (snd x) (snd y)..max (snd x) (snd y)], (a == b) || straight' x y, (a,b) /= x, (a,b) /= y]
+
+points :: Square -> Square -> [Square]
+points x y = toSquare <$> points' (ord (fst x), snd x) (ord (fst x), snd x)
+    where toSquare (i, j) = (chr i, j)
+
+canGoThere :: Position -> Square -> Square -> Bool
+canGoThere pos from to = all isNothing (fmap (pieceAt pos) (points from to)) && finalDestinationNotOccupiedBySelf from to
+    where finalDestinationNotOccupiedBySelf f t = fmap color (pieceAt pos to) /= fmap color (pieceAt pos from)
 
 removePieceAt :: Position -> Square -> Position
 removePieceAt pos square = fmap (\t -> if fst t == square then (fst t, Nothing) else t) pos
@@ -82,7 +97,7 @@ positionTree pos
     | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
     | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
 
-positionsPrPiece :: Position -> (Square, Piece) -> [Position]
+positionsPrPiece :: Position -> (Square, Piece) -> [Position] -- wedge canGoThere into here
 positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (toSquaresPawn (s, p))
                                        (Knight _) -> fmap (movePiece pos s) (toSquaresKnight s)
                                        (Bishop _) -> fmap (movePiece pos s) (toSquaresBishop s)
