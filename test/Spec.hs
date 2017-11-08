@@ -20,10 +20,12 @@ main = hspec $ do
             length (Chess.whitePieces Chess.startPosition) `shouldBe` (16 :: Int)
         it "finds 16 black pieces in startpos" $ do
             length (Chess.blackPieces Chess.startPosition) `shouldBe` (16 :: Int)
-        it "finds 20 possible opening moves for white" $ do
-            length (Chess.positionTree Chess.startPosition White) `shouldBe` (20 :: Int)
 
     describe "Move" $ do
+        it "finds 20 possible opening moves for white" $ do
+            let tree = (Chess.positionTree Chess.startPosition White)
+            mapM Printer.pretty tree
+            length tree  `shouldBe` (20 :: Int)
         it "parses a move text command" $ do
             let newP = Move.parseMove "e2-e4" Chess.startPosition
             length newP `shouldBe` (64:: Int)

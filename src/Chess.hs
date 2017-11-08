@@ -74,11 +74,6 @@ isBlack (_, Just p)
 blackPieces :: Position -> [(Square, Piece)]
 blackPieces pos = (\t -> (fst t, fromJust (snd t))) <$> filter isBlack pos
 
-stripOutsideBoard :: [Position] -> [Position]
-stripOutsideBoard = filter (\p -> anyRowOutside p || anyColOutside p)
-    where anyRowOutside = any (\sp -> row sp > 8 || row sp < 1)
-          anyColOutside = any (\sp -> col sp > 'h' || col sp < 'a')
-
 positionTree :: Position -> Color -> [Position]
 positionTree pos colr = whitePieces pos >>= (\(s,p) -> positionsPrPiece pos (s,p))
 
@@ -93,12 +88,12 @@ positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (toSqu
 -- pawns
 toSquaresPawn :: (Square, Piece) -> [Square]
 toSquaresPawn (s, p)
-        | color p == White =
+        | color p == White = filter insideBoard $
             if snd s == 2 then [squareTo s 2 0] else [] ++
                 [squareTo s 1 0] ++
                 [squareTo s 1 (-1)] ++
                 [squareTo s 1 1]
-        | otherwise =
+        | otherwise = filter insideBoard $
             if snd s == 7 then [squareTo s (-2) 0] else [] ++
                 [squareTo s (-1) 0] ++
                 [squareTo s (-1) (-1)] ++
@@ -107,7 +102,7 @@ toSquaresPawn (s, p)
 
 -- knights
 toSquaresKnight :: Square -> [Square]
-toSquaresKnight s = [
+toSquaresKnight s = filter insideBoard [
         squareTo s (-1) 2,
         squareTo s (-1) (-2),
         squareTo s 1 2,
@@ -119,11 +114,11 @@ toSquaresKnight s = [
 
 -- bishops
 toSquaresBishop :: Square -> [Square]
-toSquaresBishop s = unique [squareTo s a b |  a <- [-7..7], b <- [-7..7], abs a == abs b, (a,b) /= (0,0)]
+toSquaresBishop s = unique [squareTo s a b |  a <- [-7..7], b <- [-7..7], abs a == abs b, (a,b) /= (0,0), insideBoard $ squareTo s a b]
 
 -- rooks
 toSquaresRook :: Square -> [Square]
-toSquaresRook s = unique [squareTo s a b |  a <- [-7..7], b <- [-7..7], a == 0 || b == 0, (a,b) /= (0,0)]
+toSquaresRook s = unique [squareTo s a b |  a <- [-7..7], b <- [-7..7], a == 0 || b == 0, (a,b) /= (0,0), insideBoard $ squareTo s a b]
 
 -- queens
 toSquaresQueen :: Square -> [Square]
@@ -131,4 +126,7 @@ toSquaresQueen s = toSquaresBishop s `mappend` toSquaresRook s
 
 -- kings
 toSquaresKing :: Square -> [Square]
-toSquaresKing s = [squareTo s a b | a <- [-1, 0, 1], b <- [-1, 0, 1], (a,b) /= (0,0)]
+toSquaresKing s = [squareTo s a b | a <- [-1, 0, 1], b <- [-1, 0, 1], (a,b) /= (0,0), insideBoard $ squareTo s a b]
+
+insideBoard :: Square -> Bool
+insideBoard s = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
