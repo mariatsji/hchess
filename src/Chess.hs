@@ -1,6 +1,7 @@
 module Chess(board, Color(..), Piece(..), Square,
 Position, startPosition, movePiece, whitePieces, blackPieces,
-positionTree, canGoThere, finalDestinationNotOccupiedBySelf, points, points') where
+positionTree, canGoThere, finalDestinationNotOccupiedBySelf, points, points', to,
+toSquaresPawn, pieceAt) where
 
 import Control.Arrow
 import Data.Char
@@ -47,11 +48,16 @@ movePiece pos from to =
     case pieceAt pos from of (Just piece) -> replacePieceAt (removePieceAt pos from) to piece
                              Nothing -> pos
 
-straight' :: (Int, Int) -> (Int, Int) -> Bool -- is the distance reachable through same row or col?
-straight' x y = abs (snd y - snd x) == 0 || abs (fst y - fst x) == 0
-
 points' :: (Int, Int) -> (Int, Int) -> [(Int, Int)] -- all visited squares
-points' (c1, r1) (c2, r2) = [(a,b) | a <- [min c1 c2..max c1 c2], b <- [min r1 r2..max r1 r2], (a,b) /= (c1, r1), (a,b) /= (c2,r2)]
+points' (c1, r1) (c2, r2)
+    | c1 == c2 || r1 == r2 = [(a,b) | a <- [min c1 c2 .. max c1 c2], b <- [min r1 r2..max r1 r2], (a,b) /= (c1,r1), (a,b) /= (c2,r2)]
+    | otherwise = filter (\(a,b) -> (a,b) /= (c1, r1) && (a,b) /= (c2, r2)) $ zip (c1 `to` c2) (r1 `to` r2)
+
+to :: Int -> Int -> [Int]
+to a b
+    | a == b = [a]
+    | a > b = a : to (a - 1) b
+    | otherwise = a : to (a + 1) b
 
 points :: Square -> Square -> [Square]
 points (c1, r1) (c2, r2) = first chr <$> points' (ord c1, r1) (ord c2, r2)
@@ -116,15 +122,15 @@ positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filte
 toSquaresPawn :: Position -> (Square, Piece) -> [Square]
 toSquaresPawn pos (s, p)
         | color p == White = filter insideBoard $
-            if snd s == 2 then [squareTo s 2 0] else [] ++
-                [squareTo s 1 0] ++
-                [squareTo s 1 (-1) | enemyAt pos s $ squareTo s 1 (-1)] ++
-                [squareTo s 1 1 | enemyAt pos s $ squareTo s 1 1]
+            [squareTo s 0 2 | snd s == 2] ++
+            [squareTo s 0 1] ++
+            [squareTo s (-1) 1 | enemyAt pos s $ squareTo s (-1) 1] ++
+            [squareTo s 1 1 | enemyAt pos s $ squareTo s 1 1]
         | otherwise = filter insideBoard $
-            if snd s == 7 then [squareTo s (-2) 0] else [] ++
-                [squareTo s (-1) 0] ++
-                [squareTo s (-1) (-1) | enemyAt pos s $ squareTo s (-1) (-1)] ++
-                [squareTo s (-1) 1 | enemyAt pos s $ squareTo s (-1) 1]
+            [squareTo s 0 (-2) | snd s == 7] ++
+            [squareTo s 0 (-1)] ++
+            [squareTo s (-1) (-1) | enemyAt pos s $ squareTo s (-1) (-1)] ++
+            [squareTo s 1 (-1) | enemyAt pos s $ squareTo s 1 (-1)]
 
 
 -- knights

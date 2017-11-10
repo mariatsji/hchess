@@ -15,7 +15,8 @@ main = hspec $ do
             length Chess.board `shouldBe` (64 :: Int)
         it "moves E2-E4 from start pos" $ do
             let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
-            Printer.pretty newPos
+            -- Printer.pretty newPos
+            Chess.pieceAt newPos ('e', 4) `shouldBe` (Just $ Pawn White :: Maybe Piece)
         it "finds 16 white pieces in startpos" $ do
             length (Chess.whitePieces Chess.startPosition) `shouldBe` (16 :: Int)
         it "finds 16 black pieces in startpos" $ do
@@ -24,16 +25,19 @@ main = hspec $ do
     describe "Move" $ do
         it "finds 20 possible opening moves for white" $ do
             let tree = Chess.positionTree [Chess.startPosition]
-            mapM_ Printer.pretty tree
+            --mapM_ Printer.pretty tree
             length tree  `shouldBe` (20 :: Int)
         it "parses a move text command" $ do
             let newP = Move.parseMove "e2-e4" Chess.startPosition
             length newP `shouldBe` (64:: Int)
             newP `shouldNotBe` Chess.startPosition
-            Printer.pretty newP
+            -- Printer.pretty newP
         it "does not step on own pieces" $ do
             let b = Chess.canGoThere Chess.startPosition ('a',1) ('a', 2)
             b `shouldBe` (False :: Bool)
+        it "lets pawns move ahead from startpos" $ do
+            let b = Chess.canGoThere Chess.startPosition ('e',2) ('e',4)
+            b `shouldBe` (True :: Bool)
         it "knows when destination square is occupied by own color" $ do
             let b = Chess.finalDestinationNotOccupiedBySelf Chess.startPosition ('a', 1) ('a', 2)
             b `shouldBe` (False :: Bool)
@@ -49,3 +53,9 @@ main = hspec $ do
         it "finds the correct traversed squares in a straight rook-like move" $ do
             let squares = Chess.points ('a',1) ('a', 4)
             squares `shouldBe` ([('a',2),('a',3)] :: [Square])
+        it "finds the correct traversed squares from h1 - a8" $ do
+            let squares = Chess.points ('h', 1) ('a', 8)
+            squares `shouldBe` ([('g',2),('f',3),('e',4),('d',5),('c',6),('b',7)] :: [Square])
+        it "finds toSquares for pawns in startrow" $ do
+            let squares = Chess.toSquaresPawn Chess.startPosition (('e', 2), Pawn White)
+            squares `shouldMatchList` ([('e',3),('e',4)] :: [Square])
