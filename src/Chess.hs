@@ -71,6 +71,9 @@ finalDestinationNotOccupiedBySelf pos f t = fmap color (pieceAt pos t) /= fmap c
 enemyAt :: Position -> Square -> Square -> Bool
 enemyAt pos f t = fmap (succ . color) (pieceAt pos t) == fmap color (pieceAt pos f)
 
+vacantAt :: Position -> Square -> Square -> Bool
+vacantAt pos f t = isNothing $ pieceAt pos t
+
 removePieceAt :: Position -> Square -> Position
 removePieceAt pos square = fmap (\t -> if fst t == square then (fst t, Nothing) else t) pos
 
@@ -122,13 +125,13 @@ positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filte
 toSquaresPawn :: Position -> (Square, Piece) -> [Square]
 toSquaresPawn pos (s, p)
         | color p == White = filter insideBoard $
-            [squareTo s 0 2 | snd s == 2] ++
-            [squareTo s 0 1] ++
+            [squareTo s 0 2 | snd s == 2, vacantAt pos s $ squareTo s 0 2] ++
+            [squareTo s 0 1 | vacantAt pos s $ squareTo s 0 1] ++
             [squareTo s (-1) 1 | enemyAt pos s $ squareTo s (-1) 1] ++
             [squareTo s 1 1 | enemyAt pos s $ squareTo s 1 1]
         | otherwise = filter insideBoard $
-            [squareTo s 0 (-2) | snd s == 7] ++
-            [squareTo s 0 (-1)] ++
+            [squareTo s 0 (-2) | snd s == 7, vacantAt pos s $ squareTo s 0 (-2)] ++
+            [squareTo s 0 (-1) | vacantAt pos s $ squareTo s 0 (-1)] ++
             [squareTo s (-1) (-1) | enemyAt pos s $ squareTo s (-1) (-1)] ++
             [squareTo s 1 (-1) | enemyAt pos s $ squareTo s 1 (-1)]
 

@@ -28,7 +28,7 @@ main = hspec $ do
             --mapM_ Printer.pretty tree
             length tree  `shouldBe` (20 :: Int)
         it "parses a move text command" $ do
-            let newP = Move.parseMove "e2-e4" Chess.startPosition
+            let newP = head $ Move.parseMove "e2-e4" [Chess.startPosition]
             length newP `shouldBe` (64:: Int)
             newP `shouldNotBe` Chess.startPosition
             -- Printer.pretty newP

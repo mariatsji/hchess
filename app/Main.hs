@@ -10,14 +10,15 @@ import System.IO
 main :: IO ()
 main = do
     Printer.pretty Chess.startPosition
-    gameLoop Chess.startPosition
+    gameLoop [Chess.startPosition]
 
-gameLoop :: Position -> IO ()
+gameLoop :: [Position] -> IO ()
 gameLoop pos = do
     putStrLn "Enter move (e.g. e2-e4) >"
     l <- getLine
-    let newPos = parseMove l pos
+    let newPosList = parseMove l pos
+    let newPos = head newPosList
     Printer.pretty newPos
     if null l
         then return()
-        else gameLoop newPos
+        else gameLoop newPosList
