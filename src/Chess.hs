@@ -182,5 +182,5 @@ anyPosWithoutKing :: Color -> [Position] -> Bool
 anyPosWithoutKing col pos = not $ allHasKing col pos
 
 allHasKing :: Color -> [Position] -> Bool
-allHasKing White poses = all (\p -> any (\(s,p) -> p == King White) (whitePieces p)) poses
-allHasKing Black poses = all (\p -> any (\(s,p) -> p == King Black) (blackPieces p)) poses
+allHasKing White poses = all (any (\ (s, p) -> p == King White) . whitePieces) poses
+allHasKing Black poses = all (any (\ (s, p) -> p == King Black) . blackPieces) poses
