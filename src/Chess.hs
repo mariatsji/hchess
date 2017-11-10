@@ -69,7 +69,11 @@ finalDestinationNotOccupiedBySelf :: Position -> Square -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos f t = fmap color (pieceAt pos t) /= fmap color (pieceAt pos f)
 
 enemyAt :: Position -> Square -> Square -> Bool
-enemyAt pos f t = fmap (succ . color) (pieceAt pos t) == fmap color (pieceAt pos f)
+enemyAt pos f t = fmap (succ' . color) (pieceAt pos t) == fmap color (pieceAt pos f)
+
+succ' :: Color -> Color
+succ' White = Black
+succ' Black = White
 
 vacantAt :: Position -> Square -> Square -> Bool
 vacantAt pos f t = isNothing $ pieceAt pos t
