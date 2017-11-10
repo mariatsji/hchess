@@ -59,3 +59,17 @@ main = hspec $ do
         it "finds toSquares for pawns in startrow" $ do
             let squares = Chess.toSquaresPawn Chess.startPosition (('e', 2), Pawn White)
             squares `shouldMatchList` ([('e',3),('e',4)] :: [Square])
+        it "recognizes a position with a king" $ do
+            let b = Chess.anyPosWithoutKing White [Chess.startPosition]
+            b `shouldBe` (False :: Bool)
+        it "recognizes a position without a king" $ do
+            let b = Chess.anyPosWithoutKing White [[(('a',1), Just $ Knight White)]]
+            b `shouldBe` (True :: Bool)
+        it "knows that white is in check" $ do
+            let p1 = Move.parseMove "e2-e4" [Chess.startPosition]
+            let p2 = Move.parseMove "d7-d5" p1
+            let p3 = Move.parseMove "e4-d5" p2
+            let p4 = Move.parseMove "d8-d5" p3
+            let p5 = Move.parseMove "h2-h4" p4
+            let p6 = Move.parseMove "d5-e5" p5
+            Chess.isInCheck p6 `shouldBe` (True :: Bool)

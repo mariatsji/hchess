@@ -1,7 +1,7 @@
 module Chess(board, Color(..), Piece(..), Square,
 Position, startPosition, movePiece, whitePieces, blackPieces,
 positionTree, canGoThere, finalDestinationNotOccupiedBySelf, points, points', to,
-toSquaresPawn, pieceAt, whiteToPlay, color) where
+toSquaresPawn, pieceAt, whiteToPlay, color, isInCheck, anyPosWithoutKing) where
 
 import Control.Arrow
 import Data.Char
@@ -112,6 +112,9 @@ blackPieces pos = (\t -> (fst t, fromJust (snd t))) <$> filter isBlack pos
 whiteToPlay :: [Position] -> Bool
 whiteToPlay = odd . length
 
+toPlay :: [Position] -> Color
+toPlay pos = if whiteToPlay pos then White else Black
+
 positionTree :: [Position] -> [Position] -- we know whos turn it is
 positionTree pos
     | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
@@ -170,3 +173,14 @@ toSquaresKing s = [squareTo s a b | a <- [-1, 0, 1], b <- [-1, 0, 1], (a,b) /= (
 
 insideBoard :: Square -> Bool
 insideBoard s = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
+
+-- is in check
+isInCheck :: [Position] -> Bool
+isInCheck pos = anyPosWithoutKing (toPlay pos) (positionTree $ head pos : pos)
+
+anyPosWithoutKing :: Color -> [Position] -> Bool
+anyPosWithoutKing col pos = not $ allHasKing col pos
+
+allHasKing :: Color -> [Position] -> Bool
+allHasKing White poses = all (\p -> any (\(s,p) -> p == King White) (whitePieces p)) poses
+allHasKing Black poses = all (\p -> any (\(s,p) -> p == King Black) (blackPieces p)) poses
