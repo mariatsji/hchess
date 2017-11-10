@@ -1,7 +1,7 @@
 module Chess(board, Color(..), Piece(..), Square,
 Position, startPosition, movePiece, whitePieces, blackPieces,
 positionTree, canGoThere, finalDestinationNotOccupiedBySelf, points, points', to,
-toSquaresPawn, pieceAt) where
+toSquaresPawn, pieceAt, whiteToPlay, color) where
 
 import Control.Arrow
 import Data.Char
