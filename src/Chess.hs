@@ -1,7 +1,9 @@
 module Chess(board, Color(..), Piece(..), Square,
 Position, startPosition, movePiece, whitePieces, blackPieces,
-positionTree, canGoThere, finalDestinationNotOccupiedBySelf, points, points', to,
-toSquaresPawn, pieceAt, whiteToPlay, color, isInCheck, anyPosWithoutKing) where
+emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
+canGoThere, finalDestinationNotOccupiedBySelf, points, points',
+to, toSquaresPawn, pieceAt, whiteToPlay, color, isInCheck,
+anyPosWithoutKing) where
 
 import Control.Arrow
 import Data.Char
@@ -14,6 +16,7 @@ data Piece = Pawn Color | Knight Color | Bishop Color | Rook Color | Queen Color
 
 type Square = (Char, Int)
 type Position = [(Square, Maybe Piece)]
+type GameHistory = [Position]
 
 board :: [Square]
 board = fmap swap $ (,) <$> [1..8] <*> ['a'..'h']
@@ -42,6 +45,8 @@ startPosition = zip board ([Just $ Rook White, Just $ Knight White, Just $ Bisho
               ++ replicate 8 (Just $ Pawn Black)
               ++ [Just $ Rook Black, Just $ Knight Black, Just $ Bishop Black, Just $ Queen Black, Just $ King Black, Just $ Bishop Black, Just $ Knight Black, Just $ Rook Black])
 
+emptyBoard :: Position
+emptyBoard = zip board (repeat Nothing)
 
 movePiece :: Position -> Square -> Square -> Position
 movePiece pos from to =
@@ -109,14 +114,18 @@ isBlack (_, Just p)
 blackPieces :: Position -> [(Square, Piece)]
 blackPieces pos = (\t -> (fst t, fromJust (snd t))) <$> filter isBlack pos
 
-whiteToPlay :: [Position] -> Bool
+whiteToPlay :: GameHistory -> Bool
 whiteToPlay = odd . length
 
-toPlay :: [Position] -> Color
+toPlay :: GameHistory -> Color
 toPlay pos = if whiteToPlay pos then White else Black
 
-positionTree :: [Position] -> [Position] -- we know whos turn it is
-positionTree pos
+positionTree :: GameHistory -> [Position]
+positionTree gh = if (isInCheck gh) then fmap head $ filter (not . isInCheck) $ potentialGHs gh else positionTreeIgnoreCheck gh
+    where potentialGHs gh' = (: gh') <$> positionTreeIgnoreCheck gh'
+
+positionTreeIgnoreCheck :: GameHistory -> [Position] -- we know whos turn it is
+positionTreeIgnoreCheck pos
     | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
     | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
 
@@ -175,8 +184,8 @@ insideBoard :: Square -> Bool
 insideBoard s = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
 
 -- is in check
-isInCheck :: [Position] -> Bool
-isInCheck pos = anyPosWithoutKing (toPlay pos) (positionTree $ head pos : pos)
+isInCheck :: GameHistory -> Bool
+isInCheck pos = anyPosWithoutKing (toPlay pos) (positionTreeIgnoreCheck $ head pos : pos)
 
 anyPosWithoutKing :: Color -> [Position] -> Bool
 anyPosWithoutKing col pos = not $ allHasKing col pos

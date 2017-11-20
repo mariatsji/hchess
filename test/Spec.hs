@@ -63,8 +63,14 @@ main = hspec $ do
             let b = Chess.anyPosWithoutKing White [Chess.startPosition]
             b `shouldBe` (False :: Bool)
         it "recognizes a position without a king" $ do
-            let b = Chess.anyPosWithoutKing White [[(('a',1), Just $ Knight White)]]
+            let b = Chess.anyPosWithoutKing White [[(('a',1), Just $ Bishop White)]]
             b `shouldBe` (True :: Bool)
+        it "finds a small number of end-positions" $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
+            let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
+            let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
+            let t = Chess.positionTreeIgnoreCheck [p3, p3] -- fake blacks turn
+            length t `shouldBe` (3 :: Int) 
         it "knows that white is in check" $ do
             let p1 = Move.parseMove "e2-e4" [Chess.startPosition]
             let p2 = Move.parseMove "d7-d5" p1
@@ -73,3 +79,11 @@ main = hspec $ do
             let p5 = Move.parseMove "h2-h4" p4
             let p6 = Move.parseMove "d5-e5" p5
             Chess.isInCheck p6 `shouldBe` (True :: Bool)
+        it "knows that white is not in check" $ do
+            let p1 = Move.parseMove "e2-e4" [Chess.startPosition]
+            let p2 = Move.parseMove "d7-d5" p1
+            let p3 = Move.parseMove "e4-d5" p2
+            let p4 = Move.parseMove "d8-d5" p3
+            let p5 = Move.parseMove "h2-h4" p4
+            let p6 = Move.parseMove "d5-a5" p5
+            Chess.isInCheck p6 `shouldBe` (False :: Bool)
