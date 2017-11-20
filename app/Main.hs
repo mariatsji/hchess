@@ -12,13 +12,21 @@ main = do
     Printer.pretty Chess.startPosition
     gameLoop [Chess.startPosition]
 
-gameLoop :: [Position] -> IO ()
-gameLoop pos = do
+gameLoop :: GameHistory -> IO ()
+gameLoop gh = do
     putStrLn "Enter move (e.g. e2-e4) >"
     l <- getLine
-    let newPosList = parseMove l pos
-    let newPos = head newPosList
+    let gameHistory = parseMove l gh
+    let moveOkStatus = if (gameHistory /= gh) then "Made move" else "Illegal move"
+    let newPos = head gameHistory
     Printer.pretty newPos
+    putStrLn moveOkStatus
+    let statusLine = if Chess.isCheckMate gameHistory
+        then
+          "Check-Mate to " ++ show (succ' $ toPlay gameHistory)
+        else
+          (show $ succ' $ toPlay gameHistory) ++ " to play"
+    putStrLn statusLine
     if null l
         then return()
-        else gameLoop newPosList
+        else gameLoop gameHistory

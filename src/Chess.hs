@@ -1,9 +1,9 @@
 module Chess(board, Color(..), Piece(..), Square,
-Position, startPosition, movePiece, whitePieces, blackPieces,
+Position, GameHistory, startPosition, movePiece, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, allPositionsWhereNotInCheck) where
+anyPosWithoutKing, isCheckMate, allPositionsWhereNotInCheck, succ') where
 
 import Control.Arrow
 import Data.Char
