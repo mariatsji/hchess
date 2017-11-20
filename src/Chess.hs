@@ -2,8 +2,8 @@ module Chess(board, Color(..), Piece(..), Square,
 Position, startPosition, movePiece, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
-to, toSquaresPawn, pieceAt, whiteToPlay, color, isInCheck,
-anyPosWithoutKing) where
+to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
+anyPosWithoutKing, isCheckMate, allPositionsWhereNotInCheck) where
 
 import Control.Arrow
 import Data.Char
@@ -121,13 +121,20 @@ toPlay :: GameHistory -> Color
 toPlay pos = if whiteToPlay pos then White else Black
 
 positionTree :: GameHistory -> [Position]
-positionTree gh = if (isInCheck gh) then fmap head $ filter (not . isInCheck) $ potentialGHs gh else positionTreeIgnoreCheck gh
-    where potentialGHs gh' = (: gh') <$> positionTreeIgnoreCheck gh'
+positionTree gh = if (isInCheck (head gh) (toPlay gh)) then allPositionsWhereNotInCheck gh else positionTreeIgnoreCheck gh
+
+allPositionsWhereNotInCheck :: GameHistory -> [Position]
+allPositionsWhereNotInCheck gh = fmap head $ filter (\p -> not $ isInCheck (head p) (toPlay gh)) $ potentialGHs gh
+  where potentialGHs gh' = (: gh') <$> positionTreeIgnoreCheck gh'
 
 positionTreeIgnoreCheck :: GameHistory -> [Position] -- we know whos turn it is
 positionTreeIgnoreCheck pos
     | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
     | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
+
+positionTreeIgnoreCheck' :: Position -> Color -> [Position]
+positionTreeIgnoreCheck' pos White = whitePieces pos >>= (\(s,p) -> positionsPrPiece pos (s,p))
+positionTreeIgnoreCheck' pos Black = blackPieces pos >>= (\(s,p) -> positionsPrPiece pos (s,p))
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position] -- wedge canGoThere into here
 positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresPawn pos (s, p))
@@ -183,9 +190,11 @@ toSquaresKing s = [squareTo s a b | a <- [-1, 0, 1], b <- [-1, 0, 1], (a,b) /= (
 insideBoard :: Square -> Bool
 insideBoard s = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
 
--- is in check
-isInCheck :: GameHistory -> Bool
-isInCheck pos = anyPosWithoutKing (toPlay pos) (positionTreeIgnoreCheck $ head pos : pos)
+isInCheck :: Position -> Color -> Bool
+isInCheck pos color = anyPosWithoutKing color (positionTreeIgnoreCheck' pos (succ' color))
+
+isCheckMate :: GameHistory -> Bool
+isCheckMate gh  = isInCheck (head gh) (toPlay gh) && null (positionTree gh)
 
 anyPosWithoutKing :: Color -> [Position] -> Bool
 anyPosWithoutKing col pos = not $ allHasKing col pos

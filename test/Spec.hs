@@ -25,13 +25,11 @@ main = hspec $ do
     describe "Move" $ do
         it "finds 20 possible opening moves for white" $ do
             let tree = Chess.positionTree [Chess.startPosition]
-            --mapM_ Printer.pretty tree
             length tree  `shouldBe` (20 :: Int)
         it "parses a move text command" $ do
             let newP = head $ Move.parseMove "e2-e4" [Chess.startPosition]
             length newP `shouldBe` (64:: Int)
             newP `shouldNotBe` Chess.startPosition
-            -- Printer.pretty newP
         it "does not step on own pieces" $ do
             let b = Chess.canGoThere Chess.startPosition ('a',1) ('a', 2)
             b `shouldBe` (False :: Bool)
@@ -78,7 +76,7 @@ main = hspec $ do
             let p4 = Move.parseMove "d8-d5" p3
             let p5 = Move.parseMove "h2-h4" p4
             let p6 = Move.parseMove "d5-e5" p5
-            Chess.isInCheck p6 `shouldBe` (True :: Bool)
+            Chess.isInCheck (head p6) (toPlay p6) `shouldBe` (True :: Bool)
         it "knows that white is not in check" $ do
             let p1 = Move.parseMove "e2-e4" [Chess.startPosition]
             let p2 = Move.parseMove "d7-d5" p1
@@ -86,4 +84,20 @@ main = hspec $ do
             let p4 = Move.parseMove "d8-d5" p3
             let p5 = Move.parseMove "h2-h4" p4
             let p6 = Move.parseMove "d5-a5" p5
-            Chess.isInCheck p6 `shouldBe` (False :: Bool)
+            Chess.isInCheck (head p6) (toPlay p6) `shouldBe` (False :: Bool)
+        it "knows all next positions where not in check" $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
+            let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
+            let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
+            let p4 = Chess.replacePieceAt p3 ('g', 8) (Rook White)
+            let t = Chess.allPositionsWhereNotInCheck [p4, p4]
+            mapM_ Printer.pretty t
+            length t `shouldBe` (1 :: Int)
+        it "knows that black is check mate" $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
+            let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
+            let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
+            let p4 = Chess.replacePieceAt p3 ('g', 8) (Queen White)
+            let t = Chess.positionTree [p4, p4]
+            -- mapM_ Printer.pretty t
+            Chess.isCheckMate [p4, p4] `shouldBe` (True :: Bool)
