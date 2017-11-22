@@ -7,3 +7,12 @@
 # start app
 
     ./stackw exec hchess
+    
+# todo
+    
+    - promotions
+    - castling
+    - en passant
+    - 50 move rule
+    - AI!
+    - pgn?

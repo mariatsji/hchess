@@ -1,19 +1,38 @@
 module Main where
 
+import AI
 import Chess
-import Data.Char
-import Data.Maybe
 import Move
 import Printer
+
+import Data.Char
+import Data.Maybe
 import System.IO
 
 main :: IO ()
 main = do
     Printer.pretty Chess.startPosition
-    gameLoop [Chess.startPosition]
+    gameLoopHM [Chess.startPosition]
 
-gameLoop :: GameHistory -> IO ()
-gameLoop gh = do
+gameLoopHM :: GameHistory -> IO ()
+gameLoopHM gh = do
+  putStrLn $ instructions gh
+  l <- getLine
+  let gameHistory = parseMove l gh
+  let newPos = head gameHistory
+  Printer.pretty newPos
+  putStrLn $ moveOkStatus gh gameHistory
+  putStrLn $ statusLine gh
+  -- AI reply -- todo only if successful parse!
+  let gameHistoryReplied = AI.first gameHistory
+  let newPosReplied = head gameHistoryReplied
+  Printer.pretty newPosReplied
+  if null l
+      then return()
+      else gameLoopHM gameHistoryReplied
+
+gameLoopHH :: GameHistory -> IO ()
+gameLoopHH gh = do
     putStrLn $ instructions gh
     l <- getLine
     let gameHistory = parseMove l gh
@@ -23,7 +42,7 @@ gameLoop gh = do
     putStrLn $ statusLine gh
     if null l
         then return()
-        else gameLoop gameHistory
+        else gameLoopHH gameHistory
 
 instructions gh = (show $ toPlay gh) ++ " to move (e.g. e2-e4) >"
 
