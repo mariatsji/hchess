@@ -11,11 +11,11 @@ import GHC.Exts
 
 pretty :: Position -> IO ()
 pretty pos = do
-    mapM_ UP.putStrLn $ fmap prettyRow $ rowify $ sortP pos
+    mapM_ UP.putStrLn $ fmap prettyRow $ rowify pos
     return ()
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify = groupWith (snd . fst)
+rowify = groupWith ((* (-1)) . snd . fst)
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row = UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row

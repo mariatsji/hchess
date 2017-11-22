@@ -24,7 +24,7 @@ gameLoopHM gh = do
   putStrLn $ moveOkStatus gh gameHistory
   putStrLn $ statusLine gh
   -- AI reply -- todo only if successful parse!
-  let gameHistoryReplied = AI.first gameHistory
+  let gameHistoryReplied = if validMove gh gameHistory then AI.first gameHistory else gameHistory
   let newPosReplied = head gameHistoryReplied
   Printer.pretty newPosReplied
   if null l
@@ -46,7 +46,9 @@ gameLoopHH gh = do
 
 instructions gh = (show $ toPlay gh) ++ " to move (e.g. e2-e4) >"
 
-moveOkStatus gh1 gh2 = if (gh1 /= gh2) then "Made move" else "Illegal move"
+moveOkStatus gh1 gh2 = if validMove gh1 gh2 then "Made move" else "Illegal move"
+
+validMove gh1 gh2 = gh1 /= gh2
 
 statusLine gh = if Chess.isCheckMate gh
   then "Check-Mate to " ++ show (succ' $ toPlay gh)
