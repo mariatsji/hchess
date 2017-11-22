@@ -3,7 +3,7 @@ Position, GameHistory, startPosition, movePiece, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, isPatt, allPositionsWhereNotInCheck, succ') where
+anyPosWithoutKing, isCheckMate, isPatt, succ') where
 
 import Control.Arrow
 import Data.Char
@@ -121,10 +121,7 @@ toPlay :: GameHistory -> Color
 toPlay pos = if whiteToPlay pos then White else Black
 
 positionTree :: GameHistory -> [Position]
-positionTree gh = if (isInCheck (head gh) (toPlay gh)) then allPositionsWhereNotInCheck gh else positionTreeIgnoreCheck gh
-
-allPositionsWhereNotInCheck :: GameHistory -> [Position]
-allPositionsWhereNotInCheck gh = fmap head $ filter (\p -> not $ isInCheck (head p) (toPlay gh)) $ potentialGHs gh
+positionTree gh = fmap head $ filter (\p -> not $ isInCheck (head p) (toPlay gh)) $ potentialGHs gh
   where potentialGHs gh' = (: gh') <$> positionTreeIgnoreCheck gh'
 
 positionTreeIgnoreCheck :: GameHistory -> [Position] -- we know whos turn it is

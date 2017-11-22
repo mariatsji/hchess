@@ -89,7 +89,7 @@ main = hspec $ do
             let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
             let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
             let p4 = Chess.replacePieceAt p3 ('g', 8) (Rook White)
-            let t = Chess.allPositionsWhereNotInCheck [p4, p4]
+            let t = Chess.positionTree [p4, p3]
             length t `shouldBe` (1 :: Int)
         it "knows that black is check mate" $ do
             let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
