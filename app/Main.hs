@@ -14,19 +14,19 @@ main = do
 
 gameLoop :: GameHistory -> IO ()
 gameLoop gh = do
-    putStrLn "Enter move (e.g. e2-e4) >"
+    putStrLn $ instructions gh
     l <- getLine
     let gameHistory = parseMove l gh
-    let moveOkStatus = if (gameHistory /= gh) then "Made move" else "Illegal move"
     let newPos = head gameHistory
     Printer.pretty newPos
-    putStrLn moveOkStatus
-    let statusLine = if Chess.isCheckMate gameHistory
-        then
-          "Check-Mate to " ++ show (succ' $ toPlay gameHistory)
-        else
-          (show $ succ' $ toPlay gameHistory) ++ " to play"
-    putStrLn statusLine
+    putStrLn $ moveOkStatus gh gameHistory
+    putStrLn $ statusLine gh
     if null l
         then return()
         else gameLoop gameHistory
+
+instructions gh = (show $ toPlay gh) ++ " to move (e.g. e2-e4) >"
+
+moveOkStatus gh1 gh2 = if (gh1 /= gh2) then "Made move" else "Illegal move"
+
+statusLine gh = if Chess.isCheckMate gh then "Check-Mate to " ++ show (succ' $ toPlay gh) else (show $ succ' $ toPlay gh) ++ " to play"

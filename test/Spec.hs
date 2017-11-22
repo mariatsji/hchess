@@ -15,7 +15,6 @@ main = hspec $ do
             length Chess.board `shouldBe` (64 :: Int)
         it "moves E2-E4 from start pos" $ do
             let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
-            -- Printer.pretty newPos
             Chess.pieceAt newPos ('e', 4) `shouldBe` (Just $ Pawn White :: Maybe Piece)
         it "finds 16 white pieces in startpos" $ do
             length (Chess.whitePieces Chess.startPosition) `shouldBe` (16 :: Int)
@@ -91,7 +90,6 @@ main = hspec $ do
             let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
             let p4 = Chess.replacePieceAt p3 ('g', 8) (Rook White)
             let t = Chess.allPositionsWhereNotInCheck [p4, p4]
-            mapM_ Printer.pretty t
             length t `shouldBe` (1 :: Int)
         it "knows that black is check mate" $ do
             let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
@@ -99,5 +97,13 @@ main = hspec $ do
             let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
             let p4 = Chess.replacePieceAt p3 ('g', 8) (Queen White)
             let t = Chess.positionTree [p4, p4]
-            -- mapM_ Printer.pretty t
             Chess.isCheckMate [p4, p4] `shouldBe` (True :: Bool)
+        it "knows that position is stalemate" $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
+            let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
+            let p3 = Chess.replacePieceAt p2 ('h', 6) (Pawn White)
+            let p4 = Chess.replacePieceAt p3 ('g', 6) (Pawn White)
+            let p5 = Chess.replacePieceAt p4 ('h', 7) (Pawn White)
+            let t = Chess.positionTree [p5, p4]
+            Printer.pretty p5
+            Chess.isPatt [p5, p4] `shouldBe` (True :: Bool)

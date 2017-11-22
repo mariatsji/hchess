@@ -3,7 +3,7 @@ Position, GameHistory, startPosition, movePiece, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, allPositionsWhereNotInCheck, succ') where
+anyPosWithoutKing, isCheckMate, isPatt, allPositionsWhereNotInCheck, succ') where
 
 import Control.Arrow
 import Data.Char
@@ -195,6 +195,9 @@ isInCheck pos color = anyPosWithoutKing color (positionTreeIgnoreCheck' pos (suc
 
 isCheckMate :: GameHistory -> Bool
 isCheckMate gh  = isInCheck (head gh) (toPlay gh) && null (positionTree gh)
+
+isPatt :: GameHistory -> Bool
+isPatt gh = not (isInCheck (head gh) (toPlay gh)) && null (positionTree gh)
 
 anyPosWithoutKing :: Color -> [Position] -> Bool
 anyPosWithoutKing col pos = not $ allHasKing col pos
