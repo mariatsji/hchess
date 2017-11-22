@@ -105,5 +105,4 @@ main = hspec $ do
             let p4 = Chess.replacePieceAt p3 ('g', 6) (Pawn White)
             let p5 = Chess.replacePieceAt p4 ('h', 7) (Pawn White)
             let t = Chess.positionTree [p5, p4]
-            Printer.pretty p5
             Chess.isPatt [p5, p4] `shouldBe` (True :: Bool)

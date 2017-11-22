@@ -29,4 +29,9 @@ instructions gh = (show $ toPlay gh) ++ " to move (e.g. e2-e4) >"
 
 moveOkStatus gh1 gh2 = if (gh1 /= gh2) then "Made move" else "Illegal move"
 
-statusLine gh = if Chess.isCheckMate gh then "Check-Mate to " ++ show (succ' $ toPlay gh) else (show $ succ' $ toPlay gh) ++ " to play"
+statusLine gh = if Chess.isCheckMate gh
+  then "Check-Mate to " ++ show (succ' $ toPlay gh)
+  else
+    if Chess.isPatt gh
+      then "Stalemate!"
+      else (show $ succ' $ toPlay gh) ++ " to play"
