@@ -3,7 +3,7 @@ Position, GameHistory, startPosition, movePiece, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, isPatt, succ') where
+anyPosWithoutKing, isCheckMate, isPatt, succ', promote) where
 
 import Control.Arrow
 import Data.Char
@@ -126,8 +126,8 @@ positionTree gh = fmap head $ filter (\p -> not $ isInCheck (head p) (toPlay gh)
 
 positionTreeIgnoreCheck :: GameHistory -> [Position] -- we know whos turn it is
 positionTreeIgnoreCheck pos
-    | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
-    | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p))
+    | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p)) -- >>= (promote White)
+    | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p)) -- >>= (promote Black)
 
 positionTreeIgnoreCheck' :: Position -> Color -> [Position]
 positionTreeIgnoreCheck' pos White = whitePieces pos >>= (\(s,p) -> positionsPrPiece pos (s,p))
@@ -155,6 +155,17 @@ toSquaresPawn pos (s, p)
             [squareTo s (-1) (-1) | enemyAt pos s $ squareTo s (-1) (-1)] ++
             [squareTo s 1 (-1) | enemyAt pos s $ squareTo s 1 (-1)]
 
+-- promotions
+prom :: Color -> Piece -> (Square, Maybe Piece) -> (Square, Maybe Piece)
+prom White p (s, mp) = if snd s == 8 && mp == Just (Pawn White) then (s, Just p) else (s, mp)
+prom Black p (s, mp) = if snd s == 1 && mp == Just (Pawn Black) then (s, Just p) else (s, mp)
+
+promoteTo :: Color -> Position -> Piece -> Position
+promoteTo c pos p = fmap (prom c p) pos
+
+promote :: Color -> Position -> [Position]
+promote c@White pos = [promoteTo c pos (Queen White), promoteTo c pos (Rook White), promoteTo c pos (Bishop White), promoteTo c pos (Knight White)]
+promote c@Black pos = [promoteTo c pos (Queen Black), promoteTo c pos (Rook Black), promoteTo c pos (Bishop Black), promoteTo c pos (Knight Black)]
 
 -- knights
 toSquaresKnight :: Square -> [Square]

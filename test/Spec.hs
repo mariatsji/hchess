@@ -106,3 +106,10 @@ main = hspec $ do
             let p5 = Chess.replacePieceAt p4 ('h', 7) (Pawn White)
             let t = Chess.positionTree [p5, p4]
             Chess.isPatt [p5, p4] `shouldBe` (True :: Bool)
+        it "promotes pawns for Black " $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 1) (Pawn Black)
+            let p2 = Chess.promote Black p1
+            Chess.pieceAt (head p2) ('h',1)`shouldBe` (Just (Queen Black))
+            Chess.pieceAt (head $ tail p2) ('h',1)`shouldBe` (Just (Rook Black))
+            Chess.pieceAt (head $ tail $ tail p2) ('h',1)`shouldBe` (Just (Bishop Black))
+            Chess.pieceAt (last $ p2) ('h',1)`shouldBe` (Just (Knight Black))
