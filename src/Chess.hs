@@ -130,8 +130,8 @@ positionTreeIgnoreCheck pos
     | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p)) >>= (promoteBindFriendly Black)
 
 positionTreeIgnoreCheck' :: Position -> Color -> [Position]
-positionTreeIgnoreCheck' pos White = whitePieces pos >>= (\(s,p) -> positionsPrPiece pos (s,p))
-positionTreeIgnoreCheck' pos Black = blackPieces pos >>= (\(s,p) -> positionsPrPiece pos (s,p))
+positionTreeIgnoreCheck' pos White = whitePieces pos >>= (positionsPrPiece pos)
+positionTreeIgnoreCheck' pos Black = blackPieces pos >>= (positionsPrPiece pos)
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position] -- wedge canGoThere into here
 positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresPawn pos (s, p))
@@ -204,6 +204,8 @@ toSquaresQueen s = toSquaresBishop s `mappend` toSquaresRook s
 -- kings
 toSquaresKing :: Square -> [Square]
 toSquaresKing s = [squareTo s a b | a <- [-1, 0, 1], b <- [-1, 0, 1], (a,b) /= (0,0), insideBoard $ squareTo s a b]
+
+-- castles
 
 insideBoard :: Square -> Bool
 insideBoard s = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
