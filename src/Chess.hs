@@ -3,7 +3,7 @@ Position, GameHistory, startPosition, movePiece, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, isPatt, succ', promote) where
+anyPosWithoutKing, isCheckMate, isPatt, succ', promote, promoteBindFriendly) where
 
 import Control.Arrow
 import Data.Char
@@ -126,8 +126,8 @@ positionTree gh = fmap head $ filter (\p -> not $ isInCheck (head p) (toPlay gh)
 
 positionTreeIgnoreCheck :: GameHistory -> [Position] -- we know whos turn it is
 positionTreeIgnoreCheck pos
-    | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p)) -- >>= (promote White)
-    | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p)) -- >>= (promote Black)
+    | whiteToPlay pos = whitePieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p)) >>= (promoteBindFriendly White)
+    | otherwise = blackPieces (head pos) >>= (\(s,p) -> positionsPrPiece (head pos) (s,p)) >>= (promoteBindFriendly Black)
 
 positionTreeIgnoreCheck' :: Position -> Color -> [Position]
 positionTreeIgnoreCheck' pos White = whitePieces pos >>= (\(s,p) -> positionsPrPiece pos (s,p))
@@ -155,17 +155,27 @@ toSquaresPawn pos (s, p)
             [squareTo s (-1) (-1) | enemyAt pos s $ squareTo s (-1) (-1)] ++
             [squareTo s 1 (-1) | enemyAt pos s $ squareTo s 1 (-1)]
 
--- promotions
+-- promotions :: promote one position
 prom :: Color -> Piece -> (Square, Maybe Piece) -> (Square, Maybe Piece)
 prom White p (s, mp) = if snd s == 8 && mp == Just (Pawn White) then (s, Just p) else (s, mp)
 prom Black p (s, mp) = if snd s == 1 && mp == Just (Pawn Black) then (s, Just p) else (s, mp)
 
+-- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
 promoteTo c pos p = fmap (prom c p) pos
 
+-- promote one position to [] or all four positions
+maybePromote :: Color -> Position -> Piece -> [Position]
+maybePromote c pos p = if canPromote c pos p then [promoteTo c pos p] else []
+  where canPromote c' pos' p' = promoteTo c' pos' p' /= pos'
+
 promote :: Color -> Position -> [Position]
-promote c@White pos = [promoteTo c pos (Queen White), promoteTo c pos (Rook White), promoteTo c pos (Bishop White), promoteTo c pos (Knight White)]
-promote c@Black pos = [promoteTo c pos (Queen Black), promoteTo c pos (Rook Black), promoteTo c pos (Bishop Black), promoteTo c pos (Knight Black)]
+promote c@White pos = maybePromote c pos (Queen White) ++ maybePromote c pos (Rook White) ++ maybePromote c pos (Bishop White) ++ maybePromote c pos (Knight White)
+promote c@Black pos = maybePromote c pos (Queen Black) ++ maybePromote c pos (Rook Black) ++ maybePromote c pos (Bishop Black) ++ maybePromote c pos (Knight Black)
+
+-- same pos or all four
+promoteBindFriendly :: Color -> Position -> [Position]
+promoteBindFriendly c pos = if promote c pos /= [pos] && promote c pos /= [] then promote c pos else [pos]
 
 -- knights
 toSquaresKnight :: Square -> [Square]

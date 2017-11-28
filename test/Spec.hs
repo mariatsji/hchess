@@ -113,3 +113,16 @@ main = hspec $ do
             Chess.pieceAt (head $ tail p2) ('h',1)`shouldBe` (Just (Rook Black))
             Chess.pieceAt (head $ tail $ tail p2) ('h',1)`shouldBe` (Just (Bishop Black))
             Chess.pieceAt (last $ p2) ('h',1)`shouldBe` (Just (Knight Black))
+        it "finds promotion positions for White" $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('e', 8) (Pawn White)
+            let t = Chess.promoteBindFriendly White p1
+            length t `shouldBe` (4 :: Int)
+        it "leaves unpromotable boards alone for White" $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('e', 7) (Pawn White)
+            let t = Chess.promoteBindFriendly White p1
+            t `shouldBe` [p1]
+        it "promotes passed pawns for Black in the position tree" $ do
+              let p1 = Chess.replacePieceAt Chess.emptyBoard ('e', 2) (Pawn Black)
+              let t = Chess.positionTree [p1, Chess.emptyBoard]
+              Chess.pieceAt (head t) ('e', 1) `shouldBe` (Just (Queen Black))
+              length t `shouldBe` (4 :: Int)

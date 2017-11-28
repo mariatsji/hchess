@@ -10,7 +10,6 @@
     
 # todo
     
-    - promotions
     - castling
     - en passant
     - 50 move rule
