@@ -66,7 +66,8 @@ main = hspec $ do
             let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
             let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
             let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
-            let t = Chess.positionTreeIgnoreCheck [p3, p3] -- fake blacks turn
+            let t = Chess.positionTreeIgnoreCheck [p3, p2, p1, Chess.emptyBoard]
+            mapM_ Printer.pretty t
             length t `shouldBe` (3 :: Int) 
         it "knows that white is in check" $ do
             let p1 = Move.parseMove "e2-e4" [Chess.startPosition]
@@ -122,7 +123,38 @@ main = hspec $ do
             let t = Chess.promoteBindFriendly White p1
             t `shouldBe` [p1]
         it "promotes passed pawns for Black in the position tree" $ do
-              let p1 = Chess.replacePieceAt Chess.emptyBoard ('e', 2) (Pawn Black)
-              let t = Chess.positionTree [p1, Chess.emptyBoard]
-              Chess.pieceAt (head t) ('e', 1) `shouldBe` (Just (Queen Black))
-              length t `shouldBe` (4 :: Int)
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('e', 2) (Pawn Black)
+            let t = Chess.positionTree [p1, Chess.emptyBoard]
+            Chess.pieceAt (head t) ('e', 1) `shouldBe` (Just (Queen Black))
+            length t `shouldBe` (4 :: Int)
+        it "does a long castle for black when the startpos is used" $ do
+            let p1 = Chess.removePieceAt Chess.startPosition ('b', 8)
+            let p2 = Chess.removePieceAt p1 ('c', 8)
+            let p3 = Chess.removePieceAt p2 ('d', 8)
+            let c = Chess.castleLong [p3, p2, p1, Chess.startPosition] Black
+            length c `shouldBe` (1 :: Int)
+            Chess.pieceAt (head c) ('c', 8) `shouldBe` (Just (King Black))
+            Chess.pieceAt (head c) ('d', 8) `shouldBe` (Just (Rook Black))
+        it "white does not castle through check" $ do
+            let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4))
+                  , (('e', 7), ('e', 5))
+                  , (('g', 1), ('f', 3))
+                  , (('b', 8), ('c', 6))
+                  , (('f', 1), ('b', 5))
+                  , (('d', 7), ('d', 6))
+                  , (('b', 1), ('c', 3))
+                  , (('d', 8), ('g', 5))
+                  , (('c', 3), ('d', 5))
+                  , (('g', 5), ('g', 2)) ]
+            let p2 = Chess.castleShort p White
+            p2 `shouldBe` []
+        it "lets white castle from moves out of the opening" $ do
+            let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4))
+                  , (('e', 7), ('e', 5))
+                  , (('g', 1), ('f', 3))
+                  , (('b', 8), ('c', 6))
+                  , (('f', 1), ('b', 5))
+                  , (('d', 7), ('d', 6))]
+            let t = Chess.positionTree p
+            let kingMoves = filter (\p -> pieceAt p ('e', 1) == Nothing) t
+            length kingMoves `shouldBe` (3 :: Int)
