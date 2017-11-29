@@ -3,7 +3,7 @@ Position, GameHistory, startPosition, movePiece, makeMoves, removePieceAt, white
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, isPatt, succ', promote, promoteBindFriendly, castle, castleShort, castleLong) where
+anyPosWithoutKing, isCheckMate, isPatt, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong) where
 
 import Control.Arrow
 import Data.Char

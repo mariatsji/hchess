@@ -12,7 +12,7 @@ import System.IO
 main :: IO ()
 main = do
     Printer.pretty Chess.startPosition
-    gameLoopMM [Chess.startPosition]
+    gameLoopHM [Chess.startPosition]
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
@@ -21,7 +21,7 @@ gameLoopMM gh = do
   let newPos = head gameHistory
   Printer.pretty newPos
   putStrLn $ moveOkStatus gh gameHistory
-  putStrLn $ statusLine gh
+  putStrLn $ statusLine gameHistory
   -- AI reply -- todo only if successful parse!
   let gameHistoryReplied = if validMove gh gameHistory then AI.first gameHistory else gameHistory
   let newPosReplied = head gameHistoryReplied
@@ -36,7 +36,7 @@ gameLoopHM gh = do
   let newPos = head gameHistory
   Printer.pretty newPos
   putStrLn $ moveOkStatus gh gameHistory
-  putStrLn $ statusLine gh
+  putStrLn $ statusLine gameHistory
   -- AI reply -- todo only if successful parse!
   let gameHistoryReplied = if validMove gh gameHistory then AI.first gameHistory else gameHistory
   let newPosReplied = head gameHistoryReplied
@@ -53,7 +53,7 @@ gameLoopHH gh = do
     let newPos = head gameHistory
     Printer.pretty newPos
     putStrLn $ moveOkStatus gh gameHistory
-    putStrLn $ statusLine gh
+    putStrLn $ statusLine gameHistory
     if null l
         then return()
         else gameLoopHH gameHistory

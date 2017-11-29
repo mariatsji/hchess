@@ -1,0 +1,11 @@
+♖           ♞ ♜
+        ♚      
+♗   ♕       ♘  
+            ♘  
+              ♙
+               
+♙ ♙ ♙ ♙   ♙ ♙  
+♖   ♗       ♔  
+Made move
+Black to play
+hchess-exe: Prelude.head: empty list
