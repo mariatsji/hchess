@@ -10,7 +10,6 @@
     
 # todo
     
-    - parse castling
     - en passant
     - 50 move rule
     - AI!

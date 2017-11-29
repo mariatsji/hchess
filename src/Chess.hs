@@ -1,6 +1,6 @@
 module Chess(board, Color(..), Piece(..), Square,
 Position, GameHistory, startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
-emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck,
+emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck, enPassant,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
 anyPosWithoutKing, isCheckMate, isPatt, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong) where
@@ -133,39 +133,51 @@ toPlay :: GameHistory -> Color
 toPlay pos = if whiteToPlay pos then White else Black
 
 positionTree :: GameHistory -> [Position]
-positionTree gh = fmap head $ filter (\p -> not $ isInCheck (head p) (toPlay gh)) $ potentialGHs gh
+positionTree gh = fmap head $ filter (\p -> not $ isInCheck p (toPlay gh)) $ potentialGHs gh
   where potentialGHs gh' = (: gh') <$> positionTreeIgnoreCheck gh'
 
 positionTreeIgnoreCheck :: GameHistory -> [Position] -- we know whos turn it is
 positionTreeIgnoreCheck gh
-    | whiteToPlay gh = (whitePieces (head gh) >>= (positionsPrPiece (head gh)) >>= (promoteBindFriendly White)) ++ castle gh
-    | otherwise = (blackPieces (head gh) >>= (positionsPrPiece (head gh)) >>= (promoteBindFriendly Black)) ++ castle gh
+    | whiteToPlay gh = (whitePieces (head gh) >>= (positionsPrPiece gh) >>= (promoteBindFriendly White)) ++ castle gh
+    | otherwise = (blackPieces (head gh) >>= (positionsPrPiece gh) >>= (promoteBindFriendly Black)) ++ castle gh
 
-positionTreeIgnoreCheck' :: Position -> Color -> [Position]
-positionTreeIgnoreCheck' pos White = whitePieces pos >>= (positionsPrPiece pos)
-positionTreeIgnoreCheck' pos Black = blackPieces pos >>= (positionsPrPiece pos)
+positionTreeIgnoreCheck' :: GameHistory -> Color -> [Position]
+positionTreeIgnoreCheck' gh White = whitePieces (head gh) >>= (positionsPrPiece gh)
+positionTreeIgnoreCheck' gh Black = blackPieces (head gh) >>= (positionsPrPiece gh)
 
-positionsPrPiece :: Position -> (Square, Piece) -> [Position] -- wedge canGoThere into here
-positionsPrPiece pos (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresPawn pos (s, p))
-                                       (Knight _) -> fmap (movePiece pos s) (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
-                                       (Bishop _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
-                                       (Rook _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresRook s)
-                                       (Queen _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
-                                       (King _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
+positionsPrPiece :: GameHistory -> (Square, Piece) -> [Position] -- wedge canGoThere into here
+positionsPrPiece gh (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresPawn gh (s, p))
+                                      (Knight _) -> fmap (movePiece pos s) (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
+                                      (Bishop _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
+                                      (Rook _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresRook s)
+                                      (Queen _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
+                                      (King _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
+  where pos = head gh
 
 -- pawns
-toSquaresPawn :: Position -> (Square, Piece) -> [Square]
-toSquaresPawn pos (s, p)
+toSquaresPawn :: GameHistory -> (Square, Piece) -> [Square]
+toSquaresPawn gh (s, p)
         | color p == White = filter insideBoard $
             [squareTo s 0 2 | snd s == 2, vacantAt pos $ squareTo s 0 2] ++
             [squareTo s 0 1 | vacantAt pos $ squareTo s 0 1] ++
-            [squareTo s (-1) 1 | enemyAt pos s $ squareTo s (-1) 1] ++
-            [squareTo s 1 1 | enemyAt pos s $ squareTo s 1 1]
+            [squareTo s (-1) 1 | (enemyAt pos s $ squareTo s (-1) 1) || enPassant gh (squareTo s (-1) 0)] ++
+            [squareTo s 1 1 | (enemyAt pos s $ squareTo s 1 1) || enPassant gh (squareTo s 1 0)]
         | otherwise = filter insideBoard $
             [squareTo s 0 (-2) | snd s == 7, vacantAt pos $ squareTo s 0 (-2)] ++
             [squareTo s 0 (-1) | vacantAt pos $ squareTo s 0 (-1)] ++
-            [squareTo s (-1) (-1) | enemyAt pos s $ squareTo s (-1) (-1)] ++
-            [squareTo s 1 (-1) | enemyAt pos s $ squareTo s 1 (-1)]
+            [squareTo s (-1) (-1) | (enemyAt pos s $ squareTo s (-1) (-1)) || enPassant gh (squareTo s (-1) 0)] ++
+            [squareTo s 1 (-1) | (enemyAt pos s $ squareTo s 1 (-1)) || enPassant gh (squareTo s 1 0)]
+  where pos = head gh
+
+-- en passant
+enPassant :: GameHistory -> Square -> Bool
+enPassant [] s = False
+enPassant [x] s = False
+enPassant gh s = pieceAt (head gh) s == opponentPawn gh && wasLastPieceToMove gh s
+  where opponentPawn gh = if (toPlay gh == White) then Just (Pawn Black) else Just (Pawn White)
+        toCol = if (toPlay gh == White) then (fst s, 7) else (fst s, 2)
+        wasLastPieceToMove gh s = (movePiece (head gh) s toCol) == (head . tail) gh
+
 
 -- promotions :: promote one position
 prom :: Color -> Piece -> (Square, Maybe Piece) -> (Square, Maybe Piece)
@@ -226,7 +238,7 @@ castle gh
 -- [] or [x]
 castleShort :: GameHistory -> Color -> [Position]
 castleShort gh color = if
-  (not (isInCheck (head gh) color) && -- must not be in check
+  (not (isInCheck gh color) && -- must not be in check
   pieceAt (head gh) (shortRookPos color) == Just (rook color) && -- must have a rook at home
   pieceAt (head gh) (kingPos color) == Just (king color) && -- must have a king at home
   haveNotMoved gh (king color) (kingPos color) && -- must not have moved king
@@ -239,7 +251,7 @@ castleShort gh color = if
 -- [] or [x]
 castleLong :: GameHistory -> Color -> [Position]
 castleLong gh color = if
-  (not (isInCheck (head gh) color) &&
+  (not (isInCheck gh color) &&
   pieceAt (head gh) (longRookPos color) == Just (rook color) &&
   pieceAt (head gh) (kingPos color) == Just (king color) && -- must have a king at home
   haveNotMoved gh (king color) (kingPos color) &&
@@ -273,23 +285,23 @@ haveNotMoved :: GameHistory -> Piece -> Square -> Bool
 haveNotMoved gh p s = all (\pos -> pieceAt pos s == Just p) gh
 
 willNotPassCheck :: GameHistory -> Square -> Square -> Bool
-willNotPassCheck gh ('e',1) ('h',1) = not (isInCheck (movePiece (head gh) ('e', 1) ('f', 1)) (toPlay gh)) && not (isInCheck (movePiece (head gh) ('e', 1) ('g', 1)) (toPlay gh))
-willNotPassCheck gh ('e',1) ('a',1) = not (isInCheck (movePiece (head gh) ('e', 1) ('d', 1)) (toPlay gh)) && not (isInCheck (movePiece (head gh) ('e', 1) ('c', 1)) (toPlay gh))
-willNotPassCheck gh ('e',8) ('h',8) = not (isInCheck (movePiece (head gh) ('e', 8) ('f', 8)) (toPlay gh)) && not (isInCheck (movePiece (head gh) ('e', 8) ('g', 8)) (toPlay gh))
-willNotPassCheck gh ('e',8) ('a',8) = not (isInCheck (movePiece (head gh) ('e', 8) ('d', 8)) (toPlay gh)) && not (isInCheck (movePiece (head gh) ('e', 8) ('c', 8)) (toPlay gh))
+willNotPassCheck gh ('e',1) ('h',1) = not (isInCheck (movePiece (head gh) ('e', 1) ('f', 1) : gh) (toPlay gh)) && not (isInCheck (movePiece (head gh) ('e', 1) ('g', 1) : gh) (toPlay gh))
+willNotPassCheck gh ('e',1) ('a',1) = not (isInCheck (movePiece (head gh) ('e', 1) ('d', 1) : gh) (toPlay gh)) && not (isInCheck (movePiece (head gh) ('e', 1) ('c', 1) : gh) (toPlay gh))
+willNotPassCheck gh ('e',8) ('h',8) = not (isInCheck (movePiece (head gh) ('e', 8) ('f', 8) : gh) (toPlay gh)) && not (isInCheck (movePiece (head gh) ('e', 8) ('g', 8) : gh) (toPlay gh))
+willNotPassCheck gh ('e',8) ('a',8) = not (isInCheck (movePiece (head gh) ('e', 8) ('d', 8) : gh) (toPlay gh)) && not (isInCheck (movePiece (head gh) ('e', 8) ('c', 8) : gh) (toPlay gh))
 willNotPassCheck gh s1 s2 = error $ "cannot use squares " ++ (show s1) ++ " and " ++ (show s2) ++ " as castling squares"
 
 insideBoard :: Square -> Bool
 insideBoard s = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
 
-isInCheck :: Position -> Color -> Bool
-isInCheck pos color = anyPosWithoutKing color (positionTreeIgnoreCheck' pos (succ' color))
+isInCheck :: GameHistory -> Color -> Bool
+isInCheck gh color = anyPosWithoutKing color (positionTreeIgnoreCheck' gh (succ' color))
 
 isCheckMate :: GameHistory -> Bool
-isCheckMate gh  = isInCheck (head gh) (toPlay gh) && null (positionTree gh)
+isCheckMate gh  = isInCheck gh (toPlay gh) && null (positionTree gh)
 
 isPatt :: GameHistory -> Bool
-isPatt gh = not (isInCheck (head gh) (toPlay gh)) && null (positionTree gh)
+isPatt gh = not (isInCheck gh (toPlay gh)) && null (positionTree gh)
 
 anyPosWithoutKing :: Color -> [Position] -> Bool
 anyPosWithoutKing col pos = not $ allHasKing col pos

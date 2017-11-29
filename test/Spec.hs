@@ -54,7 +54,7 @@ main = hspec $ do
             let squares = Chess.points ('h', 1) ('a', 8)
             squares `shouldBe` ([('g',2),('f',3),('e',4),('d',5),('c',6),('b',7)] :: [Square])
         it "finds toSquares for pawns in startrow" $ do
-            let squares = Chess.toSquaresPawn Chess.startPosition (('e', 2), Pawn White)
+            let squares = Chess.toSquaresPawn [Chess.startPosition] (('e', 2), Pawn White)
             squares `shouldMatchList` ([('e',3),('e',4)] :: [Square])
         it "recognizes a position with a king" $ do
             let b = Chess.anyPosWithoutKing White [Chess.startPosition]
@@ -67,8 +67,7 @@ main = hspec $ do
             let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
             let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
             let t = Chess.positionTreeIgnoreCheck [p3, p2, p1, Chess.emptyBoard]
-            mapM_ Printer.pretty t
-            length t `shouldBe` (3 :: Int) 
+            length t `shouldBe` (3 :: Int)
         it "knows that white is in check" $ do
             let p1 = Move.parseMove "e2-e4" [Chess.startPosition]
             let p2 = Move.parseMove "d7-d5" p1
@@ -76,7 +75,7 @@ main = hspec $ do
             let p4 = Move.parseMove "d8-d5" p3
             let p5 = Move.parseMove "h2-h4" p4
             let p6 = Move.parseMove "d5-e5" p5
-            Chess.isInCheck (head p6) (toPlay p6) `shouldBe` (True :: Bool)
+            Chess.isInCheck p6 (toPlay p6) `shouldBe` (True :: Bool)
         it "knows that white is not in check" $ do
             let p1 = Move.parseMove "e2-e4" [Chess.startPosition]
             let p2 = Move.parseMove "d7-d5" p1
@@ -84,7 +83,7 @@ main = hspec $ do
             let p4 = Move.parseMove "d8-d5" p3
             let p5 = Move.parseMove "h2-h4" p4
             let p6 = Move.parseMove "d5-a5" p5
-            Chess.isInCheck (head p6) (toPlay p6) `shouldBe` (False :: Bool)
+            Chess.isInCheck p6 (toPlay p6) `shouldBe` (False :: Bool)
         it "knows all next positions where not in check" $ do
             let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
             let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
@@ -158,3 +157,17 @@ main = hspec $ do
             let t = Chess.positionTree p
             let kingMoves = filter (\p -> pieceAt p ('e', 1) == Nothing) t
             length kingMoves `shouldBe` (3 :: Int)
+        it "finds two en passant moves for black" $ do
+            let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4))
+                  , (('b', 8), ('a', 6))
+                  , (('e', 4), ('e', 5))
+                  , (('a', 6), ('b', 8))
+                  , (('c', 2), ('c', 4))
+                  , (('b', 8), ('a', 6))
+                  , (('c', 4), ('c', 5))
+                  , (('d', 7), ('d', 5))]
+            let t = Chess.positionTree p
+            let cPawnMoves = filter (\p -> pieceAt p ('c', 5) == Nothing) t
+            mapM_ Printer.pretty cPawnMoves
+            length cPawnMoves `shouldBe` (2 :: Int)
+            --let cPawnMoves = filter (\p -> pieceAt p ('c', 5) == Nothing) t
