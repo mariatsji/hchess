@@ -10,7 +10,6 @@
     
 # todo
     
-    - en passant
     - 50 move rule
     - AI!
     - pgn?

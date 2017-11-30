@@ -146,7 +146,7 @@ positionTreeIgnoreCheck' gh White = whitePieces (head gh) >>= (positionsPrPiece 
 positionTreeIgnoreCheck' gh Black = blackPieces (head gh) >>= (positionsPrPiece gh)
 
 positionsPrPiece :: GameHistory -> (Square, Piece) -> [Position] -- wedge canGoThere into here
-positionsPrPiece gh (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresPawn gh (s, p))
+positionsPrPiece gh (s,p) = case p of (Pawn _) -> fmap (\t -> movePiece (eliminateEnPassantSquare pos t) s (fst t)) (filter (\t -> canGoThere pos s (fst t)) $ toSquaresPawn gh (s, p))
                                       (Knight _) -> fmap (movePiece pos s) (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
                                       (Bishop _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
                                       (Rook _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresRook s)
@@ -154,19 +154,23 @@ positionsPrPiece gh (s,p) = case p of (Pawn _) -> fmap (movePiece pos s) (filter
                                       (King _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
   where pos = head gh
 
--- pawns
-toSquaresPawn :: GameHistory -> (Square, Piece) -> [Square]
+eliminateEnPassantSquare :: Position -> (Square, Maybe Square) -> Position
+eliminateEnPassantSquare pos (s, Nothing) = pos
+eliminateEnPassantSquare pos (s, Just s2) = removePieceAt pos s2
+
+-- pawns - returns new squares, along with an optional capture square (because of en passant)
+toSquaresPawn :: GameHistory -> (Square, Piece) -> [(Square, Maybe Square)]
 toSquaresPawn gh (s, p)
-        | color p == White = filter insideBoard $
-            [squareTo s 0 2 | snd s == 2, vacantAt pos $ squareTo s 0 2] ++
-            [squareTo s 0 1 | vacantAt pos $ squareTo s 0 1] ++
-            [squareTo s (-1) 1 | (enemyAt pos s $ squareTo s (-1) 1) || enPassant gh (squareTo s (-1) 0)] ++
-            [squareTo s 1 1 | (enemyAt pos s $ squareTo s 1 1) || enPassant gh (squareTo s 1 0)]
-        | otherwise = filter insideBoard $
-            [squareTo s 0 (-2) | snd s == 7, vacantAt pos $ squareTo s 0 (-2)] ++
-            [squareTo s 0 (-1) | vacantAt pos $ squareTo s 0 (-1)] ++
-            [squareTo s (-1) (-1) | (enemyAt pos s $ squareTo s (-1) (-1)) || enPassant gh (squareTo s (-1) 0)] ++
-            [squareTo s 1 (-1) | (enemyAt pos s $ squareTo s 1 (-1)) || enPassant gh (squareTo s 1 0)]
+        | color p == White = filter insideBoard' $
+            [(squareTo s 0 2, Nothing) | snd s == 2, vacantAt pos $ squareTo s 0 2] ++
+            [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1] ++
+            [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | (enemyAt pos s $ squareTo s (-1) 1) || enPassant gh (squareTo s (-1) 0)] ++
+            [(squareTo s 1 1, Just (squareTo s 1 0)) | (enemyAt pos s $ squareTo s 1 1) || enPassant gh (squareTo s 1 0)]
+        | otherwise = filter insideBoard' $
+            [(squareTo s 0 (-2), Nothing) | snd s == 7, vacantAt pos $ squareTo s 0 (-2)] ++
+            [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)] ++
+            [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | (enemyAt pos s $ squareTo s (-1) (-1)) || enPassant gh (squareTo s (-1) 0)] ++
+            [(squareTo s 1 (-1), Just (squareTo s 1 0)) | (enemyAt pos s $ squareTo s 1 (-1)) || enPassant gh (squareTo s 1 0)]
   where pos = head gh
 
 -- en passant
@@ -293,6 +297,10 @@ willNotPassCheck gh s1 s2 = error $ "cannot use squares " ++ (show s1) ++ " and 
 
 insideBoard :: Square -> Bool
 insideBoard s = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
+
+insideBoard' :: (Square, Maybe Square) -> Bool
+insideBoard' (s, Nothing) = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
+insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
 
 isInCheck :: GameHistory -> Color -> Bool
 isInCheck gh color = anyPosWithoutKing color (positionTreeIgnoreCheck' gh (succ' color))

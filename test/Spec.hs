@@ -55,7 +55,7 @@ main = hspec $ do
             squares `shouldBe` ([('g',2),('f',3),('e',4),('d',5),('c',6),('b',7)] :: [Square])
         it "finds toSquares for pawns in startrow" $ do
             let squares = Chess.toSquaresPawn [Chess.startPosition] (('e', 2), Pawn White)
-            squares `shouldMatchList` ([('e',3),('e',4)] :: [Square])
+            squares `shouldMatchList` ([(('e',3), Nothing),(('e',4), Nothing)] :: [(Square, Maybe Square)])
         it "recognizes a position with a king" $ do
             let b = Chess.anyPosWithoutKing White [Chess.startPosition]
             b `shouldBe` (False :: Bool)
