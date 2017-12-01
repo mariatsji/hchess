@@ -3,12 +3,13 @@ Position, GameHistory, startPosition, movePiece, makeMoves, removePieceAt, white
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck, enPassant,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, isPatt, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong) where
+anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition, posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong) where
 
 import Control.Arrow
 import Data.Char
 import Data.List
 import Data.Maybe
+import qualified Data.Set as Set
 import Data.Tuple
 
 data Color = White | Black deriving (Eq, Ord, Enum, Show)
@@ -307,6 +308,55 @@ isInCheck gh color = anyPosWithoutKing color (positionTreeIgnoreCheck' gh (succ'
 
 isCheckMate :: GameHistory -> Bool
 isCheckMate gh  = isInCheck gh (toPlay gh) && null (positionTree gh)
+
+isDraw :: GameHistory -> Bool
+isDraw gh = isPatt gh || fiftymoverule gh || threefoldrepetition gh
+
+fiftymoverule :: GameHistory -> Bool
+fiftymoverule gh = length gh >= 50 &&
+  (noPawnMoves $ take 50 gh) ||
+  (noTakes $ take 50 gh)
+
+noTakes :: GameHistory -> Bool
+noTakes [] = True
+noTakes [x] = True
+noTakes gh = allTheSame $ mapToOfficersTupleSet gh
+
+allTheSame :: Eq a => [a] -> Bool
+allTheSame [] = True
+allTheSame [x] = True
+allTheSame (x:xs) = x == head xs
+
+mapToOfficersTupleSet :: GameHistory -> [(Set.Set Piece, Set.Set Piece)]
+mapToOfficersTupleSet gh = fmap (\p -> (whiteOfficers p, blackOfficers p)) gh
+
+whiteOfficers :: Position -> (Set.Set Piece)
+whiteOfficers p = Set.fromList $ fmap snd $ filter (\(s, mp) -> mp /= Pawn White) $ whitePieces p
+
+blackOfficers :: Position -> (Set.Set Piece)
+blackOfficers p = Set.fromList $ fmap snd $ filter (\(s, mp) -> mp /= Pawn Black) $ blackPieces p
+
+noPawnMoves :: GameHistory -> Bool
+noPawnMoves [x] = True
+noPawnMoves (x:xs) = all (eqPosition x) $ fmap pawnsOnly xs
+  where pawnsOnly z = filter (\(s,mp) -> mp == Just (Pawn White) || mp == Just (Pawn Black)) z
+
+threefoldrepetition :: GameHistory -> Bool
+threefoldrepetition gh = max' (fmap snd $ posrep gh) > 2
+
+max' :: Ord a => [a] -> a
+max' [x] = x
+max' (x:xs) = if (x > max'(xs)) then x else max' xs
+
+posrep :: GameHistory -> [(Position, Int)]
+posrep [] = [(Chess.emptyBoard, 1)]
+posrep (x:xs) = (x, countHead it) : posrep (snd it)
+  where it = partition (eqPosition x) (x:xs)
+        countHead z = length $ fst z
+        notHead = snd
+
+eqPosition :: Position -> Position -> Bool
+eqPosition p1 p2 = Set.fromList p1 == Set.fromList p2
 
 isPatt :: GameHistory -> Bool
 isPatt gh = not (isInCheck gh (toPlay gh)) && null (positionTree gh)

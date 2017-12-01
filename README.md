@@ -10,6 +10,6 @@
     
 # todo
     
-    - 50 move rule
+    - Main datatypes for result
     - AI!
     - pgn?

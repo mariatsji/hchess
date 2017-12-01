@@ -168,6 +168,16 @@ main = hspec $ do
                   , (('d', 7), ('d', 5))]
             let t = Chess.positionTree p
             let cPawnMoves = filter (\p -> pieceAt p ('c', 5) == Nothing) t
-            mapM_ Printer.pretty cPawnMoves
             length cPawnMoves `shouldBe` (2 :: Int)
-            --let cPawnMoves = filter (\p -> pieceAt p ('c', 5) == Nothing) t
+            let ePawnMoves = filter (\p -> pieceAt p ('e', 5) == Nothing) t
+            length ePawnMoves `shouldBe` (2 :: Int)
+        it "counts occurrences of a position in a game history" $ do
+            let p = Chess.makeMoves [Chess.startPosition] [ (('b', 1), ('c', 3))
+                 , (('b', 8), ('a', 6))
+                 , (('c', 3), ('b', 1))
+                 , (('a', 6), ('b', 8))
+                 , (('b', 1), ('c', 3))
+                 , (('b', 8), ('a', 6))
+                 , (('c', 3), ('b', 1))
+                 , (('a', 6), ('b', 8))]
+            Chess.threefoldrepetition p `shouldBe` True

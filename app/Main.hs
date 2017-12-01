@@ -67,6 +67,6 @@ validMove gh1 gh2 = gh1 /= gh2
 statusLine gh = if Chess.isCheckMate gh
   then "Check-Mate to " ++ show (succ' $ toPlay gh)
   else
-    if Chess.isPatt gh
+    if Chess.isDraw gh
       then "Stalemate!"
       else (show $ succ' $ toPlay gh) ++ " to play"
