@@ -13,22 +13,20 @@ data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deri
 
 main :: IO ()
 main = do
-    gameLoopHM [Chess.startPosition]
+    gameLoopMM [Chess.startPosition]
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  Printer.pretty (head gh)
-  putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
   let gameHistory = AI.first gh
   let newPos = head gameHistory
-  putStrLn $ moveOkStatus gh gameHistory
+  Printer.pretty newPos
   let newStatus = status gameHistory
   print newStatus
-  -- AI reply -- todo only if successful parse!
-  let gameHistoryReplied = if validMove gh gameHistory then AI.first gameHistory else gameHistory
-  let newPosReplied = head gameHistoryReplied
-  Printer.pretty newPosReplied
-  gameLoopMM gameHistoryReplied
+  if newStatus == Remis || newStatus == WhiteIsMate || newStatus == BlackIsMate
+    then
+      return()
+    else
+      gameLoopMM gameHistory
 
 gameLoopHM :: GameHistory -> IO ()
 gameLoopHM gh = do
