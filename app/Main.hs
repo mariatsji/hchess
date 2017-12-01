@@ -9,19 +9,21 @@ import Data.Char
 import Data.Maybe
 import System.IO
 
+data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deriving (Eq, Ord, Show)
+
 main :: IO ()
 main = do
-    Printer.pretty Chess.startPosition
     gameLoopHM [Chess.startPosition]
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  putStrLn $ instructions gh
+  Printer.pretty (head gh)
+  putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
   let gameHistory = AI.first gh
   let newPos = head gameHistory
-  Printer.pretty newPos
   putStrLn $ moveOkStatus gh gameHistory
-  putStrLn $ statusLine gameHistory
+  let newStatus = status gameHistory
+  print newStatus
   -- AI reply -- todo only if successful parse!
   let gameHistoryReplied = if validMove gh gameHistory then AI.first gameHistory else gameHistory
   let newPosReplied = head gameHistoryReplied
@@ -30,13 +32,14 @@ gameLoopMM gh = do
 
 gameLoopHM :: GameHistory -> IO ()
 gameLoopHM gh = do
-  putStrLn $ instructions gh
+  Printer.pretty (head gh)
+  putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
   l <- getLine
   let gameHistory = parseMove l gh
   let newPos = head gameHistory
-  Printer.pretty newPos
   putStrLn $ moveOkStatus gh gameHistory
-  putStrLn $ statusLine gameHistory
+  let newStatus = status gameHistory
+  print newStatus
   -- AI reply -- todo only if successful parse!
   let gameHistoryReplied = if validMove gh gameHistory then AI.first gameHistory else gameHistory
   let newPosReplied = head gameHistoryReplied
@@ -47,26 +50,30 @@ gameLoopHM gh = do
 
 gameLoopHH :: GameHistory -> IO ()
 gameLoopHH gh = do
-    putStrLn $ instructions gh
+    Printer.pretty (head gh)
+    putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
     l <- getLine
     let gameHistory = parseMove l gh
     let newPos = head gameHistory
-    Printer.pretty newPos
     putStrLn $ moveOkStatus gh gameHistory
-    putStrLn $ statusLine gameHistory
-    if null l
+    let newStatus = status gameHistory
+    print newStatus
+    if newStatus == WhiteToPlay || newStatus == BlackToPlay
+      then if null l
         then return()
         else gameLoopHH gameHistory
-
-instructions gh = (show $ toPlay gh) ++ " to move (e.g. e2-e4) >"
+      else
+        do
+          print newStatus
+          main
 
 moveOkStatus gh1 gh2 = if validMove gh1 gh2 then "Made move" else "Illegal move"
 
 validMove gh1 gh2 = gh1 /= gh2
 
-statusLine gh = if Chess.isCheckMate gh
-  then "Check-Mate to " ++ show (succ' $ toPlay gh)
+status :: GameHistory -> Status
+status gh = if Chess.isCheckMate gh then
+  if Chess.toPlay gh == Black then BlackIsMate else WhiteIsMate
   else
-    if Chess.isDraw gh
-      then "Stalemate!"
-      else (show $ succ' $ toPlay gh) ++ " to play"
+    if Chess.isDraw gh then Remis
+    else if Chess.toPlay gh == White then WhiteToPlay else BlackToPlay

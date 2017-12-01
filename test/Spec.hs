@@ -181,3 +181,17 @@ main = hspec $ do
                  , (('c', 3), ('b', 1))
                  , (('a', 6), ('b', 8))]
             Chess.threefoldrepetition p `shouldBe` True
+        it "does not trigger 3-fold-repetition rule out of the blue" $ do
+            let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4))
+                 , (('a', 7), ('a', 5))
+                 , (('d', 2), ('d', 4))
+                 , (('a', 5), ('a', 4))
+                 , (('a', 2), ('a', 3))]
+            Chess.threefoldrepetition p `shouldBe` False
+        it "does not trigger 50-move-rule out of the blue" $ do
+            let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4))
+                 , (('a', 7), ('a', 5))
+                 , (('d', 2), ('d', 4))
+                 , (('a', 5), ('a', 4))
+                 , (('a', 2), ('a', 3))]
+            Chess.fiftymoverule p `shouldBe` False

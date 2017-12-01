@@ -3,7 +3,8 @@ Position, GameHistory, startPosition, movePiece, makeMoves, removePieceAt, white
 emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck, enPassant,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points',
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition, posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong) where
+anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition, fiftymoverule,
+posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong) where
 
 import Control.Arrow
 import Data.Char
@@ -314,8 +315,8 @@ isDraw gh = isPatt gh || fiftymoverule gh || threefoldrepetition gh
 
 fiftymoverule :: GameHistory -> Bool
 fiftymoverule gh = length gh >= 50 &&
-  (noPawnMoves $ take 50 gh) ||
-  (noTakes $ take 50 gh)
+  ((noPawnMoves $ take 50 gh) ||
+  (noTakes $ take 50 gh))
 
 noTakes :: GameHistory -> Bool
 noTakes [] = True
