@@ -195,3 +195,12 @@ main = hspec $ do
                  , (('a', 5), ('a', 4))
                  , (('a', 2), ('a', 3))]
             Chess.fiftymoverule p `shouldBe` False
+        it "parses an en passant move" $ do
+            let moves = ["e2-e4", "a7-a5", "f1-b5", "a5-a4", "f1-b5", "a4-a3", "O-O", "a3-b2", "c1-b2", "b7-b6", "b1-c3", "c7-c5", "f1-e1", "c5-c4", "e4-e5", "e7-e6", "d1-e2", "f7-f5"]
+            let p = foldl (flip Move.parseMove) [Chess.startPosition] moves
+            let t = Chess.positionTree p
+            let ePawnMoves = filter (\p -> pieceAt p ('e', 5) == Nothing) t
+            let p2 = Move.parseMove "e5-f6" p
+            print (length p)
+            print (length p2)
+            (length p2 - length p2) `shouldBe` (1 :: Int)

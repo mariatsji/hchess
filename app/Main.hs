@@ -13,7 +13,7 @@ data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deri
 
 main :: IO ()
 main = do
-    gameLoopMM [Chess.startPosition]
+    gameLoopHM [Chess.startPosition]
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do

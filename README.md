@@ -10,6 +10,5 @@
     
 # todo
     
-    - pawn takes or pawn en passant from Main (human against machine)
     - AI!
     - pgn?

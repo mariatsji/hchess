@@ -59,7 +59,13 @@ emptyBoard :: Position
 emptyBoard = zip board (repeat Nothing)
 
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos from to =
+movePiece pos from to
+  | pieceAt pos from == Just (Pawn White) && (fst from /= fst to) && vacantAt pos to = movePiece (removePieceAt pos (fst to, (snd to - 1))) from to
+  | pieceAt pos from == Just (Pawn Black) && (fst from /= fst to) && vacantAt pos to = movePiece (removePieceAt pos (fst to, (snd to + 1))) from to
+  | otherwise = movePiece' pos from to
+
+movePiece' :: Position -> Square -> Square -> Position
+movePiece' pos from to =
     case pieceAt pos from of (Just piece) -> replacePieceAt (removePieceAt pos from) to piece
                              Nothing -> pos
 
@@ -183,7 +189,6 @@ enPassant gh s = pieceAt (head gh) s == opponentPawn gh && wasLastPieceToMove gh
   where opponentPawn gh = if (toPlay gh == White) then Just (Pawn Black) else Just (Pawn White)
         toCol = if (toPlay gh == White) then (fst s, 7) else (fst s, 2)
         wasLastPieceToMove gh s = (movePiece (head gh) s toCol) == (head . tail) gh
-
 
 -- promotions :: promote one position
 prom :: Color -> Piece -> (Square, Maybe Piece) -> (Square, Maybe Piece)
