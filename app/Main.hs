@@ -13,11 +13,21 @@ data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deri
 
 main :: IO ()
 main = do
-    gameLoopHM [Chess.startPosition]
+    print "1. Play Human vs Human"
+    print "2. Play Human vs Machine"
+    print "3. Play Machine vs Machine"
+    l <- getLine
+    start l
+
+start :: String -> IO ()
+start "1" = gameLoopHH [Chess.startPosition]
+start "2" = gameLoopHM [Chess.startPosition]
+start "3" = gameLoopMM [Chess.startPosition]
+start _ = main
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  let gameHistory = AI.first gh
+  let gameHistory = AI.firstBest gh
   let newPos = head gameHistory
   Printer.pretty newPos
   let newStatus = status gameHistory
@@ -39,7 +49,7 @@ gameLoopHM gh = do
   let newStatus = status gameHistory
   print newStatus
   -- AI reply -- todo only if successful parse!
-  let gameHistoryReplied = if validMove gh gameHistory then AI.first gameHistory else gameHistory
+  let gameHistoryReplied = if validMove gh gameHistory then AI.firstBest gameHistory else gameHistory
   let newPosReplied = head gameHistoryReplied
   Printer.pretty newPosReplied
   if null l

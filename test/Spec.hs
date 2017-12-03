@@ -62,12 +62,6 @@ main = hspec $ do
         it "recognizes a position without a king" $ do
             let b = Chess.anyPosWithoutKing White [[(('a',1), Just $ Bishop White)]]
             b `shouldBe` (True :: Bool)
-        it "finds a small number of end-positions" $ do
-            let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
-            let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
-            let p3 = Chess.replacePieceAt p2 ('h', 7) (Pawn White)
-            let t = Chess.positionTreeIgnoreCheck [p3, p2, p1, Chess.emptyBoard]
-            length t `shouldBe` (3 :: Int)
         it "knows that white is in check" $ do
             let p1 = Move.parseMove "e2-e4" [Chess.startPosition]
             let p2 = Move.parseMove "d7-d5" p1
