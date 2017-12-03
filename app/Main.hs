@@ -13,9 +13,9 @@ data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deri
 
 main :: IO ()
 main = do
-    print "1. Play Human vs Human"
-    print "2. Play Human vs Machine"
-    print "3. Play Machine vs Machine"
+    print "1 Human vs Human"
+    print "2 Human vs Machine"
+    print "3 Machine vs Machine"
     l <- getLine
     start l
 

@@ -60,8 +60,8 @@ emptyBoard = zip board (repeat Nothing)
 
 movePiece :: Position -> Square -> Square -> Position
 movePiece pos from to
-  | pieceAt pos from == Just (Pawn White) && (fst from /= fst to) && vacantAt pos to = movePiece (removePieceAt pos (fst to, (snd to - 1))) from to
-  | pieceAt pos from == Just (Pawn Black) && (fst from /= fst to) && vacantAt pos to = movePiece (removePieceAt pos (fst to, (snd to + 1))) from to
+  | pieceAt pos from == Just (Pawn White) && (fst from /= fst to) && vacantAt pos to = movePiece' (removePieceAt pos (fst to, (snd to - 1))) from to
+  | pieceAt pos from == Just (Pawn Black) && (fst from /= fst to) && vacantAt pos to = movePiece' (removePieceAt pos (fst to, (snd to + 1))) from to
   | otherwise = movePiece' pos from to
 
 movePiece' :: Position -> Square -> Square -> Position
