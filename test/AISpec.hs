@@ -22,5 +22,3 @@ main = hspec $ do
             let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4)) ]
             let t = AI.firstBest p
             length t `shouldBe` (3 :: Int)
-            print (head t)
-            Printer.pretty $ head t

@@ -1,7 +1,7 @@
 module Chess(board, Color(..), Piece(..), Square,
 Position, GameHistory, startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
-emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck, enPassant,
-canGoThere, finalDestinationNotOccupiedBySelf, points, points',
+emptyBoard, replacePieceAt, positionTree, positionTreeIgnoreCheck, enPassant, positionTreeIgnoreCheck',
+canGoThere, finalDestinationNotOccupiedBySelf, points, points', eqPosition, positionsPrPiece,
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
 anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition, fiftymoverule,
 posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong) where
@@ -60,8 +60,8 @@ emptyBoard = zip board (repeat Nothing)
 
 movePiece :: Position -> Square -> Square -> Position
 movePiece pos from to
-  | pieceAt pos from == Just (Pawn White) && (fst from /= fst to) && vacantAt pos to = movePiece' (removePieceAt pos (fst to, (snd to - 1))) from to
-  | pieceAt pos from == Just (Pawn Black) && (fst from /= fst to) && vacantAt pos to = movePiece' (removePieceAt pos (fst to, (snd to + 1))) from to
+  | pieceAt pos from == Just (Pawn White) && (fst from /= fst to) && (vacantAt pos to) = movePiece' (removePieceAt pos (fst to, (snd to - 1))) from to
+  | pieceAt pos from == Just (Pawn Black) && (fst from /= fst to) && (vacantAt pos to) = movePiece' (removePieceAt pos (fst to, (snd to + 1))) from to
   | otherwise = movePiece' pos from to
 
 movePiece' :: Position -> Square -> Square -> Position
@@ -153,7 +153,7 @@ positionTreeIgnoreCheck' :: GameHistory -> Color -> [Position]
 positionTreeIgnoreCheck' gh White = whitePieces (head gh) >>= (positionsPrPiece gh)
 positionTreeIgnoreCheck' gh Black = blackPieces (head gh) >>= (positionsPrPiece gh)
 
-positionsPrPiece :: GameHistory -> (Square, Piece) -> [Position] -- wedge canGoThere into here
+positionsPrPiece :: GameHistory -> (Square, Piece) -> [Position]
 positionsPrPiece gh (s,p) = case p of (Pawn _) -> fmap (\t -> movePiece (eliminateEnPassantSquare pos t) s (fst t)) (filter (\t -> canGoThere pos s (fst t)) $ toSquaresPawn gh (s, p))
                                       (Knight _) -> fmap (movePiece pos s) (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
                                       (Bishop _) -> fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
@@ -172,23 +172,28 @@ toSquaresPawn gh (s, p)
         | color p == White = filter insideBoard' $
             [(squareTo s 0 2, Nothing) | snd s == 2, vacantAt pos $ squareTo s 0 2] ++
             [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1] ++
-            [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | (enemyAt pos s $ squareTo s (-1) 1) || enPassant gh (squareTo s (-1) 0)] ++
-            [(squareTo s 1 1, Just (squareTo s 1 0)) | (enemyAt pos s $ squareTo s 1 1) || enPassant gh (squareTo s 1 0)]
+            [(squareTo s (-1) 1, Nothing) | (enemyAt pos s $ squareTo s (-1) 1)] ++
+            [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant gh (squareTo s (-1) 0)] ++
+            [(squareTo s 1 1, Nothing) | (enemyAt pos s $ squareTo s 1 1)] ++
+            [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant gh (squareTo s 1 0)]
         | otherwise = filter insideBoard' $
             [(squareTo s 0 (-2), Nothing) | snd s == 7, vacantAt pos $ squareTo s 0 (-2)] ++
             [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)] ++
-            [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | (enemyAt pos s $ squareTo s (-1) (-1)) || enPassant gh (squareTo s (-1) 0)] ++
-            [(squareTo s 1 (-1), Just (squareTo s 1 0)) | (enemyAt pos s $ squareTo s 1 (-1)) || enPassant gh (squareTo s 1 0)]
+            [(squareTo s (-1) (-1), Nothing) | (enemyAt pos s $ squareTo s (-1) (-1))] ++
+            [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant gh (squareTo s (-1) 0)] ++
+            [(squareTo s 1 (-1), Nothing) | (enemyAt pos s $ squareTo s 1 (-1))] ++
+            [(squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant gh (squareTo s 1 0)] -- bug
   where pos = head gh
 
 -- en passant
 enPassant :: GameHistory -> Square -> Bool
 enPassant [] s = False
 enPassant [x] s = False
-enPassant gh s = pieceAt (head gh) s == opponentPawn gh && wasLastPieceToMove gh s
-  where opponentPawn gh = if (toPlay gh == White) then Just (Pawn Black) else Just (Pawn White)
-        toCol = if (toPlay gh == White) then (fst s, 7) else (fst s, 2)
-        wasLastPieceToMove gh s = (movePiece (head gh) s toCol) == (head . tail) gh
+enPassant gh s
+  | toPlay gh == White = (snd s == 5) && pieceAt (head gh) s == Just (Pawn Black) && wasLastPieceToMove gh s
+  | otherwise = (snd s == 7) && pieceAt (head gh) s == Just (Pawn White) && wasLastPieceToMove gh s
+    where toCol = if (toPlay gh == White) then (fst s, 7) else (fst s, 2)
+          wasLastPieceToMove gh s = (movePiece (head gh) s toCol) == (head . tail) gh
 
 -- promotions :: promote one position
 prom :: Color -> Piece -> (Square, Maybe Piece) -> (Square, Maybe Piece)

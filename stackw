@@ -6,7 +6,7 @@
 # There's great documentation for writing shell script that runs anyware.
 # https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.69/html_node/Portable-Shell.html#Portable-Shell
 
-stackw_default_stack_version=1.1.2
+stackw_default_stack_version=1.5.1
 stackw_base_url="https://github.com/commercialhaskell/stack/releases/download"
 stackw_script_base_url="https://raw.githubusercontent.com/saturday06/stackw/stable"
 

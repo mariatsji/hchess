@@ -202,3 +202,15 @@ main = hspec $ do
             let ePawnMoves = filter (\p -> pieceAt p ('e', 5) == Nothing) t
             let p2 = Move.parseMove "e5-f6" p
             (length p2 - length p) `shouldBe` (1 :: Int)
+        it "allows white to take with pawns from home row" $ do
+            let moves = ["e2-e4", "a7-a5", "e4-e5", "a5-a4", "e5-e6", "a4-a3"]
+            let p = Move.parseMoves moves
+            let p2 = Move.parseMove "b2-a3" p
+            (length p2) - (length p) `shouldBe` (1 :: Int)
+        it "does not allow black any crazy en passant moves on row 3" $ do
+            let moves = ["e2-e4", "a7-a5", "e4-e5", "a5-a4", "e5-e6", "a4-a3", "b2-b3"]
+            let p = Move.parseMoves moves
+            let t = Chess.positionTree p
+            let bPawnMoves = filter (\p -> pieceAt p ('a', 3) == Nothing) t
+            length (bPawnMoves) `shouldBe` (0 :: Int)
+

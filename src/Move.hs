@@ -1,4 +1,4 @@
-module Move(parseMove) where
+module Move(parseMove, parseMoves) where
 
 import Chess
 import Data.Char
@@ -35,7 +35,7 @@ parseMove s gh
                 legalMoves = Chess.positionTree gh
                 colorToPlay = if whiteToPlay gh then Just White else Just Black
                 fromSquare = parseFrom s
-            in if moveAttempt `elem` legalMoves && colorToPlay == fmap color (pieceAt (head gh) fromSquare) then moveAttempt : gh else gh -- todo moveattempt not elem in legal moves cause we didnt kill the passsanted pawn in moveattempt
+            in if any (eqPosition moveAttempt) legalMoves && colorToPlay == fmap color (pieceAt (head gh) fromSquare) then moveAttempt : gh else gh
     | s =~ "O-O" =
             let castleAttempt = Chess.castleShort gh (toPlay gh)
                 legalMoves = Chess.positionTree gh
@@ -49,6 +49,9 @@ parseMove s gh
                 fromSquare = if (toPlay gh) == White then ('e', 1) else ('e', 8)
             in if [] /= castleAttempt && (head castleAttempt) `elem` legalMoves && colorToPlay == fmap color (pieceAt (head gh) fromSquare) then (head castleAttempt) : gh else gh
     | otherwise = gh
+
+parseMoves :: [String] -> GameHistory
+parseMoves moves = foldl (flip parseMove) [Chess.startPosition] moves
 
 parseFrom x = (head x, digitToInt (x !! 1))
 parseTo x = (x !! 3, digitToInt (x !! 4))
