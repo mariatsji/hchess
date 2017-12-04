@@ -2,14 +2,22 @@ module AI (first, evaluate, firstBest, pawnAdvancement) where
 
 import Chess
 
+search :: Int -> GameHistory -> GameHistory
+search 0 gh = firstBest gh
+search depth gh
+  | (toPlay gh) == White = gh
+  | otherwise = gh
+
 first :: GameHistory -> GameHistory
 first gh = head (Chess.positionTree gh) : gh
 
 firstBest :: GameHistory -> GameHistory
 firstBest gh
-  | (toPlay gh) == White = highest tuples : gh
-  | otherwise = lowest tuples : gh
-    where tuples = fmap (\p -> (p, evaluate p)) (Chess.positionTree gh)
+  | (toPlay gh) == White = highest (evaluated gh) : gh
+  | otherwise = lowest (evaluated gh) : gh
+
+evaluated :: GameHistory -> [(Position, Float)]
+evaluated gh = fmap (\p -> (p, evaluate p)) (Chess.positionTree gh)
 
 highest :: [(Position, Float)] -> Position
 highest t = fst $ foldl1 (\(p1, f1) (p2, f2) -> if f1 > f2 then (p1, f1) else (p2, f2)) t
@@ -18,7 +26,27 @@ lowest :: [(Position, Float)] -> Position
 lowest t = fst $ foldl1 (\(p1, f1) (p2, f2) -> if f1 < f2 then (p1, f1) else (p2, f2)) t
 
 evaluate :: Position -> Float
-evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p
+evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p + development p + safeKing p
+
+safeKing :: Position -> Float
+safeKing p
+  | (pieceAt p ('g', 1) == Just (King White)) && (pieceAt p ('f', 1) == Just (Rook White)) = 0.1
+  | (pieceAt p ('c', 1) == Just (King White)) && (pieceAt p ('d', 1) == Just (Rook White)) = 0.1
+  | (pieceAt p ('g', 8) == Just (King Black)) && (pieceAt p ('f', 8) == Just (Rook Black)) = (-0.1)
+  | (pieceAt p ('c', 8) == Just (King Black)) && (pieceAt p ('d', 8) == Just (Rook Black)) = (-0.1)
+  | otherwise = 0.0
+
+development :: Position -> Float
+development p = sum $ fmap scoreOfficerDevelopment p
+
+scoreOfficerDevelopment :: (Square, Maybe Piece) -> Float
+scoreOfficerDevelopment ((col, row), Just (Knight White)) = if (row == 1) then 0.0 else 0.06
+scoreOfficerDevelopment ((col, row), Just (Knight Black)) = if (row == 8) then 0.0 else 0.06
+scoreOfficerDevelopment ((col, row), Just (Bishop White)) = if (row == 1) then 0.0 else 0.06
+scoreOfficerDevelopment ((col, row), Just (Bishop Black)) = if (row == 8) then 0.0 else 0.06
+scoreOfficerDevelopment ((col, row), Just (Rook White)) = if (row == 1) then 0.0 else 0.06
+scoreOfficerDevelopment ((col, row), Just (Rook Black)) = if (row == 8) then 0.0 else 0.06
+scoreOfficerDevelopment x = 0.0
 
 pawnAdvancement :: Position -> Float
 pawnAdvancement pos = sum $ fmap pawnPosValue pos
