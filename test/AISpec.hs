@@ -18,3 +18,9 @@ main = hspec $ do
             let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4)) ]
             let e = AI.evaluate $ head p
             e `shouldSatisfy` (> 0.0)
+        it "makes a best move with depth 1" $ do
+            let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4)) ]
+            let t = AI.firstBest p
+            length t `shouldBe` (3 :: Int)
+            print (head t)
+            Printer.pretty $ head t

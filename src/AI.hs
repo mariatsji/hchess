@@ -12,10 +12,10 @@ firstBest gh
     where tuples = fmap (\p -> (p, evaluate p)) (Chess.positionTree gh)
 
 highest :: [(Position, Float)] -> Position
-highest t = fst $ foldl (\(p1, f1) (p2, f2) -> if f1 > f2 then (p1, f1) else (p2, f2)) (Chess.emptyBoard, 0.0 :: Float) t
+highest t = fst $ foldl1 (\(p1, f1) (p2, f2) -> if f1 > f2 then (p1, f1) else (p2, f2)) t
 
 lowest :: [(Position, Float)] -> Position
-lowest t = fst $ foldl (\(p1, f1) (p2, f2) -> if f1 < f2 then (p1, f1) else (p2, f2)) (Chess.emptyBoard, 0.0 :: Float) t
+lowest t = fst $ foldl1 (\(p1, f1) (p2, f2) -> if f1 < f2 then (p1, f1) else (p2, f2)) t
 
 evaluate :: Position -> Float
 evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p
