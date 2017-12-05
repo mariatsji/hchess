@@ -6,9 +6,10 @@
 
 # start app
 
-    ./stackw exec hchess
+    ./stackw exec hchess-exe
     
 # todo
     
     - AI!
     - pgn?
+    - load/save ?

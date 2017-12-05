@@ -40,12 +40,12 @@ development :: Position -> Float
 development p = sum $ fmap scoreOfficerDevelopment p
 
 scoreOfficerDevelopment :: (Square, Maybe Piece) -> Float
-scoreOfficerDevelopment ((col, row), Just (Knight White)) = if (row == 1) then 0.0 else 0.06
-scoreOfficerDevelopment ((col, row), Just (Knight Black)) = if (row == 8) then 0.0 else 0.06
+scoreOfficerDevelopment ((col, row), Just (Knight White)) = if (row == 1) then 0.0 else 0.07
+scoreOfficerDevelopment ((col, row), Just (Knight Black)) = if (row == 8) then 0.0 else (-0.07)
 scoreOfficerDevelopment ((col, row), Just (Bishop White)) = if (row == 1) then 0.0 else 0.06
-scoreOfficerDevelopment ((col, row), Just (Bishop Black)) = if (row == 8) then 0.0 else 0.06
-scoreOfficerDevelopment ((col, row), Just (Rook White)) = if (row == 1) then 0.0 else 0.06
-scoreOfficerDevelopment ((col, row), Just (Rook Black)) = if (row == 8) then 0.0 else 0.06
+scoreOfficerDevelopment ((col, row), Just (Bishop Black)) = if (row == 8) then 0.0 else (-0.06)
+scoreOfficerDevelopment ((col, row), Just (Rook White)) = if (row == 1) then 0.0 else 0.05
+scoreOfficerDevelopment ((col, row), Just (Rook Black)) = if (row == 8) then 0.0 else (-0.05)
 scoreOfficerDevelopment x = 0.0
 
 pawnAdvancement :: Position -> Float
