@@ -1,6 +1,16 @@
-module AI (first, evaluate, firstBest, pawnAdvancement) where
+module AI (first, evaluate, firstBest, pawnAdvancement, positionTreeSearch, bestSearchedPosition) where
 
 import Chess
+
+bestSearchedPosition :: GameHistory -> GameHistory
+bestSearchedPosition gh
+  | toPlay gh == White = let bestPath = highest $ fmap evaluate' $ positionTreeSearch gh in drop (length (head bestPath) - (length gh)) $ bestPath
+  | otherwise = let bestPath = lowest $ fmap evaluate' $ positionTreeSearch gh in drop (length (head bestPath) - (length gh)) $ bestPath
+
+positionTreeSearch :: GameHistory -> [GameHistory]
+positionTreeSearch gh
+  | toPlay gh == White = positionTree' gh >>= positionTree' >>= positionTree' >>= positionTree' >>= positionTree'
+  | otherwise = positionTree' gh >>= positionTree' >>= positionTree' >>= positionTree' >>= positionTree'
 
 search :: Int -> GameHistory -> GameHistory
 search 0 gh = firstBest gh
@@ -19,14 +29,26 @@ firstBest gh
 evaluated :: GameHistory -> [(Position, Float)]
 evaluated gh = fmap (\p -> (p, evaluate p)) (Chess.positionTree gh)
 
-highest :: [(Position, Float)] -> Position
+highest :: [(a, Float)] -> a
 highest t = fst $ foldl1 (\(p1, f1) (p2, f2) -> if f1 > f2 then (p1, f1) else (p2, f2)) t
 
-lowest :: [(Position, Float)] -> Position
+lowest :: [(a, Float)] -> a
 lowest t = fst $ foldl1 (\(p1, f1) (p2, f2) -> if f1 < f2 then (p1, f1) else (p2, f2)) t
 
 evaluate :: Position -> Float
 evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p + development p + safeKing p
+
+evaluateGH :: GameHistory -> Float
+evaluateGH gh = isMate gh + evaluate (head gh)
+
+isMate :: GameHistory -> Float
+isMate gh
+  | toPlay gh == White && isCheckMate gh = 99999.0
+  | toPlay gh == Black && isCheckMate gh = (-99999.0)
+  | otherwise = 0.0
+
+evaluate' :: GameHistory -> (GameHistory, Float)
+evaluate' gh = (gh, evaluateGH gh)
 
 safeKing :: Position -> Float
 safeKing p

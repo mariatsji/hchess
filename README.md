@@ -10,6 +10,6 @@
     
 # todo
     
-    - AI!
+    - dont search beyond mate or draw
     - pgn?
     - load/save ?
