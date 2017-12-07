@@ -1,47 +1,28 @@
-module AI (first, evaluate, firstBest, pawnAdvancement, positionTreeSearch, bestSearchedPosition, bestSearchedGH) where
+module AI (evaluate, first, pawnAdvancement, positionTreeSearch, bestSearchedGH) where
 
 import Chess
 
--- only gives you the next position (prepended to the current gamehistory)
-bestSearchedPosition :: GameHistory -> Either Status GameHistory
-bestSearchedPosition gh = firstElementBeyond gh (bestSearchedGH gh)
-  where firstElementBeyond l1 l2 = if length l2 > length l1 then Right (l2 !! (length l1) : l1) else Left (determineStatus gh)
-
 -- gives you the full potential gamehistory for the current gamehistory, as given by search depth
-bestSearchedGH :: GameHistory -> GameHistory
+bestSearchedGH :: GameHistory -> Evaluated
 bestSearchedGH gh
   | toPlay gh == White = highest $ fmap evaluate' $ positionTreeSearch gh
   | otherwise = lowest $ fmap evaluate' $ positionTreeSearch gh
 
 positionTreeSearch :: GameHistory -> [GameHistory]
-positionTreeSearch gh = positionTree' gh >>= positionTree'
+positionTreeSearch gh = positionTree' gh >>= positionTree' >>= positionTree' >>= positionTree'
 
 -- takes actual gh, and the chosen best path forward as a single position on top of current gh
 nextPositionBest :: GameHistory -> GameHistory -> GameHistory
 nextPositionBest gh potentialGh = if length potentialGh > length gh then (potentialGh !! (length gh)) : gh else gh
 
-search :: Int -> GameHistory -> GameHistory
-search 0 gh = firstBest gh
-search depth gh
-  | (toPlay gh) == White = gh
-  | otherwise = gh
+highest :: [Evaluated] -> Evaluated
+highest t = foldl1 (\(p1, f1, s1) (p2, f2, s2) -> if f1 > f2 then (p1, f1, s1) else (p2, f2, s2)) t
 
-first :: GameHistory -> GameHistory
-first gh = head (Chess.positionTree gh) : gh
+lowest :: [Evaluated] ->Evaluated
+lowest t = foldl1 (\(p1, f1, s1) (p2, f2, s2) -> if f1 < f2 then (p1, f1, s1) else (p2, f2, s2)) t
 
-firstBest :: GameHistory -> GameHistory
-firstBest gh
-  | (toPlay gh) == White = highest (evaluated gh) : gh
-  | otherwise = lowest (evaluated gh) : gh
-
-evaluated :: GameHistory -> [(Position, Float)]
-evaluated gh = fmap (\p -> (p, evaluate p)) (Chess.positionTree gh)
-
-highest :: [(a, Float)] -> a
-highest t = fst $ foldl1 (\(p1, f1) (p2, f2) -> if f1 > f2 then (p1, f1) else (p2, f2)) t
-
-lowest :: [(a, Float)] -> a
-lowest t = fst $ foldl1 (\(p1, f1) (p2, f2) -> if f1 < f2 then (p1, f1) else (p2, f2)) t
+evaluate' :: GameHistory -> Evaluated
+evaluate' gh = (gh, evaluateGH gh, determineStatus gh)
 
 evaluate :: Position -> Float
 evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p + development p + safeKing p
@@ -55,8 +36,6 @@ isMate gh
   | toPlay gh == Black && isCheckMate gh = (-99999.0)
   | otherwise = 0.0
 
-evaluate' :: GameHistory -> (GameHistory, Float)
-evaluate' gh = (gh, evaluateGH gh)
 
 safeKing :: Position -> Float
 safeKing p
@@ -119,3 +98,6 @@ valueOf (Queen White) = 9.0
 valueOf (Queen Black) = 9.0
 valueOf (King White) = 100.0
 valueOf (King Black) = 100.0
+
+first :: GameHistory -> GameHistory
+first gh = head (Chess.positionTree gh) : gh

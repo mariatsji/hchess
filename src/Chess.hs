@@ -1,5 +1,5 @@
 module Chess(board, Color(..), Piece(..), Square,
-Position, GameHistory, Status(..), startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
+Position, GameHistory, Status(..), Evaluated(..), startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTree', positionTreeIgnoreCheck, enPassant, positionTreeIgnoreCheck',
 canGoThere, finalDestinationNotOccupiedBySelf, points, points', eqPosition, positionsPrPiece,
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
@@ -21,6 +21,8 @@ type Position = [(Square, Maybe Piece)]
 type GameHistory = [Position]
 
 data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deriving (Eq, Ord, Show)
+
+type Evaluated = (GameHistory, Float, Status)
 
 board :: [Square]
 board = fmap swap $ (,) <$> [1..8] <*> ['a'..'h']

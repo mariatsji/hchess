@@ -1,6 +1,7 @@
 module Printer (
 pretty,
-prettyGH
+prettyGH,
+prettyE
 ) where
 
 import Chess
@@ -14,6 +15,12 @@ pretty :: Position -> IO ()
 pretty pos = do
     mapM_ UP.putStrLn $ fmap prettyRow $ rowify pos
     return ()
+
+prettyE :: Evaluated -> IO ()
+prettyE (gh, score, status) = do
+  prettyGH gh
+  putStrLn $ "score : " ++ (show score)
+  putStrLn $ "status : " ++ (show status)
 
 prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)

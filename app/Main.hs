@@ -25,7 +25,7 @@ start _ = main
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  let gameHistory = AI.firstBest gh
+  let gameHistory = AI.first gh
   let newPos = head gameHistory
   Printer.pretty newPos
   let newStatus = status gameHistory
@@ -47,7 +47,7 @@ gameLoopHM gh = do
   let newStatus = status gameHistory
   print newStatus
   -- AI reply -- todo only if successful parse!
-  let gameHistoryReplied = if validMove gh gameHistory then AI.firstBest gameHistory else gameHistory
+  let gameHistoryReplied = if validMove gh gameHistory then AI.first gameHistory else gameHistory
   let newPosReplied = head gameHistoryReplied
   Printer.pretty newPosReplied
   if null l
