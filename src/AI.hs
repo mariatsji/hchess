@@ -1,15 +1,27 @@
-module AI (evaluate, first, pawnAdvancement, positionTreeSearch, bestSearchedGH) where
+module AI (evaluate, evaluate', first, pawnAdvancement, positionTreeSearch, positionTreeSearch', bestSearchedGH, best) where
 
 import Chess
 
--- gives you the full potential gamehistory for the current gamehistory, as given by search depth
-bestSearchedGH :: GameHistory -> Evaluated
-bestSearchedGH gh
-  | toPlay gh == White = highest $ fmap evaluate' $ positionTreeSearch gh
-  | otherwise = lowest $ fmap evaluate' $ positionTreeSearch gh
+best :: GameHistory -> Int -> Either Status GameHistory
+best gh depth =
+  let ghPotential = ghFromE $ bestSearchedGH gh depth
+      ghFromE = (\(a,b,c) -> a)
+  in
+   if (length ghPotential > length gh) then Right (ghPotential !! (length gh) : gh) else Left (determineStatus ghPotential)
 
-positionTreeSearch :: GameHistory -> [GameHistory]
-positionTreeSearch gh = positionTree' gh >>= positionTree' >>= positionTree' >>= positionTree'
+-- gives you the full potential gamehistory for the current gamehistory, as given by search depth
+bestSearchedGH :: GameHistory -> Int -> Evaluated
+bestSearchedGH gh depth
+  | toPlay gh == White = highest $ fmap evaluateS $ positionTreeSearch' gh depth
+  | otherwise = lowest $ fmap evaluateS $ positionTreeSearch' gh depth
+
+positionTreeSearch :: GameHistory -> Int -> [GameHistory]
+positionTreeSearch gh 0 = [gh]
+positionTreeSearch gh depth = foldl (\a c -> a >>= positionTree') (positionTree' gh) (take (depth - 1) $ [1 ..])
+
+positionTreeSearch' :: GameHistory -> Int -> [(GameHistory, Status)]
+positionTreeSearch' gh 0 = [(gh, determineStatus gh)]
+positionTreeSearch' gh depth = foldl (\a c -> a >>= positionTreeS) (positionTreeS (gh, determineStatus gh)) (take (depth - 1) $ [1 ..])
 
 -- takes actual gh, and the chosen best path forward as a single position on top of current gh
 nextPositionBest :: GameHistory -> GameHistory -> GameHistory
@@ -24,18 +36,16 @@ lowest t = foldl1 (\(p1, f1, s1) (p2, f2, s2) -> if f1 < f2 then (p1, f1, s1) el
 evaluate' :: GameHistory -> Evaluated
 evaluate' gh = (gh, evaluateGH gh, determineStatus gh)
 
+evaluateS :: (GameHistory, Status) -> Evaluated
+evaluateS (gh, BlackIsMate) = (gh, 10000.0, BlackIsMate)
+evaluateS (gh, WhiteIsMate) = (gh, (-10000.0), WhiteIsMate)
+evaluateS (gh, s) = (gh, evaluateGH gh, determineStatus gh)
+
 evaluate :: Position -> Float
 evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p + development p + safeKing p
 
 evaluateGH :: GameHistory -> Float
-evaluateGH gh = isMate gh + evaluate (head gh)
-
-isMate :: GameHistory -> Float
-isMate gh
-  | toPlay gh == White && isCheckMate gh = 99999.0
-  | toPlay gh == Black && isCheckMate gh = (-99999.0)
-  | otherwise = 0.0
-
+evaluateGH gh = evaluate (head gh)
 
 safeKing :: Position -> Float
 safeKing p

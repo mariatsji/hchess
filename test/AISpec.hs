@@ -24,14 +24,15 @@ main = hspec $ do
             let p3 = Chess.replacePieceAt p2 ('a', 6) (Rook White)
             let p4 = Chess.replacePieceAt p3 ('b', 5) (Rook White)
             let gh = [p4]
-            let t = AI.positionTreeSearch gh
+            let t = AI.positionTreeSearch gh 4
             (length t) `shouldSatisfy` (> 1000)
             any (== (head t)) (tail t) `shouldBe` False
-        --it "finds a mate in 2 moves with search depth 5" $ do
-        --    let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
-        --    let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
-        --    let p3 = Chess.replacePieceAt p2 ('a', 6) (Rook White)
-        --    let p4 = Chess.replacePieceAt p3 ('b', 5) (Rook White)
-        --    let gh = [p4]
-        --    let t = AI.bestSearchedGH gh
-        --    prettyE t
+        it "finds a mate in 1 moves with search depth 4" $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
+            let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
+            let p3 = Chess.replacePieceAt p2 ('a', 7) (Rook White)
+            let p4 = Chess.replacePieceAt p3 ('b', 6) (Rook White)
+            let gh = [p4]
+            let t = AI.bestSearchedGH gh 4
+
+            Printer.prettyE t

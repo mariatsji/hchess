@@ -10,6 +10,6 @@
     
 # todo
     
-    - dont search beyond mate or draw
+    - todo chose the shorter path to same evaluation
     - pgn?
     - load/save ?
