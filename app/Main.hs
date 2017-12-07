@@ -9,8 +9,6 @@ import Data.Char
 import Data.Maybe
 import System.IO
 
-data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deriving (Eq, Ord, Show)
-
 main :: IO ()
 main = do
     print "1 Human vs Human"

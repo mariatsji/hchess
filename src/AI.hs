@@ -1,16 +1,24 @@
-module AI (first, evaluate, firstBest, pawnAdvancement, positionTreeSearch, bestSearchedPosition) where
+module AI (first, evaluate, firstBest, pawnAdvancement, positionTreeSearch, bestSearchedPosition, bestSearchedGH) where
 
 import Chess
 
-bestSearchedPosition :: GameHistory -> GameHistory
-bestSearchedPosition gh
-  | toPlay gh == White = let bestPath = highest $ fmap evaluate' $ positionTreeSearch gh in drop (length (head bestPath) - (length gh)) $ bestPath
-  | otherwise = let bestPath = lowest $ fmap evaluate' $ positionTreeSearch gh in drop (length (head bestPath) - (length gh)) $ bestPath
+-- only gives you the next position (prepended to the current gamehistory)
+bestSearchedPosition :: GameHistory -> Either Status GameHistory
+bestSearchedPosition gh = firstElementBeyond gh (bestSearchedGH gh)
+  where firstElementBeyond l1 l2 = if length l2 > length l1 then Right (l2 !! (length l1) : l1) else Left (determineStatus gh)
+
+-- gives you the full potential gamehistory for the current gamehistory, as given by search depth
+bestSearchedGH :: GameHistory -> GameHistory
+bestSearchedGH gh
+  | toPlay gh == White = highest $ fmap evaluate' $ positionTreeSearch gh
+  | otherwise = lowest $ fmap evaluate' $ positionTreeSearch gh
 
 positionTreeSearch :: GameHistory -> [GameHistory]
-positionTreeSearch gh
-  | toPlay gh == White = positionTree' gh >>= positionTree' >>= positionTree' >>= positionTree' >>= positionTree'
-  | otherwise = positionTree' gh >>= positionTree' >>= positionTree' >>= positionTree' >>= positionTree'
+positionTreeSearch gh = positionTree' gh >>= positionTree'
+
+-- takes actual gh, and the chosen best path forward as a single position on top of current gh
+nextPositionBest :: GameHistory -> GameHistory -> GameHistory
+nextPositionBest gh potentialGh = if length potentialGh > length gh then (potentialGh !! (length gh)) : gh else gh
 
 search :: Int -> GameHistory -> GameHistory
 search 0 gh = firstBest gh

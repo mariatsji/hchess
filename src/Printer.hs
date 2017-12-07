@@ -1,5 +1,6 @@
 module Printer (
-pretty
+pretty,
+prettyGH
 ) where
 
 import Chess
@@ -13,6 +14,9 @@ pretty :: Position -> IO ()
 pretty pos = do
     mapM_ UP.putStrLn $ fmap prettyRow $ rowify pos
     return ()
+
+prettyGH :: GameHistory -> IO ()
+prettyGH gh = mapM_ pretty (reverse gh)
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
 rowify = groupWith ((* (-1)) . snd . fst)

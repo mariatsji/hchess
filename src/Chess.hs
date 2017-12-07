@@ -1,10 +1,10 @@
 module Chess(board, Color(..), Piece(..), Square,
-Position, GameHistory, startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
+Position, GameHistory, Status(..), startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTree', positionTreeIgnoreCheck, enPassant, positionTreeIgnoreCheck',
 canGoThere, finalDestinationNotOccupiedBySelf, points, points', eqPosition, positionsPrPiece,
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
 anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition, fiftymoverule,
-posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong) where
+posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong, determineStatus) where
 
 import Control.Arrow
 import Data.Char
@@ -19,6 +19,8 @@ data Piece = Pawn Color | Knight Color | Bishop Color | Rook Color | Queen Color
 type Square = (Char, Int)
 type Position = [(Square, Maybe Piece)]
 type GameHistory = [Position]
+
+data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deriving (Eq, Ord, Show)
 
 board :: [Square]
 board = fmap swap $ (,) <$> [1..8] <*> ['a'..'h']
@@ -141,7 +143,7 @@ toPlay :: GameHistory -> Color
 toPlay pos = if whiteToPlay pos then White else Black
 
 positionTree' :: GameHistory -> [GameHistory]
-positionTree' gh = fmap (: positionTree gh) gh
+positionTree' gh = fmap (\p -> p : gh) $ positionTree gh
 
 positionTree :: GameHistory -> [Position]
 positionTree gh = fmap head $ filter (\p -> not $ isInCheck p (toPlay gh)) $ potentialGHs gh
@@ -381,3 +383,11 @@ anyPosWithoutKing col pos = not $ allHasKing col pos
 allHasKing :: Color -> [Position] -> Bool
 allHasKing White poses = all (any (\ (s, p) -> p == King White) . whitePieces) poses
 allHasKing Black poses = all (any (\ (s, p) -> p == King Black) . blackPieces) poses
+
+determineStatus :: GameHistory -> Status
+determineStatus gh
+  | toPlay gh == White && isCheckMate gh = BlackIsMate
+  | isCheckMate gh = WhiteIsMate
+  | isDraw gh = Remis
+  | toPlay gh == White = WhiteToPlay
+  | otherwise = BlackToPlay
