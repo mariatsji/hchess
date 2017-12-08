@@ -24,8 +24,8 @@ main = hspec $ do
             let p3 = Chess.replacePieceAt p2 ('a', 6) (Rook White)
             let p4 = Chess.replacePieceAt p3 ('b', 5) (Rook White)
             let gh = [p4]
-            let t = AI.positionTreeSearch gh 4
-            (length t) `shouldSatisfy` (> 1000)
+            let t = AI.positionTreeSearch gh 2
+            (length t) `shouldSatisfy` (> 30)
             any (== (head t)) (tail t) `shouldBe` False
         it "finds a mate in 1 moves with search depth 2" $ do
             let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
@@ -35,11 +35,10 @@ main = hspec $ do
             let gh = [p4]
             let t = AI.bestSearchedGH gh 2
             (\(a,b,c) -> c) t `shouldBe` BlackIsMate
-        it "behaves ok after second move for white" $ do
+        it "behaves ok using AI.best after second move for white" $ do -- bugs
             let moves = ["e2-e4", "b8-a6", "d2-d4"]
             let p = Move.parseMoves moves
-            Printer.pretty $ head p
-            let b = AI.best p 3
+            let b = AI.best p 2
             case b of Right gh -> do
                         Printer.pretty $ head gh
                       Left status -> do

@@ -6,12 +6,14 @@
 
 # start app
 
+    ./stackw build --fast --pedantic
     ./stackw exec hchess-exe
     
 # todo
     
+    - current search assumes worst possible moves from opponent. must switch highest and lowest search for each folding of the position tree.
     - quickcheck properties to searched trees
-    - bug man vs machine : e2-e4, b8-a6, d2-d4 -> position is wrong
     - todo chose the shorter path to same evaluation
+    - 50 move rule?
     - pgn?
     - load/save ?

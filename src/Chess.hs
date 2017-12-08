@@ -3,7 +3,7 @@ Position, GameHistory, Status(..), Evaluated(..), startPosition, movePiece, make
 emptyBoard, replacePieceAt, positionTree, positionTree', positionTreeIgnoreCheck, enPassant, positionTreeIgnoreCheck',
 canGoThere, finalDestinationNotOccupiedBySelf, points, points', eqPosition, positionsPrPiece, positionTreeS,
 to, toSquaresPawn, pieceAt, toPlay, whiteToPlay, color, isInCheck,
-anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition, fiftymoverule,
+anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition,
 posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong, determineStatus) where
 
 import Control.Arrow
@@ -337,12 +337,7 @@ isCheckMate :: GameHistory -> Bool
 isCheckMate gh  = isInCheck gh (toPlay gh) && null (positionTree gh)
 
 isDraw :: GameHistory -> Bool
-isDraw gh = isPatt gh || fiftymoverule gh || threefoldrepetition gh
-
-fiftymoverule :: GameHistory -> Bool
-fiftymoverule gh = length gh >= 50 &&
-  ((noPawnMoves $ take 50 gh) ||
-  (noTakes $ take 50 gh))
+isDraw gh = isPatt gh || threefoldrepetition gh
 
 noTakes :: GameHistory -> Bool
 noTakes [] = True

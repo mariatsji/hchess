@@ -188,13 +188,6 @@ main = hspec $ do
                  , (('a', 5), ('a', 4))
                  , (('a', 2), ('a', 3))]
             Chess.threefoldrepetition p `shouldBe` False
-        it "does not trigger 50-move-rule out of the blue" $ do
-            let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4))
-                 , (('a', 7), ('a', 5))
-                 , (('d', 2), ('d', 4))
-                 , (('a', 5), ('a', 4))
-                 , (('a', 2), ('a', 3))]
-            Chess.fiftymoverule p `shouldBe` False
         it "parses an en passant move" $ do
             let moves = ["e2-e4", "a7-a5", "f1-b5", "a5-a4", "f1-b5", "a4-a3", "O-O", "a3-b2", "c1-b2", "b7-b6", "b1-c3", "c7-c5", "f1-e1", "c5-c4", "e4-e5", "e7-e6", "d1-e2", "f7-f5"]
             let p = foldl (flip Move.parseMove) [Chess.startPosition] moves

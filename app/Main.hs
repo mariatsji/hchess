@@ -5,10 +5,6 @@ import Chess
 import Move
 import Printer
 
-import Data.Char
-import Data.Maybe
-import System.IO
-
 main :: IO ()
 main = do
     print "1 Human vs Human"
@@ -27,7 +23,8 @@ start _ = main
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  let e = AI.best gh 3
+  Printer.pretty $ head gh
+  let e = AI.best gh 2
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos
@@ -42,14 +39,13 @@ gameLoopHM gh = do
   putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
   l <- getLine
   let gameHistory = parseMove l gh
-  let newPos = head gameHistory
   putStrLn $ moveOkStatus gh gameHistory
   let newStatus = determineStatus gameHistory
   print newStatus
   if newStatus == BlackToPlay then do
-    let e = AI.best gh 3
-    case e of Right gameHistory -> do
-                gameLoopHM gameHistory
+    let e = AI.best gh 2
+    case e of Right newGameHistory -> do
+                gameLoopHM newGameHistory
               Left status -> do
                  print status
                  main
@@ -63,7 +59,6 @@ gameLoopHH gh = do
     putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
     l <- getLine
     let gameHistory = parseMove l gh
-    let newPos = head gameHistory
     putStrLn $ moveOkStatus gh gameHistory
     let newStatus = determineStatus gameHistory
     print newStatus
@@ -76,6 +71,8 @@ gameLoopHH gh = do
           print newStatus
           main
 
+moveOkStatus :: GameHistory -> GameHistory -> String
 moveOkStatus gh1 gh2 = if validMove gh1 gh2 then "(Ok, a legal move)" else "Illegal move"
 
+validMove :: GameHistory -> GameHistory -> Bool
 validMove gh1 gh2 = gh1 /= gh2

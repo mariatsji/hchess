@@ -1,27 +1,29 @@
-module AI (evaluate, evaluate', first, pawnAdvancement, positionTreeSearch, positionTreeSearch', bestSearchedGH, best) where
+module AI (evaluate, evaluate', first, pawnAdvancement, positionTreeSearch, bestSearchedGH, best) where
 
 import Chess
 
+-- best give you Either Status or a gh + Position (gh with next position in it)
 best :: GameHistory -> Int -> Either Status GameHistory
 best gh depth =
   let ghPotential = ghFromE $ bestSearchedGH gh depth
       ghFromE = (\(a,b,c) -> a)
   in
-   if (length ghPotential > length gh) then Right (ghPotential !! (length gh) : gh) else Left (determineStatus ghPotential)
+   if (length ghPotential > length gh + 1) then Right (ghOneStep gh ghPotential) else Left (determineStatus ghPotential)
+
+ghOneStep :: GameHistory -> GameHistory -> GameHistory
+ghOneStep [] _ = []
+ghOneStep _ [] = []
+ghOneStep (x:xsshort) (y:yslong) = if yslong == (x:xsshort) then y:yslong else ghOneStep (x:xsshort) yslong
 
 -- gives you the full potential gamehistory for the current gamehistory, as given by search depth
 bestSearchedGH :: GameHistory -> Int -> Evaluated
 bestSearchedGH gh depth
-  | toPlay gh == White = highest $ fmap evaluateS $ positionTreeSearch' gh depth
-  | otherwise = lowest $ fmap evaluateS $ positionTreeSearch' gh depth
+  | toPlay gh == White = highest $ fmap evaluateS $ positionTreeSearch gh depth
+  | otherwise = lowest $ fmap evaluateS $ positionTreeSearch gh depth
 
-positionTreeSearch :: GameHistory -> Int -> [GameHistory]
-positionTreeSearch gh 0 = [gh]
-positionTreeSearch gh depth = foldl (\a c -> a >>= positionTree') (positionTree' gh) (take (depth - 1) $ [1 ..])
-
-positionTreeSearch' :: GameHistory -> Int -> [(GameHistory, Status)]
-positionTreeSearch' gh 0 = [(gh, determineStatus gh)]
-positionTreeSearch' gh depth = foldl (\a c -> a >>= positionTreeS) (positionTreeS (gh, determineStatus gh)) (take (depth - 1) $ [1 ..])
+positionTreeSearch :: GameHistory -> Int -> [(GameHistory, Status)]
+positionTreeSearch gh 0 = [(gh, determineStatus gh)]
+positionTreeSearch gh depth = foldl (\a c -> a >>= positionTreeS) (positionTreeS (gh, determineStatus gh)) (take (depth - 1) $ [1 ..])
 
 -- takes actual gh, and the chosen best path forward as a single position on top of current gh
 nextPositionBest :: GameHistory -> GameHistory -> GameHistory
