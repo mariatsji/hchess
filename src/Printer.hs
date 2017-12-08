@@ -6,6 +6,7 @@ prettyE
 
 import Chess
 import Data.List
+import Data.Char
 import Data.Ord
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
@@ -32,7 +33,7 @@ prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row = UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row
 
 prettyPiece :: (Square, Maybe Piece) -> String
-prettyPiece (s, Nothing) = " "
+prettyPiece ((c,r), Nothing) = if even (ord c + r) then "◽" else " "
 prettyPiece (_, Just (Pawn White)) = "♙"
 prettyPiece (_, Just (Knight White)) = "♘"
 prettyPiece (_, Just (Bishop White)) = "♗"
