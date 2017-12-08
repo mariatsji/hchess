@@ -40,17 +40,16 @@ gameLoopHM gh = do
   l <- getLine
   let gameHistory = parseMove l gh
   putStrLn $ moveOkStatus gh gameHistory
-  let newStatus = determineStatus gameHistory
-  print newStatus
-  if newStatus == BlackToPlay then do
+  if determineStatus gameHistory == BlackToPlay then do
+    Printer.pretty (head gameHistory)
     let e = AI.best gh 2
     case e of Right newGameHistory -> do
                 gameLoopHM newGameHistory
               Left status -> do
-                 print status
-                 main
+                print status
+                main
   else do
-    print newStatus
+    print $ determineStatus gameHistory
     main
 
 gameLoopHH :: GameHistory -> IO ()
@@ -76,3 +75,7 @@ moveOkStatus gh1 gh2 = if validMove gh1 gh2 then "(Ok, a legal move)" else "Ille
 
 validMove :: GameHistory -> GameHistory -> Bool
 validMove gh1 gh2 = gh1 /= gh2
+
+toStatus :: Either Status GameHistory -> String
+toStatus (Left s) = show s
+toStatus (Right gh) = show $ determineStatus gh

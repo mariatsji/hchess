@@ -5,9 +5,7 @@ prettyE
 ) where
 
 import Chess
-import Data.List
 import Data.Char
-import Data.Ord
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
 import GHC.Exts
@@ -46,13 +44,3 @@ prettyPiece (_, Just (Bishop Black)) = "♝"
 prettyPiece (_, Just (Rook Black)) = "♜"
 prettyPiece (_, Just (Queen Black)) = "♛"
 prettyPiece (_, Just (King Black)) = "♚"
-
-sortP :: Position -> Position
-sortP = sortBy compareS
-
-compareS :: (Square, Maybe Piece) -> (Square, Maybe Piece) -> Ordering
-compareS a b = if row a == row b
-    then compare (col a) (col b)
-    else compare (row a) (row b)
-        where row = snd . fst
-              col = fst . fst

@@ -6,7 +6,7 @@ import Chess
 best :: GameHistory -> Int -> Either Status GameHistory
 best gh depth =
   let ghPotential = ghFromE $ bestSearchedGH gh depth
-      ghFromE = (\(a,b,c) -> a)
+      ghFromE = (\(a,_,_) -> a)
   in
    if (length ghPotential > length gh + 1) then Right (ghOneStep gh ghPotential) else Left (determineStatus ghPotential)
 
@@ -23,11 +23,7 @@ bestSearchedGH gh depth
 
 positionTreeSearch :: GameHistory -> Int -> [(GameHistory, Status)]
 positionTreeSearch gh 0 = [(gh, determineStatus gh)]
-positionTreeSearch gh depth = foldl (\a c -> a >>= positionTreeS) (positionTreeS (gh, determineStatus gh)) (take (depth - 1) $ [1 ..])
-
--- takes actual gh, and the chosen best path forward as a single position on top of current gh
-nextPositionBest :: GameHistory -> GameHistory -> GameHistory
-nextPositionBest gh potentialGh = if length potentialGh > length gh then (potentialGh !! (length gh)) : gh else gh
+positionTreeSearch gh depth = foldl (\a _ -> a >>= positionTreeS) (positionTreeS (gh, determineStatus gh)) (take (depth - 1) $ [1 ..] :: [Int])
 
 highest :: [Evaluated] -> Evaluated
 highest t = foldl1 (\(p1, f1, s1) (p2, f2, s2) -> if f1 > f2 then (p1, f1, s1) else (p2, f2, s2)) t
@@ -41,7 +37,7 @@ evaluate' gh = (gh, evaluateGH gh, determineStatus gh)
 evaluateS :: (GameHistory, Status) -> Evaluated
 evaluateS (gh, BlackIsMate) = (gh, 10000.0, BlackIsMate)
 evaluateS (gh, WhiteIsMate) = (gh, (-10000.0), WhiteIsMate)
-evaluateS (gh, s) = (gh, evaluateGH gh, determineStatus gh)
+evaluateS (gh, _) = (gh, evaluateGH gh, determineStatus gh)
 
 evaluate :: Position -> Float
 evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p + development p + safeKing p
@@ -61,13 +57,13 @@ development :: Position -> Float
 development p = sum $ fmap scoreOfficerDevelopment p
 
 scoreOfficerDevelopment :: (Square, Maybe Piece) -> Float
-scoreOfficerDevelopment ((col, row), Just (Knight White)) = if (row == 1) then 0.0 else 0.07
-scoreOfficerDevelopment ((col, row), Just (Knight Black)) = if (row == 8) then 0.0 else (-0.07)
-scoreOfficerDevelopment ((col, row), Just (Bishop White)) = if (row == 1) then 0.0 else 0.06
-scoreOfficerDevelopment ((col, row), Just (Bishop Black)) = if (row == 8) then 0.0 else (-0.06)
-scoreOfficerDevelopment ((col, row), Just (Rook White)) = if (row == 1) then 0.0 else 0.05
-scoreOfficerDevelopment ((col, row), Just (Rook Black)) = if (row == 8) then 0.0 else (-0.05)
-scoreOfficerDevelopment x = 0.0
+scoreOfficerDevelopment ((_, row), Just (Knight White)) = if (row == 1) then 0.0 else 0.07
+scoreOfficerDevelopment ((_, row), Just (Knight Black)) = if (row == 8) then 0.0 else (-0.07)
+scoreOfficerDevelopment ((_, row), Just (Bishop White)) = if (row == 1) then 0.0 else 0.06
+scoreOfficerDevelopment ((_, row), Just (Bishop Black)) = if (row == 8) then 0.0 else (-0.06)
+scoreOfficerDevelopment ((_, row), Just (Rook White)) = if (row == 1) then 0.0 else 0.05
+scoreOfficerDevelopment ((_, row), Just (Rook Black)) = if (row == 8) then 0.0 else (-0.05)
+scoreOfficerDevelopment _ = 0.0
 
 pawnAdvancement :: Position -> Float
 pawnAdvancement pos = sum $ fmap pawnPosValue pos
@@ -77,13 +73,13 @@ pawnPosValue (('c', r), Just (Pawn White)) = r' r * 0.06
 pawnPosValue (('f', r), Just (Pawn White)) = r' r * 0.06
 pawnPosValue (('d', r), Just (Pawn White)) = r' r * 0.07
 pawnPosValue (('e', r), Just (Pawn White)) = r' r * 0.07
-pawnPosValue ((x, r), Just (Pawn White)) = r' r * 0.05
+pawnPosValue ((_, r), Just (Pawn White)) = r' r * 0.05
 pawnPosValue (('c', r), Just (Pawn Black)) = (9 - r' r) * (-0.06)
 pawnPosValue (('f', r), Just (Pawn Black)) = (9 - r' r) * (-0.06)
 pawnPosValue (('d', r), Just (Pawn Black)) = (9 - r' r) * (-0.07)
 pawnPosValue (('e', r), Just (Pawn Black)) = (9 - r' r) * (-0.07)
-pawnPosValue ((x, r), Just (Pawn Black)) =   (9 - r' r) * (-0.05)
-pawnPosValue x = 0.00
+pawnPosValue ((_, r), Just (Pawn Black)) =   (9 - r' r) * (-0.05)
+pawnPosValue _ = 0.00
 
 r' :: Int -> Float
 r' n = fromIntegral n :: Float
@@ -95,7 +91,7 @@ blackPieces' :: Position -> Float
 blackPieces' pos = count pos Chess.blackPieces
 
 count :: Position -> (Position -> [(Square, Piece)]) -> Float
-count p f = foldl (\a (s, p) -> a + valueOf p) 0.0 (f p)
+count pos f = foldl (\a (_, p) -> a + valueOf p) 0.0 (f pos)
 
 valueOf :: Piece -> Float
 valueOf (Pawn White) = 1.0
