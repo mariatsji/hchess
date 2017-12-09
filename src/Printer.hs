@@ -6,6 +6,7 @@ prettyE
 
 import Chess
 import Data.Char
+import Evaluation
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
 import GHC.Exts
