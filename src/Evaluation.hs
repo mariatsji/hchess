@@ -1,4 +1,4 @@
-module Evaluation(Evaluated, evaluate, evaluate', first, pawnAdvancement, evaluateS) where
+module Evaluation(Evaluated, evaluate, evaluate', first, pawnAdvancement, evaluateS, toGH) where
 
 import Chess
 
@@ -6,6 +6,9 @@ type Evaluated = (GameHistory, Float, Status)
 
 evaluate' :: GameHistory -> Evaluated
 evaluate' gh = (gh, evaluateGH gh, determineStatus gh)
+
+toGH :: Evaluated -> (Status, GameHistory)
+toGH e = let gh = (\(x,_,_) -> x) e in (determineStatus gh, gh)
 
 evaluateS :: (GameHistory, Status) -> Evaluated
 evaluateS (gh, BlackIsMate) = (gh, 10000.0, BlackIsMate)

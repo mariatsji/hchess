@@ -39,10 +39,11 @@ gameLoopHM gh = do
   putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
   l <- getLine
   let gameHistory = parseMove l gh
+  Printer.pretty (head gameHistory)
   putStrLn $ moveOkStatus gh gameHistory
   if determineStatus gameHistory == BlackToPlay then do
-    Printer.pretty (head gameHistory)
     let e = AI.best gh 2
+    print e
     case e of Right newGameHistory -> do
                 gameLoopHM newGameHistory
               Left status -> do

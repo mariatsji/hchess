@@ -1,13 +1,29 @@
 module AI (bestSearchedGH, best, positionTreeSearch) where
 
+import Data.List
+import Data.Ord
 import Chess
 import Evaluation
 
-highest :: [Evaluated] -> Evaluated
-highest t = foldl1 (\(p1, f1, s1) (p2, f2, s2) -> if f1 > f2 then (p1, f1, s1) else (p2, f2, s2)) t
+-- focused :: GameHistory -> Int -> GameHistory
+-- focused gh depth = focused' (determinedStatus gh, gh) depth
 
-lowest :: [Evaluated] ->Evaluated
-lowest t = foldl1 (\(p1, f1, s1) (p2, f2, s2) -> if f1 < f2 then (p1, f1, s1) else (p2, f2, s2)) t
+-- takes a status and gamehistory and a perspective (black or white) and a search depth. recurs.
+focused' :: (Status, GameHistory) -> Int -> [(Status, GameHistory)]
+focused' (status, gh) 0         = [(status, gh)]
+focused' (Remis, gh) _          = [(Remis, gh)]
+focused' (WhiteIsMate, gh) _    = [(WhiteIsMate, gh)]
+focused' (BlackIsMate, gh) _    = [(BlackIsMate, gh)]
+focused' (WhiteToPlay, gh) d    = fmap toGH (highest' 10 (fmap evaluate' (positionTree' gh))) >>= (\(s', gh') -> focused' (determineStatus gh', gh') (d - 1))
+focused' (BlackToPlay, gh) d    = fmap toGH (lowest'  10 (fmap evaluate' (positionTree' gh))) >>= (\(s', gh') -> focused' (determineStatus gh', gh') (d - 1))
+
+highest' :: Int -> [Evaluated] -> [Evaluated]
+highest' cutoff e = take cutoff $ sortBy comp e
+  where comp e1 e2 = comparing (\(_,x,_) -> x) e1 e2
+
+lowest' :: Int -> [Evaluated] -> [Evaluated]
+lowest' cutoff e = take cutoff $ sortBy comp e
+  where comp e1 e2 = comparing (\(_,x,_) -> negate x) e1 e2
 
 -- best give you Either Status or a gh + Position (gh with next position in it)
 best :: GameHistory -> Int -> Either Status GameHistory
@@ -16,6 +32,12 @@ best gh depth =
       ghFromE = (\(a,_,_) -> a)
   in
    if (length ghPotential > length gh + 1) then Right (ghOneStep gh ghPotential) else Left (determineStatus ghPotential)
+
+highest :: [Evaluated] -> Evaluated
+highest t = foldl1 (\(p1, f1, s1) (p2, f2, s2) -> if f1 > f2 then (p1, f1, s1) else (p2, f2, s2)) t
+
+lowest :: [Evaluated] ->Evaluated
+lowest t = foldl1 (\(p1, f1, s1) (p2, f2, s2) -> if f1 < f2 then (p1, f1, s1) else (p2, f2, s2)) t
 
 ghOneStep :: GameHistory -> GameHistory -> GameHistory
 ghOneStep [] _ = []
