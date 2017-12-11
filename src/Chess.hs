@@ -148,10 +148,9 @@ positionTree' :: GameHistory -> [GameHistory]
 positionTree' gh = fmap (\p -> p : gh) $ positionTree gh
 
 positionTree :: GameHistory -> [Position]
-positionTree gh = fmap head $ filter (\p -> not $ isInCheck p (toPlay gh)) $ potentialGHs gh
-  where potentialGHs gh' = (: gh') <$> positionTreeIgnoreCheck gh'
+positionTree gh = filter (\p -> not $ isInCheck (p : gh) (toPlay gh)) $ positionTreeIgnoreCheck gh
 
-positionTreeIgnoreCheck :: GameHistory -> [Position] -- we know whos turn it is
+positionTreeIgnoreCheck :: GameHistory -> [Position]
 positionTreeIgnoreCheck gh
     | whiteToPlay gh = (whitePieces (head gh) >>= (positionsPrPiece gh) >>= (promoteBindFriendly White)) ++ castle gh
     | otherwise = (blackPieces (head gh) >>= (positionsPrPiece gh) >>= (promoteBindFriendly Black)) ++ castle gh

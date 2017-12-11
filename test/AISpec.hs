@@ -58,11 +58,6 @@ main = hspec $ do
                         Printer.pretty $ head gh
                       Left status -> do
                         print "bad, test should fail"
-        it "searches 10^n moves from startposition with focused" $ do
-            let t = AI.focused' (evaluate' [startPosition]) 4
-            length t `shouldSatisfy` (>9000)
-            length (toGH $ t !! 3000) `shouldBe` (length (toGH $ t !! 4000))
-            -- prettyGH ((snd . toGH) $ t !! 5000)
         it "finds a nice move from startposition with focused" $ do
             let t = AI.focused [startPosition] 4
             prettyGH ((snd . toGH) t)
