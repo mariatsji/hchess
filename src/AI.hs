@@ -22,8 +22,8 @@ focused gh depth
 -- takes a status and gamehistory and a perspective (black or white) and a search depth. recurs. gives full gh (i.e. not only next position)
 focused' :: Evaluated -> Int -> [Evaluated]
 focused' e 0                      = [e]
-focused' (gh, f, WhiteToPlay) d   = (highest' 5 (fmap evaluate' (positionTree' gh))) >>= (flip focused' (d - 1))
-focused' (gh, f, BlackToPlay) d   = (lowest'  5 (fmap evaluate' (positionTree' gh))) >>= (flip focused' (d - 1))
+focused' (gh, f, WhiteToPlay) d   = (highest' 5 (evaluate'' (positionTree gh) gh)) >>= (flip focused' (d - 1))
+focused' (gh, f, BlackToPlay) d   = (lowest'  5 (evaluate'' (positionTree gh) gh)) >>= (flip focused' (d - 1))
 focused' e _                      = [e]
 
 highest' :: Int -> [Evaluated] -> [Evaluated]

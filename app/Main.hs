@@ -32,7 +32,7 @@ start _ = main
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  let e = AI.focusedBest gh 2
+  let e = AI.focusedBest gh 3
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos

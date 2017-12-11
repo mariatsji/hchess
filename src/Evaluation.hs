@@ -1,4 +1,4 @@
-module Evaluation(Evaluated, evaluate, evaluate', first, pawnAdvancement, evaluateS, toGH) where
+module Evaluation(Evaluated, evaluate, evaluate', evaluate'', first, pawnAdvancement, evaluateS, toGH) where
 
 import Chess
 
@@ -6,6 +6,9 @@ type Evaluated = (GameHistory, Float, Status)
 
 evaluate' :: GameHistory -> Evaluated
 evaluate' gh = (gh, evaluateGH gh, determineStatus gh)
+
+evaluate'' :: [Position] -> GameHistory -> [Evaluated]
+evaluate'' poses gh = fmap (\p -> evaluate' (p : gh)) poses
 
 toGH :: Evaluated -> (Status, GameHistory)
 toGH e = let gh = (\(x,_,_) -> x) e in (determineStatus gh, gh)
