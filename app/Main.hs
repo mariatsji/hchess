@@ -32,9 +32,7 @@ start _ = main
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  performMajorGC
-  putStrLn "-"
-  let e = AI.best gh 3
+  let e = AI.focusedBest gh 2
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos
@@ -45,7 +43,6 @@ gameLoopMM gh = do
 
 gameLoopHM :: GameHistory -> IO ()
 gameLoopHM gh = do
-  performMajorGC
   l <- getLine
   let gameHistory = parseMove l gh
   Printer.pretty (head gameHistory)
@@ -63,7 +60,6 @@ gameLoopHM gh = do
 
 gameLoopHH :: GameHistory -> IO ()
 gameLoopHH gh = do
-    performMajorGC
     Printer.pretty (head gh)
     putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
     l <- getLine
