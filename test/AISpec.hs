@@ -26,7 +26,7 @@ main = hspec $ do
             let p4 = Chess.replacePieceAt p3 ('b', 5) (Rook White)
             let gh = [p4]
             let t = AI.positionTreeSearch gh 2
-            (length t) `shouldSatisfy` (> 30)
+            length t `shouldSatisfy` (> 30)
             any (== (head t)) (tail t) `shouldBe` False
         it "finds a mate in 1 moves with search depth 2" $ do
             let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
@@ -44,3 +44,6 @@ main = hspec $ do
                         Printer.pretty $ head gh
                       Left status -> do
                         print "bad, test should fail"
+        --it "searches 10^n moves from startposition with focused" $ do
+        --    let t = AI.focused' (evaluate' [startPosition]) 5
+        --    length t `shouldSatisfy` (>90000)

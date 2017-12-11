@@ -24,7 +24,7 @@ start _ = main
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
   Printer.pretty $ head gh
-  let e = AI.best gh 2
+  let e = AI.focusedBest gh 2
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos
@@ -42,7 +42,7 @@ gameLoopHM gh = do
   Printer.pretty (head gameHistory)
   putStrLn $ moveOkStatus gh gameHistory
   if determineStatus gameHistory == BlackToPlay then do
-    let e = AI.best gh 2
+    let e = AI.focusedBest gh 2
     print e
     case e of Right newGameHistory -> do
                 gameLoopHM newGameHistory

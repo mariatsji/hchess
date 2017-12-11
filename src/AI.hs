@@ -1,21 +1,29 @@
-module AI (bestSearchedGH, best, positionTreeSearch) where
+module AI (bestSearchedGH, best, positionTreeSearch, focused', focused, focusedBest) where
 
 import Data.List
 import Data.Ord
 import Chess
 import Evaluation
 
--- focused :: GameHistory -> Int -> GameHistory
--- focused gh depth = focused' (determinedStatus gh, gh) depth
+focusedBest :: GameHistory -> Int -> Either Status GameHistory
+focusedBest gh depth = let e = focused gh depth in
+  case e of (gh, f, Remis) -> Left Remis
+            (gh, f, WhiteIsMate) -> Left WhiteIsMate
+            (gh, f, BlackIsMate) -> Left BlackIsMate
+            (gh, f, s) -> Right gh
+
+
+focused :: GameHistory -> Int -> Evaluated
+focused gh depth
+  | (toPlay gh) == White = head $ highest' 1 (focused' (evaluate' gh) depth)
+  | (toPlay gh) == White = head $ lowest' 1 (focused' (evaluate' gh) depth)
 
 -- takes a status and gamehistory and a perspective (black or white) and a search depth. recurs.
-focused' :: (Status, GameHistory) -> Int -> [(Status, GameHistory)]
-focused' (status, gh) 0         = [(status, gh)]
-focused' (Remis, gh) _          = [(Remis, gh)]
-focused' (WhiteIsMate, gh) _    = [(WhiteIsMate, gh)]
-focused' (BlackIsMate, gh) _    = [(BlackIsMate, gh)]
-focused' (WhiteToPlay, gh) d    = fmap toGH (highest' 10 (fmap evaluate' (positionTree' gh))) >>= (\(s', gh') -> focused' (determineStatus gh', gh') (d - 1))
-focused' (BlackToPlay, gh) d    = fmap toGH (lowest'  10 (fmap evaluate' (positionTree' gh))) >>= (\(s', gh') -> focused' (determineStatus gh', gh') (d - 1))
+focused' :: Evaluated -> Int -> [Evaluated]
+focused' e 0                      = [e]
+focused' (gh, f, WhiteToPlay) d   = highest' 10 (fmap evaluate' (positionTree' gh)) >>= (\(gh', f', s') -> focused' (gh', f', s') (d - 1))
+focused' (gh, f, BlackToPlay) d   = lowest'  10 (fmap evaluate' (positionTree' gh)) >>= (\(gh', f', s') -> focused' (gh', f', s') (d - 1))
+focused' e _                      = [e]
 
 highest' :: Int -> [Evaluated] -> [Evaluated]
 highest' cutoff e = take cutoff $ sortBy comp e

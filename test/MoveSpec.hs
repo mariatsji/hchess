@@ -206,8 +206,3 @@ main = hspec $ do
             let t = Chess.positionTree p
             let bPawnMoves = filter (\p -> pieceAt p ('a', 3) == Nothing) t
             length (bPawnMoves) `shouldBe` (0 :: Int)
-        it "finds missing pieces from pos to pos" $ do
-            let moves = ["e2-e4"]
-            let gh = Move.parseMoves moves
-            let p = Chess.missing (head gh) (head $ tail gh)
-            print p
