@@ -4,6 +4,7 @@ import AI
 import Chess
 import Move
 import Printer
+import System.Mem
 
 main :: IO ()
 main = do
@@ -15,16 +16,25 @@ main = do
     start l
 
 start :: String -> IO ()
-start "1" = gameLoopHH [Chess.startPosition]
-start "2" = gameLoopHM [Chess.startPosition]
-start "3" = gameLoopMM [Chess.startPosition]
+start "1" = do
+  putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
+  Printer.pretty Chess.startPosition
+  gameLoopHH [Chess.startPosition]
+start "2" = do
+  putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
+  Printer.pretty Chess.startPosition
+  gameLoopHM [Chess.startPosition]
+start "3" = do
+  Printer.pretty Chess.startPosition
+  gameLoopMM [Chess.startPosition]
 start "q" = return()
 start _ = main
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  Printer.pretty $ head gh
-  let e = AI.focusedBest gh 2
+  performMajorGC
+  putStrLn "-"
+  let e = AI.best gh 3
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos
@@ -35,15 +45,13 @@ gameLoopMM gh = do
 
 gameLoopHM :: GameHistory -> IO ()
 gameLoopHM gh = do
-  Printer.pretty (head gh)
-  putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
+  performMajorGC
   l <- getLine
   let gameHistory = parseMove l gh
   Printer.pretty (head gameHistory)
   putStrLn $ moveOkStatus gh gameHistory
   if determineStatus gameHistory == BlackToPlay then do
     let e = AI.focusedBest gh 2
-    print e
     case e of Right newGameHistory -> do
                 gameLoopHM newGameHistory
               Left status -> do
@@ -55,6 +63,7 @@ gameLoopHM gh = do
 
 gameLoopHH :: GameHistory -> IO ()
 gameLoopHH gh = do
+    performMajorGC
     Printer.pretty (head gh)
     putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
     l <- getLine

@@ -14,6 +14,7 @@ import GHC.Exts
 pretty :: Position -> IO ()
 pretty pos = do
     mapM_ UP.putStrLn $ fmap prettyRow $ rowify pos
+    putStrLn "-"
     return ()
 
 prettyE :: Evaluated -> IO ()
