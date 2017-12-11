@@ -36,6 +36,20 @@ main = hspec $ do
             let gh = [p4]
             let t = AI.bestSearchedGH gh 2
             (\(a,b,c) -> c) t `shouldBe` BlackIsMate
+        it "selects best move for white with focused search" $ do
+            let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
+            let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)
+            let p3 = Chess.replacePieceAt p2 ('f', 8) (Queen Black)
+            let p4 = Chess.replacePieceAt p3 ('e', 7) (Pawn White)
+            let gh = [p4]
+            let f = focused gh 2
+
+            let b = focusedBest gh 2
+            case b of Right gh -> do
+                        Printer.pretty $ head gh
+                        pieceAt (head gh) ('f', 8) `shouldBe` (Just (Queen White))
+                      Left status -> do
+                         print "bad, test, should fail"
         it "behaves ok using AI.best after second move for white" $ do
             let moves = ["e2-e4", "b8-a6", "d2-d4"]
             let p = Move.parseMoves moves
