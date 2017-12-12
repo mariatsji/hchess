@@ -11,9 +11,9 @@
     
 # todo
     
-    - current search assumes worst possible moves from opponent. must switch highest and lowest search for each folding of the position tree.
+    - check & mate should eval high
     - quickcheck properties to searched trees
-    - todo chose the shorter path to same evaluation
-    - 50 move rule?
-    - pgn?
-    - load/save ?
+    - config level
+    - chose the shorter path to same evaluation
+    - memoization
+    - eval/search data structure

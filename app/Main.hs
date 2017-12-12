@@ -44,11 +44,12 @@ gameLoopHM :: GameHistory -> IO ()
 gameLoopHM gh = do
   l <- getLine
   let gameHistory = parseMove l gh
-  Printer.pretty (head gameHistory)
   putStrLn $ moveOkStatus gh gameHistory
+  Printer.pretty (head gameHistory)
   if determineStatus gameHistory == BlackToPlay then do
-    let e = AI.focusedBest gh 2
+    let e = AI.focusedBest gameHistory 4
     case e of Right newGameHistory -> do
+                Printer.pretty (head newGameHistory)
                 gameLoopHM newGameHistory
               Left status -> do
                 print status
