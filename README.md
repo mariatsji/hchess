@@ -11,9 +11,7 @@
     
 # todo
     
-    - check & mate should eval high
     - quickcheck properties to searched trees
-    - config level
     - chose the shorter path to same evaluation
     - memoization
     - eval/search data structure

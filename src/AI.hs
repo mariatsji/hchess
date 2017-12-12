@@ -16,15 +16,15 @@ focusedBest gh depth =
 --give you a full gh (i.e. not only next position)
 focused :: GameHistory -> Int -> Evaluated -- this is maybe grap
 focused gh depth
-  | (toPlay gh) == White = head $ highest' 1 (focused' (evaluate' gh) depth)
-  | otherwise = head $ lowest' 1 (focused' (evaluate' gh) depth)
+  | (toPlay gh) == White = head $ highest' 1 (focused' (evaluate' gh) (depth, 5))
+  | otherwise = head $ lowest' 1 (focused' (evaluate' gh) (depth, 5))
 
--- takes a status and gamehistory and a perspective (black or white) and a search depth. recurs. gives full gh (i.e. not only next position)
-focused' :: Evaluated -> Int -> [Evaluated]
-focused' e 0                      = [e]
-focused' (gh, _, WhiteToPlay) d   = (highest' 5 (evaluate'' (positionTree gh) gh)) >>= (flip focused' (d - 1))
-focused' (gh, _, BlackToPlay) d   = (lowest'  5 (evaluate'' (positionTree gh) gh)) >>= (flip focused' (d - 1))
-focused' e _                      = [e]
+-- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
+focused' :: Evaluated -> (Int,Int) -> [Evaluated]
+focused' e (0, _)                    = [e]
+focused' (gh, _, WhiteToPlay) (d, w) = (highest' w (evaluate'' (positionTree gh) gh)) >>= (flip focused' (d - 1, w))
+focused' (gh, _, BlackToPlay) (d, w) = (lowest'  w (evaluate'' (positionTree gh) gh)) >>= (flip focused' (d - 1, w))
+focused' e _                         = [e]
 
 highest' :: Int -> [Evaluated] -> [Evaluated]
 highest' cutoff e = take cutoff $ sortBy comp e

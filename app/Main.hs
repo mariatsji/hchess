@@ -21,37 +21,47 @@ start "1" = do
   gameLoopHH [Chess.startPosition]
 start "2" = do
   putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
+  putStrLn "Enter machine search depth (1-5) where 1 is faster and 5 is stronger"
+  l <- getLine
+  let depth = read l :: Int
   Printer.pretty Chess.startPosition
-  gameLoopHM [Chess.startPosition]
+  gameLoopHM [Chess.startPosition] depth
 start "3" = do
+  putStrLn "Enter white search depth (2-5) where 2 is faster and 5 is stronger"
+  lw <- getLine
+  let wdepth = read lw :: Int
+  putStrLn "Enter black search depth (2-5) where 2 is faster and 5 is stronger"
+  lb <- getLine
+  let bdepth = read lb :: Int
   Printer.pretty Chess.startPosition
-  gameLoopMM [Chess.startPosition]
+  gameLoopMM [Chess.startPosition] wdepth bdepth
 start "q" = return()
 start _ = main
 
-gameLoopMM :: GameHistory -> IO ()
-gameLoopMM gh = do
-  let e = AI.focusedBest gh 3
+gameLoopMM :: GameHistory -> Int -> Int -> IO ()
+gameLoopMM gh whiteDepth blackDepth = do
+  let depth = if (toPlay gh == White) then whiteDepth else blackDepth
+  let e = AI.focusedBest gh depth
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos
-              gameLoopMM gameHistory
+              gameLoopMM gameHistory whiteDepth blackDepth
             Left (gh'', status) -> do
               Printer.pretty (head gh'')
               print status
               return()
 
-gameLoopHM :: GameHistory -> IO ()
-gameLoopHM gh = do
+gameLoopHM :: GameHistory -> Int -> IO ()
+gameLoopHM gh depth = do
   l <- getLine
   let gameHistory = parseMove l gh
   putStrLn $ moveOkStatus gh gameHistory
   Printer.pretty (head gameHistory)
   if determineStatus gameHistory == BlackToPlay then do
-    let e = AI.focusedBest gameHistory 4
+    let e = AI.focusedBest gameHistory depth
     case e of Right newGameHistory -> do
                 Printer.pretty (head newGameHistory)
-                gameLoopHM newGameHistory
+                gameLoopHM newGameHistory depth
               Left (gh'', status) -> do
                 Printer.pretty (head gh'')
                 print status
