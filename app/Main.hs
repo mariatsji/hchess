@@ -31,12 +31,13 @@ start _ = main
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  let e = AI.focusedBest gh 5
+  let e = AI.focusedBest gh 3
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos
               gameLoopMM gameHistory
-            Left status -> do
+            Left (gh'', status) -> do
+              Printer.pretty (head gh'')
               print status
               return()
 
@@ -51,7 +52,8 @@ gameLoopHM gh = do
     case e of Right newGameHistory -> do
                 Printer.pretty (head newGameHistory)
                 gameLoopHM newGameHistory
-              Left status -> do
+              Left (gh'', status) -> do
+                Printer.pretty (head gh'')
                 print status
                 main
   else do

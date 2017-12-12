@@ -1,4 +1,4 @@
-module Evaluation(Evaluated, evaluate, evaluate', evaluate'', first, pawnAdvancement, evaluateS, toGH) where
+module Evaluation(Evaluated, evaluate, evaluate', evaluate'', first, pawnAdvancement, toGH) where
 
 import Chess
 
@@ -13,16 +13,14 @@ evaluate'' poses gh = fmap (\p -> evaluate' (p : gh)) poses
 toGH :: Evaluated -> (Status, GameHistory)
 toGH e = let gh = (\(x,_,_) -> x) e in (determineStatus gh, gh)
 
-evaluateS :: (GameHistory, Status) -> Evaluated
-evaluateS (gh, BlackIsMate) = (gh, 10000.0, BlackIsMate)
-evaluateS (gh, WhiteIsMate) = (gh, (-10000.0), WhiteIsMate)
-evaluateS (gh, _) = (gh, evaluateGH gh, determineStatus gh)
-
 evaluate :: Position -> Float
 evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p + development p + safeKing p
 
 evaluateGH :: GameHistory -> Float
-evaluateGH gh = evaluate (head gh)
+evaluateGH gh
+  | (isCheckMate gh) && (toPlay gh == White) = (-10000.0)
+  | (isCheckMate gh) && (toPlay gh == Black) = 10000.0
+  | otherwise = evaluate (head gh)
 
 safeKing :: Position -> Float
 safeKing p

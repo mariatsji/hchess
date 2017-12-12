@@ -6,12 +6,12 @@ import Chess
 import Evaluation
 
 -- best give you Either Status or a gh + Position (gh with next position in it)
-focusedBest :: GameHistory -> Int -> Either Status GameHistory
+focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
 focusedBest gh depth =
   let ghPotential = ghFromE $ focused gh depth
       ghFromE = (\(a,_,_) -> a)
   in
-   if (length ghPotential > length gh + 1) then Right (ghOneStep gh ghPotential) else Left (determineStatus ghPotential)
+   if (length ghPotential > length gh + 1) then Right (ghOneStep gh ghPotential) else Left (ghOneStep gh ghPotential, determineStatus ghPotential)
 
 --give you a full gh (i.e. not only next position)
 focused :: GameHistory -> Int -> Evaluated -- this is maybe grap
