@@ -4,7 +4,6 @@ import AI
 import Chess
 import Move
 import Printer
-import System.Mem
 
 main :: IO ()
 main = do
@@ -32,7 +31,7 @@ start _ = main
 
 gameLoopMM :: GameHistory -> IO ()
 gameLoopMM gh = do
-  let e = AI.focusedBest gh 3
+  let e = AI.focusedBest gh 5
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos
