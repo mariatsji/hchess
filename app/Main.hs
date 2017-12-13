@@ -68,7 +68,7 @@ gameLoopHM gh depth = do
                 main
   else do
     print $ determineStatus gameHistory
-    main
+    gameLoopHM gh depth
 
 gameLoopHH :: GameHistory -> IO ()
 gameLoopHH gh = do

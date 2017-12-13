@@ -259,26 +259,26 @@ castle gh
 -- [] or [x]
 castleShort :: GameHistory -> Color -> [Position]
 castleShort gh color = if
-  (not (isInCheck gh color) && -- must not be in check
-  pieceAt (head gh) (shortRookPos color) == Just (rook color) && -- must have a rook at home
   pieceAt (head gh) (kingPos color) == Just (king color) && -- must have a king at home
+  pieceAt (head gh) (shortRookPos color) == Just (rook color) && -- must have a rook at home
+  vacantBetween gh (kingPos color) (shortRookPos color) && -- must be vacant between king and rook
   haveNotMoved gh (king color) (kingPos color) && -- must not have moved king
   haveNotMoved gh (rook color) (shortRookPos color) && -- must not have moved rook
-  willNotPassCheck gh (kingPos color) (shortRookPos color)) && -- must not move through check
-  vacantBetween gh (kingPos color) (shortRookPos color) -- must be vacant between king and rook
+  (not (isInCheck gh color) && -- must not be in check
+  willNotPassCheck gh (kingPos color) (shortRookPos color)) -- must not move through check
     then [doCastleShort gh color]
     else []
 
 -- [] or [x]
 castleLong :: GameHistory -> Color -> [Position]
 castleLong gh color = if
-  (not (isInCheck gh color) &&
-  pieceAt (head gh) (longRookPos color) == Just (rook color) &&
   pieceAt (head gh) (kingPos color) == Just (king color) && -- must have a king at home
+  pieceAt (head gh) (longRookPos color) == Just (rook color) &&
+  vacantBetween gh (kingPos color) (longRookPos color) &&
   haveNotMoved gh (king color) (kingPos color) &&
   haveNotMoved gh (rook color) (longRookPos color) &&
-  willNotPassCheck gh (kingPos color) (longRookPos color)) &&
-  vacantBetween gh (kingPos color) (longRookPos color)
+  (not (isInCheck gh color) &&
+  willNotPassCheck gh (kingPos color) (longRookPos color))
     then [doCastleLong gh color]
     else []
 
