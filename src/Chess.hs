@@ -1,6 +1,6 @@
 module Chess(board, Color(..), Piece(..), Square,
 Position, GameHistory, Status(..), startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
-emptyBoard, replacePieceAt, positionTree, positionTree', positionTreeIgnoreCheck, enPassant, positionTreeIgnoreCheck',
+emptyBoard, replacePieceAt, positionTree, positionTree', positionTreeIgnoreCheck, enPassant,
 canGoThere, finalDestinationNotOccupiedBySelf, points, points', eqPosition, positionsPrPiece,
 to', toSquaresPawn, pieceAt, toPlay, whiteToPlay, colr, isInCheck,
 anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition,
@@ -146,9 +146,9 @@ positionTreeIgnoreCheck gh
     | whiteToPlay gh = (whitePieces (head gh) >>= (positionsPrPiece gh) >>= (promoteBindFriendly White)) ++ castle gh
     | otherwise = (blackPieces (head gh) >>= (positionsPrPiece gh) >>= (promoteBindFriendly Black)) ++ castle gh
 
-positionTreeIgnoreCheck' :: GameHistory -> Color -> [Position]
-positionTreeIgnoreCheck' gh White = whitePieces (head gh) >>= (positionsPrPiece gh)
-positionTreeIgnoreCheck' gh Black = blackPieces (head gh) >>= (positionsPrPiece gh)
+positionTreeIgnoreCheckPromotionsCastle :: GameHistory -> Color -> [Position]
+positionTreeIgnoreCheckPromotionsCastle gh White = whitePieces (head gh) >>= (positionsPrPiece gh)
+positionTreeIgnoreCheckPromotionsCastle gh Black = blackPieces (head gh) >>= (positionsPrPiece gh)
 
 positionsPrPiece :: GameHistory -> (Square, Piece) -> [Position]
 positionsPrPiece gh (s,p) = case p of (Pawn _) -> fmap (\t -> movePiece (eliminateEnPassantSquare pos t) s (fst t)) (filter (\t -> canGoThere pos s (fst t)) $ toSquaresPawn gh (s, p))
@@ -309,7 +309,7 @@ insideBoard' (s, Nothing) = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <=
 insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
 
 isInCheck :: GameHistory -> Color -> Bool
-isInCheck gh clr = anyPosWithoutKing clr (positionTreeIgnoreCheck' gh (succ' clr))
+isInCheck gh clr = anyPosWithoutKing clr (positionTreeIgnoreCheckPromotionsCastle gh (succ' clr))
 
 isCheckMate :: GameHistory -> Bool
 isCheckMate gh  = isInCheck gh (toPlay gh) && null (positionTree gh)
