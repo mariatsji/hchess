@@ -1,7 +1,7 @@
 module Chess(board, Color(..), Piece(..), Square,
 Position, GameHistory, Status(..), startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTree', positionTreeIgnoreCheck, enPassant, positionTreeIgnoreCheck',
-canGoThere, finalDestinationNotOccupiedBySelf, points, points', eqPosition, positionsPrPiece, positionTreeS,
+canGoThere, finalDestinationNotOccupiedBySelf, points, points', eqPosition, positionsPrPiece,
 to', toSquaresPawn, pieceAt, toPlay, whiteToPlay, colr, isInCheck,
 anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition,
 posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong, determineStatus) where
@@ -134,15 +134,6 @@ whiteToPlay = odd . length
 
 toPlay :: GameHistory -> Color
 toPlay pos = if whiteToPlay pos then White else Black
-
-positionTreeS :: (GameHistory, Status) -> [(GameHistory, Status)]
-positionTreeS (gh, s) = if keepSearching s then fmap (\x -> (x, determineStatus x)) $ positionTree' gh else [(gh, s)]
-
-keepSearching :: Status -> Bool
-keepSearching s
-  | s == WhiteToPlay = True
-  | s == BlackToPlay = True
-  | otherwise = False
 
 positionTree' :: GameHistory -> [GameHistory]
 positionTree' gh = fmap (\p -> p : gh) $ positionTree gh
