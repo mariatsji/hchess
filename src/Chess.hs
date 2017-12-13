@@ -250,37 +250,32 @@ toSquaresQueen s = toSquaresBishop s `mappend` toSquaresRook s
 toSquaresKing :: Square -> [Square]
 toSquaresKing s = [squareTo s a b | a <- [-1, 0, 1], b <- [-1, 0, 1], (a,b) /= (0,0), insideBoard $ squareTo s a b]
 
--- castles [], [x], [y] or [x,y]
+-- castles
+
+type KingPos = Color -> Square
+type RookPos = Color -> Square
+type PerformCastleF = GameHistory -> Color -> Position
+
 castle :: GameHistory -> [Position]
-castle gh
-  | toPlay gh == White = castleShort gh White ++ castleLong gh White
-  | otherwise = castleShort gh Black ++ castleLong gh Black
+castle gh = castleShort gh (toPlay gh) ++ castleLong gh (toPlay gh)
 
--- [] or [x]
 castleShort :: GameHistory -> Color -> [Position]
-castleShort gh color = if
-  pieceAt (head gh) (kingPos color) == Just (king color) && -- must have a king at home
-  pieceAt (head gh) (shortRookPos color) == Just (rook color) && -- must have a rook at home
-  vacantBetween gh (kingPos color) (shortRookPos color) && -- must be vacant between king and rook
-  haveNotMoved gh (king color) (kingPos color) && -- must not have moved king
-  haveNotMoved gh (rook color) (shortRookPos color) && -- must not have moved rook
-  (not (isInCheck gh color) && -- must not be in check
-  willNotPassCheck gh (kingPos color) (shortRookPos color)) -- must not move through check
-    then [doCastleShort gh color]
-    else []
+castleShort gh color = castle' gh color kingPos shortRookPos doCastleShort
 
--- [] or [x]
 castleLong :: GameHistory -> Color -> [Position]
-castleLong gh color = if
-  pieceAt (head gh) (kingPos color) == Just (king color) && -- must have a king at home
-  pieceAt (head gh) (longRookPos color) == Just (rook color) &&
-  vacantBetween gh (kingPos color) (longRookPos color) &&
-  haveNotMoved gh (king color) (kingPos color) &&
-  haveNotMoved gh (rook color) (longRookPos color) &&
-  (not (isInCheck gh color) &&
-  willNotPassCheck gh (kingPos color) (longRookPos color))
-    then [doCastleLong gh color]
-    else []
+castleLong gh color = castle' gh color kingPos longRookPos doCastleLong
+
+castle' :: GameHistory -> Color -> KingPos -> RookPos -> PerformCastleF -> [Position]
+castle' gh color kingPosF rookPosF doCastleF = if
+   pieceAt (head gh) (kingPosF color) == Just (king color) && -- must have a king at home
+   pieceAt (head gh) (rookPosF color) == Just (rook color) && -- must have a rook at home
+   vacantBetween gh (kingPosF color) (rookPosF color) && -- must be vacant between king and rook
+   haveNotMoved gh (king color) (kingPosF color) && -- must not have moved king
+   haveNotMoved gh (rook color) (rookPosF color) && -- must not have moved rook
+   (not (isInCheck gh color) && -- must not be in check
+   willNotPassCheck gh (kingPosF color) (rookPosF color)) -- must not move through check
+     then [doCastleF gh color]
+     else []
 
 doCastleShort :: GameHistory -> Color -> Position
 doCastleShort gh White = replacePieceAt (replacePieceAt (removePieceAt (removePieceAt (head gh) ('e', 1)) ('h', 1)) ('g', 1) (King White)) ('f', 1) (Rook White)
