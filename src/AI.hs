@@ -9,21 +9,21 @@ import Evaluation
 focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
 focusedBest gh depth =
   let ghPotential = ghFromE $ focused gh depth
-      ghFromE = (\(a,_,_) -> a)
+      ghFromE (a,_,_) = a
   in
-   if (length ghPotential > length gh + 1) then Right (ghOneStep gh ghPotential) else Left (ghOneStep gh ghPotential, determineStatus ghPotential)
+   if length ghPotential > length gh + 1 then Right (ghOneStep gh ghPotential) else Left (ghOneStep gh ghPotential, determineStatus ghPotential)
 
 --give you a full gh (i.e. not only next position)
 focused :: GameHistory -> Int -> Evaluated -- this is maybe grap
 focused gh depth
-  | (toPlay gh) == White = head $ highest' 1 (focused' (evaluate' gh) (depth, 5))
+  | toPlay gh == White = head $ highest' 1 (focused' (evaluate' gh) (depth, 5))
   | otherwise = head $ lowest' 1 (focused' (evaluate' gh) (depth, 5))
 
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
 focused' :: Evaluated -> (Int,Int) -> [Evaluated]
 focused' e (0, _)                    = [e]
-focused' (gh, _, WhiteToPlay) (d, w) = (highest' w (evaluate'' (positionTree gh) gh)) >>= (flip focused' (d - 1, w))
-focused' (gh, _, BlackToPlay) (d, w) = (lowest'  w (evaluate'' (positionTree gh) gh)) >>= (flip focused' (d - 1, w))
+focused' (gh, _, WhiteToPlay) (d, w) = highest' w (evaluate'' (positionTree gh) gh) >>= flip focused' (d - 1, w)
+focused' (gh, _, BlackToPlay) (d, w) = lowest'  w (evaluate'' (positionTree gh) gh) >>= flip focused' (d - 1, w)
 focused' e _                         = [e]
 
 highest' :: Int -> [Evaluated] -> [Evaluated]

@@ -18,28 +18,28 @@ evaluate p = whitePieces' p - blackPieces' p + pawnAdvancement p + development p
 
 evaluateGH :: GameHistory -> Float
 evaluateGH gh
-  | (isCheckMate gh) && (toPlay gh == White) = (-10000.0)
-  | (isCheckMate gh) && (toPlay gh == Black) = 10000.0
+  | isCheckMate gh && (toPlay gh == White) = -10000.0
+  | isCheckMate gh && (toPlay gh == Black) = 10000.0
   | otherwise = evaluate (head gh)
 
 safeKing :: Position -> Float
 safeKing p
   | (pieceAt p ('g', 1) == Just (King White)) && (pieceAt p ('f', 1) == Just (Rook White)) = 0.1
   | (pieceAt p ('c', 1) == Just (King White)) && (pieceAt p ('d', 1) == Just (Rook White)) = 0.1
-  | (pieceAt p ('g', 8) == Just (King Black)) && (pieceAt p ('f', 8) == Just (Rook Black)) = (-0.1)
-  | (pieceAt p ('c', 8) == Just (King Black)) && (pieceAt p ('d', 8) == Just (Rook Black)) = (-0.1)
+  | (pieceAt p ('g', 8) == Just (King Black)) && (pieceAt p ('f', 8) == Just (Rook Black)) = -0.1
+  | (pieceAt p ('c', 8) == Just (King Black)) && (pieceAt p ('d', 8) == Just (Rook Black)) = -0.1
   | otherwise = 0.0
 
 development :: Position -> Float
 development p = sum $ fmap scoreOfficerDevelopment p
 
 scoreOfficerDevelopment :: (Square, Maybe Piece) -> Float
-scoreOfficerDevelopment ((_, row), Just (Knight White)) = if (row == 1) then 0.0 else 0.07
-scoreOfficerDevelopment ((_, row), Just (Knight Black)) = if (row == 8) then 0.0 else (-0.07)
-scoreOfficerDevelopment ((_, row), Just (Bishop White)) = if (row == 1) then 0.0 else 0.06
-scoreOfficerDevelopment ((_, row), Just (Bishop Black)) = if (row == 8) then 0.0 else (-0.06)
-scoreOfficerDevelopment ((_, row), Just (Rook White)) = if (row == 1) then 0.0 else 0.05
-scoreOfficerDevelopment ((_, row), Just (Rook Black)) = if (row == 8) then 0.0 else (-0.05)
+scoreOfficerDevelopment ((_, row), Just (Knight White)) = if row == 1 then 0.0 else 0.07
+scoreOfficerDevelopment ((_, row), Just (Knight Black)) = if row == 8 then 0.0 else (-0.07)
+scoreOfficerDevelopment ((_, row), Just (Bishop White)) = if row == 1 then 0.0 else 0.06
+scoreOfficerDevelopment ((_, row), Just (Bishop Black)) = if row == 8 then 0.0 else (-0.06)
+scoreOfficerDevelopment ((_, row), Just (Rook White)) = if row == 1 then 0.0 else 0.05
+scoreOfficerDevelopment ((_, row), Just (Rook Black)) = if row == 8 then 0.0 else (-0.05)
 scoreOfficerDevelopment _ = 0.0
 
 pawnAdvancement :: Position -> Float

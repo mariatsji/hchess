@@ -20,8 +20,8 @@ pretty pos = do
 prettyE :: Evaluated -> IO ()
 prettyE (gh, score, status) = do
   prettyGH gh
-  putStrLn $ "score : " ++ (show score)
-  putStrLn $ "status : " ++ (show status)
+  putStrLn $ "score : " ++ show score
+  putStrLn $ "status : " ++ show status
 
 prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)

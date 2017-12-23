@@ -40,18 +40,18 @@ parseMove s gh
             let castleAttempt = Chess.castleShort gh (toPlay gh)
                 legalMoves = Chess.positionTree gh
                 colorToPlay = if whiteToPlay gh then Just White else Just Black
-                fromSquare = if (toPlay gh) == White then ('e', 1) else ('e', 8)
-            in if [] /= castleAttempt && (head castleAttempt) `elem` legalMoves && colorToPlay == fmap colr (pieceAt (head gh) fromSquare) then (head castleAttempt) : gh else gh
+                fromSquare = if toPlay gh == White then ('e', 1) else ('e', 8)
+            in if [] /= castleAttempt && head castleAttempt `elem` legalMoves && colorToPlay == fmap colr (pieceAt (head gh) fromSquare) then (head castleAttempt) : gh else gh
     | s =~ "O-O-O" =
             let castleAttempt = Chess.castleLong gh (toPlay gh)
                 legalMoves = Chess.positionTree gh
                 colorToPlay = if whiteToPlay gh then Just White else Just Black
-                fromSquare = if (toPlay gh) == White then ('e', 1) else ('e', 8)
-            in if [] /= castleAttempt && (head castleAttempt) `elem` legalMoves && colorToPlay == fmap colr (pieceAt (head gh) fromSquare) then (head castleAttempt) : gh else gh
+                fromSquare = if toPlay gh == White then ('e', 1) else ('e', 8)
+            in if [] /= castleAttempt && head castleAttempt `elem` legalMoves && colorToPlay == fmap colr (pieceAt (head gh) fromSquare) then (head castleAttempt) : gh else gh
     | otherwise = gh
 
 parseMoves :: [String] -> GameHistory
-parseMoves moves = foldl (flip parseMove) [Chess.startPosition] moves
+parseMoves = foldl (flip parseMove) [Chess.startPosition]
 
 parseFrom :: String -> Square
 parseFrom x = (head x, digitToInt (x !! 1))
