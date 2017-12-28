@@ -134,6 +134,18 @@ main = hspec $ do
             length c `shouldBe` (1 :: Int)
             Chess.pieceAt (head c) ('c', 8) `shouldBe` (Just (King Black))
             Chess.pieceAt (head c) ('d', 8) `shouldBe` (Just (Rook Black))
+        it "includes long castle for white in legal moves" $ do
+            let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]
+            let gh = Move.parseMoves moves
+            let legals = Chess.positionTree gh
+            let kingMoves = filter (\p -> pieceAt p ('e', 1) == Nothing) legals
+            mapM_ Printer.pretty kingMoves
+            length kingMoves `shouldBe` (2 :: Int)
+        it "parses a long castle for white" $ do
+            let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]
+                gh = Move.parseMoves moves
+                p2 = Move.parseMove "O-O-O" gh
+            length p2 - (length gh) `shouldBe` (1 :: Int)
         it "white does not castle through check" $ do
             let p = Chess.makeMoves [Chess.startPosition] [ (('e', 2), ('e', 4))
                   , (('e', 7), ('e', 5))

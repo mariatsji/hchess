@@ -11,7 +11,6 @@
     
 # todo
     
-    - O-O-O
     - refactors
     - quickcheck properties to searched trees
     - chose the shorter path to same evaluation

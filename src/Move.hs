@@ -36,14 +36,14 @@ parseMove s gh
                 colorToPlay = if whiteToPlay gh then Just White else Just Black
                 fromSquare = parseFrom s
             in if any (eqPosition moveAttempt) legalMoves && colorToPlay == fmap colr (pieceAt (head gh) fromSquare) then moveAttempt : gh else gh
-    | s =~ "O-O" =
-            let castleAttempt = Chess.castleShort gh (toPlay gh)
+    | s =~ "O-O-O" =
+            let castleAttempt = Chess.castleLong gh (toPlay gh)
                 legalMoves = Chess.positionTree gh
                 colorToPlay = if whiteToPlay gh then Just White else Just Black
                 fromSquare = if toPlay gh == White then ('e', 1) else ('e', 8)
             in if [] /= castleAttempt && head castleAttempt `elem` legalMoves && colorToPlay == fmap colr (pieceAt (head gh) fromSquare) then (head castleAttempt) : gh else gh
-    | s =~ "O-O-O" =
-            let castleAttempt = Chess.castleLong gh (toPlay gh)
+    | s =~ "O-O" =
+            let castleAttempt = Chess.castleShort gh (toPlay gh)
                 legalMoves = Chess.positionTree gh
                 colorToPlay = if whiteToPlay gh then Just White else Just Black
                 fromSquare = if toPlay gh == White then ('e', 1) else ('e', 8)
