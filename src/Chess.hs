@@ -108,8 +108,13 @@ makeMoves :: GameHistory -> [(Square, Square)] -> GameHistory
 makeMoves gh [] = gh
 makeMoves gh (x:xs) = makeMoves (movePiece (head gh) (fst x) (snd x) : gh) xs
 
+-- (a,1), (b,1) .. (h,8)
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt pos square = find (\t -> fst t == square) pos >>= snd
+pieceAt pos (c,r) = snd $ pos !! (toNr (c,r))
+  where toNr (c',r') = (r' - 1) * 8 + (ord c' - 96) - 1
+
+pieceAt' :: Position -> Square -> Maybe Piece
+pieceAt' pos square = find (\t -> fst t == square) pos >>= snd
 
 whitePieces :: Position -> [(Square, Piece)]
 whitePieces pos = (\t -> (fst t, fromJust (snd t))) <$> filter isWhite pos

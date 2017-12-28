@@ -9,6 +9,11 @@
     ./stackw build --fast --pedantic
     ./stackw exec hchess-exe
     
+# profile performance
+
+    ./stackw build --profile && \
+    ./stackw exec -- hchess-exe +RTS -p
+    
 # todo
     
     - refactors

@@ -21,7 +21,7 @@ start "1" = do
   gameLoopHH [Chess.startPosition]
 start "2" = do
   putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
-  putStrLn "Enter machine search depth (1-5) where 1 is faster and 5 is stronger"
+  putStrLn "Enter machine search depth (2-5) where 1 is faster and 5 is stronger"
   l <- getLine
   let depth = read l :: Int
   Printer.pretty Chess.startPosition
