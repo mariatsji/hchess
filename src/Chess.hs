@@ -7,8 +7,10 @@ anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition,
 posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong, determineStatus) where
 
 import Control.Arrow
+import Control.Monad
 import Data.Char
 import Data.List
+import qualified Data.Map.Strict as Map
 import Data.Maybe
 import qualified Data.Set as Set
 import Data.Tuple
@@ -17,7 +19,7 @@ data Color = White | Black deriving (Eq, Ord, Enum, Show)
 data Piece = Pawn Color | Knight Color | Bishop Color | Rook Color | Queen Color | King Color deriving (Eq, Ord, Show)
 
 type Square = (Char, Int)
-type Position = [(Square, Maybe Piece)]
+type Position = Map.Map Square (Maybe Piece)
 type GameHistory = [Position]
 
 data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deriving (Eq, Ord, Show)
@@ -48,14 +50,15 @@ squareTo :: Square -> Int -> Int -> Square
 squareTo (c,r) cols rows = (chr (ord c + cols), r + rows)
 
 startPosition :: Position
-startPosition = zip board ([Just $ Rook White, Just $ Knight White, Just $ Bishop White, Just $ Queen White, Just $ King White, Just $ Bishop White, Just $ Knight White, Just $ Rook White]
+startPosition = Map.fromList $
+                 zip board ([Just $ Rook White, Just $ Knight White, Just $ Bishop White, Just $ Queen White, Just $ King White, Just $ Bishop White, Just $ Knight White, Just $ Rook White]
               ++ replicate 8 (Just $ Pawn White)
               ++ replicate 32 Nothing
               ++ replicate 8 (Just $ Pawn Black)
               ++ [Just $ Rook Black, Just $ Knight Black, Just $ Bishop Black, Just $ Queen Black, Just $ King Black, Just $ Bishop Black, Just $ Knight Black, Just $ Rook Black])
 
 emptyBoard :: Position
-emptyBoard = zip board (repeat Nothing)
+emptyBoard = Map.fromList $ zip board (repeat Nothing)
 
 movePiece :: Position -> Square -> Square -> Position
 movePiece pos from to
@@ -99,10 +102,10 @@ vacantAt :: Position -> Square -> Bool
 vacantAt pos t = isNothing $ pieceAt pos t
 
 removePieceAt :: Position -> Square -> Position
-removePieceAt pos square = fmap (\t -> if fst t == square then (fst t, Nothing) else t) pos
+removePieceAt pos square = Map.adjust (\_ -> Nothing) square pos
 
 replacePieceAt :: Position -> Square -> Piece -> Position
-replacePieceAt pos square piece = fmap (\t -> if fst t == square then (fst t, Just piece) else t) pos
+replacePieceAt pos square piece = Map.adjust (\_ -> Just piece) square pos
 
 makeMoves :: GameHistory -> [(Square, Square)] -> GameHistory
 makeMoves gh [] = gh
@@ -110,14 +113,10 @@ makeMoves gh (x:xs) = makeMoves (movePiece (head gh) (fst x) (snd x) : gh) xs
 
 -- (a,1), (b,1) .. (h,8)
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt pos (c,r) = snd $ pos !! (toNr (c,r))
-  where toNr (c',r') = (r' - 1) * 8 + (ord c' - 96) - 1
-
-pieceAt' :: Position -> Square -> Maybe Piece
-pieceAt' pos square = find (\t -> fst t == square) pos >>= snd
+pieceAt pos square = join $ pos Map.!? square
 
 whitePieces :: Position -> [(Square, Piece)]
-whitePieces pos = (\t -> (fst t, fromJust (snd t))) <$> filter isWhite pos
+whitePieces pos = fmap (\t -> (fst t, fromJust (snd t))) $ filter isWhite $ Map.assocs pos
 
 isWhite :: (Square, Maybe Piece) -> Bool
 isWhite (_, Nothing) = False
@@ -132,7 +131,7 @@ isBlack (_, Just p)
     | otherwise = False
 
 blackPieces :: Position -> [(Square, Piece)]
-blackPieces pos = (\t -> (fst t, fromJust (snd t))) <$> filter isBlack pos
+blackPieces pos = (\t -> (fst t, fromJust (snd t))) <$> filter isBlack (Map.assocs pos)
 
 whiteToPlay :: GameHistory -> Bool
 whiteToPlay = odd . length
@@ -203,7 +202,7 @@ prom Black p (s, mp) = if snd s == 1 && mp == Just (Pawn Black) then (s, Just p)
 
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
-promoteTo c pos p = fmap (prom c p) pos
+promoteTo c pos p = Map.fromList $ fmap (prom c p) (Map.toList pos)
 
 -- promote one position to [] or all four positions
 maybePromote :: Color -> Position -> Piece -> [Position]
@@ -337,7 +336,7 @@ posrep (x:xs) = (x, countHead it) : posrep (snd it)
         countHead z = length $ fst z
 
 eqPosition :: Position -> Position -> Bool
-eqPosition p1 p2 = Set.fromList p1 == Set.fromList p2
+eqPosition p1 p2 = p1 == p2
 
 isPatt :: GameHistory -> Bool
 isPatt gh = not (isInCheck gh (toPlay gh)) && null (positionTree gh)

@@ -2,6 +2,8 @@ import Test.Hspec
 import Test.QuickCheck
 import Control.Exception (evaluate)
 
+import qualified Data.Map.Strict as Map
+
 import Chess
 import Move
 import Printer
@@ -59,9 +61,6 @@ main = hspec $ do
         it "recognizes a position with a king" $ do
             let b = Chess.anyPosWithoutKing White [Chess.startPosition]
             b `shouldBe` (False :: Bool)
-        it "recognizes a position without a king" $ do
-            let b = Chess.anyPosWithoutKing White [[(('a',1), Just $ Bishop White)]]
-            b `shouldBe` (True :: Bool)
         it "finds a small number of end-positions" $ do
             let p1 = Chess.replacePieceAt Chess.emptyBoard ('h', 8) (King Black)
             let p2 = Chess.replacePieceAt p1 ('e', 1) (King White)

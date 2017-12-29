@@ -16,8 +16,8 @@ focusedBest gh depth =
 --give you a full gh (i.e. not only next position)
 focused :: GameHistory -> Int -> Evaluated -- this is maybe grap
 focused gh depth
-  | toPlay gh == White = head $ highest' 1 (focused' (evaluate' gh) (depth, 500))
-  | otherwise = head $ lowest' 1 (focused' (evaluate' gh) (depth, 500))
+  | toPlay gh == White = head $ highest' 1 (focused' (evaluate' gh) (depth, 20))
+  | otherwise = head $ lowest' 1 (focused' (evaluate' gh) (depth, 20))
 
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
 focused' :: Evaluated -> (Int,Int) -> [Evaluated]

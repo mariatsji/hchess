@@ -6,6 +6,7 @@ prettyE
 
 import Chess
 import Data.Char
+import qualified Data.Map.Strict as Map
 import Evaluation
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
@@ -27,13 +28,13 @@ prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify = groupWith ((* (-1)) . snd . fst)
+rowify p = groupWith ((* (-1)) . snd . fst) (Map.toList p)
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row = UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row
 
 prettyPiece :: (Square, Maybe Piece) -> String
-prettyPiece ((c,r), Nothing) = if even (ord c + r) then "◽" else " "
+prettyPiece ((c,r), Nothing) = if even (ord c + r) then "▯" else " "
 prettyPiece (_, Just (Pawn White)) = "♙"
 prettyPiece (_, Just (Knight White)) = "♘"
 prettyPiece (_, Just (Bishop White)) = "♗"

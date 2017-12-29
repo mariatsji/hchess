@@ -1,5 +1,7 @@
 module Evaluation(Evaluated, evaluate, evaluate', evaluate'', first, pawnAdvancement, toGH) where
 
+import qualified Data.Map.Strict as Map
+
 import Chess
 
 type Evaluated = (GameHistory, Float, Status)
@@ -31,7 +33,7 @@ safeKing p
   | otherwise = 0.0
 
 development :: Position -> Float
-development p = sum $ fmap scoreOfficerDevelopment p
+development p = sum $ fmap scoreOfficerDevelopment (Map.toList p)
 
 scoreOfficerDevelopment :: (Square, Maybe Piece) -> Float
 scoreOfficerDevelopment ((_, row), Just (Knight White)) = if row == 1 then 0.0 else 0.07
@@ -43,7 +45,7 @@ scoreOfficerDevelopment ((_, row), Just (Rook Black)) = if row == 8 then 0.0 els
 scoreOfficerDevelopment _ = 0.0
 
 pawnAdvancement :: Position -> Float
-pawnAdvancement pos = sum $ fmap pawnPosValue pos
+pawnAdvancement pos = sum $ fmap pawnPosValue (Map.toList pos)
 
 pawnPosValue :: (Square, Maybe Piece) -> Float
 pawnPosValue (('c', r), Just (Pawn White)) = r' r * 0.06
