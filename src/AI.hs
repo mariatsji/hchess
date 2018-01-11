@@ -11,7 +11,9 @@ focusedBest gh depth =
   let ghPotential = ghFromE $ focused gh depth
       ghFromE (a,_,_) = a
   in
-   if length ghPotential > length gh + 1 then Right (ghOneStep gh ghPotential) else Left (ghOneStep gh ghPotential, determineStatus ghPotential)
+   if length ghPotential > length gh + 1
+    then Right (ghOneStep gh ghPotential)
+    else Left (ghOneStep gh ghPotential, determineStatus ghPotential)
 
 --give you a full gh (i.e. not only next position)
 focused :: GameHistory -> Int -> Evaluated -- this is maybe grap
@@ -28,11 +30,11 @@ focused' e _                         = [e]
 
 highest' :: Int -> [Evaluated] -> [Evaluated]
 highest' cutoff e = take cutoff $ sortBy comp e
-  where comp e1 e2 = comparing (\(_,x,_) -> negate x) e1 e2
+  where comp = comparing (\(_,x,_) -> negate x)
 
 lowest' :: Int -> [Evaluated] -> [Evaluated]
 lowest' cutoff e = take cutoff $ sortBy comp e
-  where comp e1 e2 = comparing (\(_,x,_) -> x) e1 e2
+  where comp = comparing (\(_,x,_) -> x)
 
 ghOneStep :: GameHistory -> GameHistory -> GameHistory
 ghOneStep [] _ = []

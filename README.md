@@ -16,6 +16,7 @@
     
 # todo
     
+    - Writer Monad to append Pgn in Move.hs
     - refactors
     - quickcheck properties to searched trees
     - chose the shorter path to same evaluation

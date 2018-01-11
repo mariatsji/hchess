@@ -40,7 +40,7 @@ start _ = main
 
 gameLoopMM :: GameHistory -> Int -> Int -> IO ()
 gameLoopMM gh whiteDepth blackDepth = do
-  let depth = if (toPlay gh == White) then whiteDepth else blackDepth
+  let depth = if toPlay gh == White then whiteDepth else blackDepth
   let e = AI.focusedBest gh depth
   case e of Right gameHistory -> do
               let newPos = head gameHistory

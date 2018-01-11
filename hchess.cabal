@@ -26,6 +26,8 @@ library
                       ,bytestring
                       ,containers
                       ,regex-tdfa
+                      ,parallel
+                      ,deepseq
   default-language:    Haskell2010
 
 executable hchess-exe

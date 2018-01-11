@@ -206,7 +206,7 @@ promoteTo c pos p = Map.fromList $ fmap (prom c p) (Map.toList pos)
 
 -- promote one position to [] or all four positions
 maybePromote :: Color -> Position -> Piece -> [Position]
-maybePromote c pos p = if canPromote c pos p then [promoteTo c pos p] else []
+maybePromote c pos p = [promoteTo c pos p | canPromote c pos p]
   where canPromote c' pos' p' = promoteTo c' pos' p' /= pos'
 
 promote :: Color -> Position -> [Position]
