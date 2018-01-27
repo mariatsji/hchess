@@ -1,9 +1,9 @@
 module Main where
 
-import AI
-import Chess
-import Move
-import Printer
+import           AI
+import           Chess
+import           Move
+import           Printer
 
 main :: IO ()
 main = do
@@ -95,5 +95,5 @@ validMove :: GameHistory -> GameHistory -> Bool
 validMove gh1 gh2 = gh1 /= gh2
 
 toStatus :: Either Status GameHistory -> String
-toStatus (Left s) = show s
+toStatus (Left s)   = show s
 toStatus (Right gh) = show $ determineStatus gh

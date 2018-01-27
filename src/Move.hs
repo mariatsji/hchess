@@ -1,8 +1,8 @@
 module Move(parseMove, parseMoves) where
 
-import Chess
-import Data.Char
-import Text.Regex.TDFA
+import           Chess
+import           Data.Char
+import           Text.Regex.TDFA
 
 parseMove :: String -> GameHistory -> GameHistory
 parseMove s gh
@@ -58,4 +58,3 @@ parseFrom x = (head x, digitToInt (x !! 1))
 
 parseTo :: String -> Square
 parseTo x = (x !! 3, digitToInt (x !! 4))
-

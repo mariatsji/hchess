@@ -1,14 +1,14 @@
-import Test.Hspec
-import Test.QuickCheck
-import Control.Exception (evaluate)
+import           Control.Exception (evaluate)
+import           Test.Hspec
+import           Test.QuickCheck
 
-import Data.Typeable
+import           Data.Typeable
 
-import Chess
-import Move
-import Evaluation
-import Printer
-import AI
+import           AI
+import           Chess
+import           Evaluation
+import           Move
+import           Printer
 
 main :: IO ()
 main = hspec $ do

@@ -2,7 +2,7 @@ module Evaluation(Evaluated, evaluate, evaluate', evaluate'', first, pawnAdvance
 
 import qualified Data.Map.Strict as Map
 
-import Chess
+import           Chess
 
 type Evaluated = (GameHistory, Float, Status)
 
@@ -52,13 +52,13 @@ pawnPosValue (('c', r), Just (Pawn White)) = r' r * 0.06
 pawnPosValue (('f', r), Just (Pawn White)) = r' r * 0.06
 pawnPosValue (('d', r), Just (Pawn White)) = r' r * 0.07
 pawnPosValue (('e', r), Just (Pawn White)) = r' r * 0.07
-pawnPosValue ((_, r), Just (Pawn White)) = r' r * 0.05
+pawnPosValue ((_, r), Just (Pawn White))   = r' r * 0.05
 pawnPosValue (('c', r), Just (Pawn Black)) = (9 - r' r) * (-0.06)
 pawnPosValue (('f', r), Just (Pawn Black)) = (9 - r' r) * (-0.06)
 pawnPosValue (('d', r), Just (Pawn Black)) = (9 - r' r) * (-0.07)
 pawnPosValue (('e', r), Just (Pawn Black)) = (9 - r' r) * (-0.07)
-pawnPosValue ((_, r), Just (Pawn Black)) =   (9 - r' r) * (-0.05)
-pawnPosValue _ = 0.00
+pawnPosValue ((_, r), Just (Pawn Black))   =   (9 - r' r) * (-0.05)
+pawnPosValue _                             = 0.00
 
 r' :: Int -> Float
 r' n = fromIntegral n :: Float
@@ -73,18 +73,18 @@ count :: Position -> (Position -> [(Square, Piece)]) -> Float
 count pos f = foldl (\a (_, p) -> a + valueOf p) 0.0 (f pos)
 
 valueOf :: Piece -> Float
-valueOf (Pawn White) = 1.0
-valueOf (Pawn Black) = 1.0
+valueOf (Pawn White)   = 1.0
+valueOf (Pawn Black)   = 1.0
 valueOf (Knight White) = 3.0
 valueOf (Knight Black) = 3.0
 valueOf (Bishop White) = 3.0
 valueOf (Bishop Black) = 3.0
-valueOf (Rook White) = 5.0
-valueOf (Rook Black) = 5.0
-valueOf (Queen White) = 9.0
-valueOf (Queen Black) = 9.0
-valueOf (King White) = 100.0
-valueOf (King Black) = 100.0
+valueOf (Rook White)   = 5.0
+valueOf (Rook Black)   = 5.0
+valueOf (Queen White)  = 9.0
+valueOf (Queen Black)  = 9.0
+valueOf (King White)   = 100.0
+valueOf (King Black)   = 100.0
 
 first :: GameHistory -> GameHistory
 first gh = head (Chess.positionTree gh) : gh

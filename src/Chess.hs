@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+
 module Chess(board, Color(..), Piece(..), Square,
 Position, GameHistory, Status(..), startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
 emptyBoard, replacePieceAt, positionTree, positionTree', positionTreeIgnoreCheck, enPassant,
@@ -8,21 +10,24 @@ posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleSh
 
 import Control.Arrow
 import Control.Monad
+import Control.DeepSeq
 import Data.Char
 import Data.List
 import qualified Data.Map.Strict as Map
 import Data.Maybe
 import qualified Data.Set as Set
 import Data.Tuple
+import GHC.Generics (Generic, Generic1)
 
-data Color = White | Black deriving (Eq, Ord, Enum, Show)
-data Piece = Pawn Color | Knight Color | Bishop Color | Rook Color | Queen Color | King Color deriving (Eq, Ord, Show)
+
+data Color = White | Black deriving (Eq, Ord, Enum, Show, Generic, NFData)
+data Piece = Pawn Color | Knight Color | Bishop Color | Rook Color | Queen Color | King Color deriving (Eq, Ord, Show, Generic, NFData)
 
 type Square = (Char, Int)
 type Position = Map.Map Square (Maybe Piece)
 type GameHistory = [Position]
 
-data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deriving (Eq, Ord, Show)
+data Status = WhiteToPlay | BlackToPlay | Remis | WhiteIsMate | BlackIsMate deriving (Eq, Ord, Show, Generic, NFData)
 
 board :: [Square]
 board = fmap swap $ (,) <$> [1..8] <*> ['a'..'h']

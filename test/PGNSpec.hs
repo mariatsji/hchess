@@ -1,8 +1,8 @@
-import Test.Hspec
-import Test.QuickCheck
-import Control.Exception (evaluate)
+import           Control.Exception (evaluate)
+import           Test.Hspec
+import           Test.QuickCheck
 
-import PGN
+import           PGN
 
 main :: IO ()
 main = hspec $ do

@@ -1,12 +1,12 @@
-import Test.Hspec
-import Test.QuickCheck
-import Control.Exception (evaluate)
+import           Control.Exception (evaluate)
+import           Test.Hspec
+import           Test.QuickCheck
 
-import qualified Data.Map.Strict as Map
+import qualified Data.Map.Strict   as Map
 
-import Chess
-import Move
-import Printer
+import           Chess
+import           Move
+import           Printer
 
 main :: IO ()
 main = hspec $ do

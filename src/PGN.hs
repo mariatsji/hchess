@@ -1,6 +1,6 @@
 module PGN(PgnMove(..), Pgn, appendMove) where
 
-import Chess
+import           Chess
 {--
 [Event "F/S Return Match"]
 [Site "Belgrade, Serbia JUG"]
