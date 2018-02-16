@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
 
 module Chess(board, Color(..), Piece(..), Square,
 Position, GameHistory, Status(..), startPosition, movePiece, makeMoves, removePieceAt, whitePieces, blackPieces,
@@ -8,16 +9,16 @@ to', toSquaresPawn, pieceAt, toPlay, whiteToPlay, colr, isInCheck,
 anyPosWithoutKing, isCheckMate, isPatt, threefoldrepetition,
 posrep, isDraw, succ', promote, promoteTo, promoteBindFriendly, castle, castleShort, castleLong, determineStatus) where
 
-import Control.Arrow
-import Control.Monad
-import Control.DeepSeq
-import Data.Char
-import Data.List
+import           Control.Arrow
+import           Control.DeepSeq
+import           Control.Monad
+import           Data.Char
+import           Data.List
 import qualified Data.Map.Strict as Map
-import Data.Maybe
-import qualified Data.Set as Set
-import Data.Tuple
-import GHC.Generics (Generic, Generic1)
+import           Data.Maybe
+import qualified Data.Set        as Set
+import           Data.Tuple
+import           GHC.Generics    (Generic, Generic1)
 
 
 data Color = White | Black deriving (Eq, Ord, Enum, Show, Generic, NFData)
@@ -33,12 +34,12 @@ board :: [Square]
 board = fmap swap $ (,) <$> [1..8] <*> ['a'..'h']
 
 colr :: Piece -> Color
-colr (Pawn c) = c
+colr (Pawn c)   = c
 colr (Knight c) = c
 colr (Bishop c) = c
-colr (Rook c) = c
-colr (Queen c) = c
-colr (King c) = c
+colr (Rook c)   = c
+colr (Queen c)  = c
+colr (King c)   = c
 
 king :: Color -> Piece
 king White = King White
@@ -113,7 +114,7 @@ replacePieceAt :: Position -> Square -> Piece -> Position
 replacePieceAt pos square piece = Map.adjust (\_ -> Just piece) square pos
 
 makeMoves :: GameHistory -> [(Square, Square)] -> GameHistory
-makeMoves gh [] = gh
+makeMoves gh []     = gh
 makeMoves gh (x:xs) = makeMoves (movePiece (head gh) (fst x) (snd x) : gh) xs
 
 -- (a,1), (b,1) .. (h,8)
@@ -145,7 +146,7 @@ toPlay :: GameHistory -> Color
 toPlay pos = if whiteToPlay pos then White else Black
 
 positionTree' :: GameHistory -> [GameHistory]
-positionTree' gh = fmap (\p -> p : gh) $ positionTree gh
+positionTree' gh = (: gh) <$> positionTree gh
 
 positionTree :: GameHistory -> [Position]
 positionTree gh = filter (\p -> not $ isInCheck (p : gh) (toPlay gh)) $ positionTreeIgnoreCheck gh
@@ -330,8 +331,8 @@ threefoldrepetition :: GameHistory -> Bool
 threefoldrepetition gh = max' (fmap snd $ posrep gh) > 2
 
 max' :: Ord a => [a] -> a
-max' [] = error "no max element in empty list"
-max' [x] = x
+max' []     = error "no max element in empty list"
+max' [x]    = x
 max' (x:xs) = if x > max' xs then x else max' xs
 
 posrep :: GameHistory -> [(Position, Int)]
