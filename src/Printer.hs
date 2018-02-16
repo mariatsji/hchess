@@ -8,7 +8,7 @@ import           Chess
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8  as UF
 import           Data.Char
-import qualified Data.Map.Strict       as Map
+import qualified Data.Map.Lazy         as Map
 import           Evaluation
 import           GHC.Exts
 

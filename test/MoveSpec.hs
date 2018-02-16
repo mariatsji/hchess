@@ -2,7 +2,7 @@ import           Control.Exception (evaluate)
 import           Test.Hspec
 import           Test.QuickCheck
 
-import qualified Data.Map.Strict   as Map
+import qualified Data.Map.Lazy    as Map
 
 import           Chess
 import           Move

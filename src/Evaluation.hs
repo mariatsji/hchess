@@ -1,6 +1,6 @@
 module Evaluation(Evaluated, evaluate, evaluate', evaluate'', first, pawnAdvancement, toGH) where
 
-import qualified Data.Map.Strict as Map
+import qualified Data.Map.Lazy as Map
 
 import           Chess
 
