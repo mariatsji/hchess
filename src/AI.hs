@@ -1,7 +1,6 @@
 module AI (focused', focused, focusedBest) where
 
 import           Chess
-import           Control.DeepSeq  (NFData (..), force)
 import           Control.Parallel (par, pseq)
 import           Data.List
 import           Data.Ord
@@ -28,10 +27,10 @@ focused gh depth
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
 focused' :: Evaluated -> (Int,Int) -> [Evaluated]
 focused' e (0, _)                    = [e]
-focused' (gh, _, WhiteToPlay) (d, w) = highest' w firstHalfEvaluated ++ secondHalfEvaluated >>= flip focused' (d - 1, w)
+focused' (gh, _, WhiteToPlay) (d, w) = highest' w firstHalfLazy ++ secondHalfLazy >>= flip focused' (d - 1, w)
     where allEvaluated = evaluate'' (positionTree gh) gh
-          firstHalfEvaluated = force $ take (length allEvaluated `div` 2) allEvaluated
-          secondHalfEvaluated = force $ drop (length allEvaluated `div` 2) allEvaluated
+          firstHalfLazy = take (length allEvaluated `div` 2) allEvaluated
+          secondHalfLazy = drop (length allEvaluated `div` 2) allEvaluated
 focused' (gh, _, BlackToPlay) (d, w) = lowest'  w (evaluate'' (positionTree gh) gh) >>= flip focused' (d - 1, w)
 focused' e _                         = [e]
 

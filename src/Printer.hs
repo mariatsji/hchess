@@ -28,7 +28,7 @@ prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify p = groupWith ((* (-1)) . snd . fst) (Map.toList p)
+rowify (Position p) = groupWith ((* (-1)) . snd . fst) (Map.toList p)
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row = UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row

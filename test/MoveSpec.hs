@@ -11,16 +11,16 @@ import           Printer
 main :: IO ()
 main = hspec $ do
     describe "Chess.board" $ do
-        it "prints the start position" $ do
+        it "prints the start position" $
             Printer.pretty Chess.startPosition
-        it "creates a board with 64 squares" $ do
+        it "creates a board with 64 squares" $
             length Chess.board `shouldBe` (64 :: Int)
         it "moves E2-E4 from start pos" $ do
             let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
             Chess.pieceAt newPos ('e', 4) `shouldBe` (Just $ Pawn White :: Maybe Piece)
-        it "finds 16 white pieces in startpos" $ do
+        it "finds 16 white pieces in startpos" $
             length (Chess.whitePieces Chess.startPosition) `shouldBe` (16 :: Int)
-        it "finds 16 black pieces in startpos" $ do
+        it "finds 16 black pieces in startpos" $
             length (Chess.blackPieces Chess.startPosition) `shouldBe` (16 :: Int)
 
     describe "Move" $ do
@@ -28,9 +28,9 @@ main = hspec $ do
             let tree = Chess.positionTree [Chess.startPosition]
             length tree  `shouldBe` (20 :: Int)
         it "parses a move text command" $ do
-            let newP = head $ Move.parseMove "e2-e4" [Chess.startPosition]
+            let (Position newP) = head $ Move.parseMove "e2-e4" [Chess.startPosition]
             length newP `shouldBe` (64:: Int)
-            newP `shouldNotBe` Chess.startPosition
+            (Position newP) `shouldNotBe` Chess.startPosition
         it "does not step on own pieces" $ do
             let b = Chess.canGoThere Chess.startPosition ('a',1) ('a', 2)
             b `shouldBe` (False :: Bool)
