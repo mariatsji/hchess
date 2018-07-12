@@ -1,6 +1,11 @@
-module PGN(PgnMove(..), Pgn, appendMove) where
+module PGN
+  ( PgnMove(..)
+  , Pgn
+  , appendMove
+  ) where
 
 import           Chess
+
 {--
 [Event "F/S Return Match"]
 [Site "Belgrade, Serbia JUG"]
@@ -19,17 +24,23 @@ hxg5 29. b3 Ke6 30. a3 Kd6 31. axb4 cxb4 32. Ra5 Nd5 33. f3 Bc8 34. Kf2 Bf5
 35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5 40. Rd6 Kc5 41. Ra6
 Nf2 42. g4 Bd3 43. Re6 1/2-1/2
 -}
-
 {--
 but we fake pgn :
 
 [1 e4-e6 e7-e5 2 O-O d7Q]
 -}
+data PgnMove
+  = WhiteMove Int
+              String
+  | BlackMove Int
+              String
+              String
+  deriving (Eq, Ord, Show)
 
-data PgnMove = WhiteMove Int String | BlackMove Int String String deriving (Eq, Ord, Show)
 type Pgn = [PgnMove]
 
 appendMove :: Pgn -> String -> Pgn
 appendMove [] newMove = [WhiteMove 1 newMove]
 appendMove (x@(WhiteMove i w):xs) newMove = BlackMove i w newMove : xs
-appendMove (x@(BlackMove i w b):xs) newMove = WhiteMove (succ i) newMove : (x:xs)
+appendMove (x@(BlackMove i w b):xs) newMove =
+  WhiteMove (succ i) newMove : (x : xs)
