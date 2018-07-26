@@ -380,9 +380,28 @@ promote c@Black pos =
   maybePromote c pos (Rook Black) ++
   maybePromote c pos (Bishop Black) ++ maybePromote c pos (Knight Black)
 
--- same pos or all four
+-- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> [Position]
-promoteBindFriendly c pos =
+promoteBindFriendly White pos =
+  if
+    elem (Just (Pawn White)) [pieceAt pos (col, 8) | col <- ['a'..'h']]
+  then
+    promoteBindFriendly' White pos
+  else
+    [pos]
+promoteBindFriendly Black pos =
+  if
+    elem (Just (Pawn Black)) [pieceAt pos (col, 1) | col <- ['a'..'h']]
+  then
+    promoteBindFriendly' Black pos
+  else
+    [pos]
+  
+  
+
+-- same pos or all four
+promoteBindFriendly' :: Color -> Position -> [Position]
+promoteBindFriendly' c pos =
   if promote c pos /= [pos] && promote c pos /= []
     then promote c pos
     else [pos]

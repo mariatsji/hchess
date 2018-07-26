@@ -13,6 +13,11 @@
 
     ./stackw build --profile && \
     ./stackw exec -- hchess-exe +RTS -p
+
+# profile with threadscope
+
+    ./stackw build --profile && \
+    ./stackw exec -- hchess-exe +RTS -ls -N2
     
 # todo
     
