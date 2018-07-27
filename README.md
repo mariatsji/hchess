@@ -18,6 +18,10 @@
 
     ./stackw build --profile && \
     ./stackw exec -- hchess-exe +RTS -ls -N2
+
+# run benchmarks
+
+    ./stackw bench
     
 # todo
     
