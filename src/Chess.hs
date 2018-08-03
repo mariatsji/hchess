@@ -59,7 +59,7 @@ import qualified Data.Map.Lazy   as Map
 import           Data.Maybe
 import qualified Data.Set        as Set
 import           Data.Tuple
-import           GHC.Generics    (Generic, Generic1)
+import           GHC.Generics    (Generic)
 
 data Color
   = White
@@ -79,7 +79,7 @@ type Square = (Char, Int)
 
 data Position = Position
   { m :: Map.Map Square (Maybe Piece)
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, NFData)
 
 type GameHistory = [Position]
 
@@ -252,6 +252,8 @@ toPlay pos =
   if whiteToPlay pos
     then White
     else Black
+
+type Move = Square -> Square
 
 positionTree' :: GameHistory -> [GameHistory]
 positionTree' gh = (: gh) <$> positionTree gh

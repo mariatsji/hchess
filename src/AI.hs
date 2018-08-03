@@ -10,7 +10,7 @@ import           Data.List
 import           Data.Ord
 import           Evaluation
 
--- best give you Either Status or a gh + Position (gh with next position in it)
+-- best give you Either Status or a gh ++ Position (gh with next position in it)
 focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
 focusedBest gh depth =
   let ghPotential = ghFromE $ focused gh depth
@@ -19,11 +19,15 @@ focusedBest gh depth =
         then Right (ghOneStep gh ghPotential)
         else Left (ghOneStep gh ghPotential, determineStatus ghPotential)
 
+-- only evaluate the n most promising replies (which is to say every reply..)
+searchWidth :: Int
+searchWidth = 1000
+
 --give you a full gh (i.e. not only next position)
 focused :: GameHistory -> Int -> Evaluated -- this is maybe grap
 focused gh depth
-  | toPlay gh == White = head $ highest' 1 (focused' (evaluate' gh) (depth, 3))
-  | otherwise = head $ lowest' 1 (focused' (evaluate' gh) (depth, 3))
+  | toPlay gh == White = head $ highest' searchWidth (focused' (evaluate' gh) (depth, 3))
+  | otherwise = head $ lowest' searchWidth (focused' (evaluate' gh) (depth, 3))
 
 -- par greaterForced $ pseq lesserForced  $ lesser ++ x:greater
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
