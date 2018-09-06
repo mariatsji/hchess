@@ -19,9 +19,11 @@ focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
 focusedBest gh depth =
   let ghPotential = ghFromE $ focused gh depth
       ghFromE (a, _, _) = a
+      ghOneStep' = ghOneStep gh ghPotential
+      status = determineStatus ghPotential
    in if length ghPotential > length gh + 1
-        then Right (ghOneStep gh ghPotential)
-        else Left (ghOneStep gh ghPotential, determineStatus ghPotential)
+        then Right ghOneStep'
+        else Left (ghOneStep', status)
 
 -- only evaluate the n most promising replies (which is to say every reply..)
 searchWidth :: Int

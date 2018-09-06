@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric  #-}
-
 module Chess
   ( board
   , Color(..)
@@ -59,12 +56,11 @@ import qualified Data.Map.Strict as Map
 import           Data.Maybe
 import qualified Data.Set        as Set
 import           Data.Tuple
-import           GHC.Generics    (Generic)
 
 data Color
   = White
   | Black
-  deriving (Eq, Ord, Enum, Show, Generic, NFData)
+  deriving (Eq, Ord, Enum, Show)
 
 data Piece
   = Pawn Color
@@ -73,13 +69,13 @@ data Piece
   | Rook Color
   | Queen Color
   | King Color
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show)
 
 type Square = (Char, Int)
 
 newtype Position = Position
-  { m :: Map.Map Square (Maybe Piece)
-  } deriving (Eq, Show, Generic, NFData)
+  { m :: Map.Map Square Piece
+  } deriving (Eq, Show)
 
 type GameHistory = [Position]
 
@@ -89,10 +85,13 @@ data Status
   | Remis
   | WhiteIsMate
   | BlackIsMate
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show)
 
 board :: [Square]
 board = fmap swap $ (,) <$> [1 .. 8] <*> ['a' .. 'h']
+
+onlyPiecesBoard :: [Square]
+onlyPiecesBoard = fmap swap $ (,) <$> [1,2,7,8] <*> ['a' .. 'h']
 
 colr :: Piece -> Color
 colr (Pawn c)   = c
@@ -127,31 +126,30 @@ startPosition =
   Position $
   Map.fromList $
   zip
-    board
-    ([ Just $ Rook White
-     , Just $ Knight White
-     , Just $ Bishop White
-     , Just $ Queen White
-     , Just $ King White
-     , Just $ Bishop White
-     , Just $ Knight White
-     , Just $ Rook White
+    onlyPiecesBoard
+    ([ Rook White
+     , Knight White
+     , Bishop White
+     , Queen White
+     , King White
+     , Bishop White
+     , Knight White
+     , Rook White
      ] ++
-     replicate 8 (Just $ Pawn White) ++
-     replicate 32 Nothing ++
-     replicate 8 (Just $ Pawn Black) ++
-     [ Just $ Rook Black
-     , Just $ Knight Black
-     , Just $ Bishop Black
-     , Just $ Queen Black
-     , Just $ King Black
-     , Just $ Bishop Black
-     , Just $ Knight Black
-     , Just $ Rook Black
+     replicate 8 (Pawn White) ++
+     replicate 8 (Pawn Black) ++
+     [ Rook Black
+     , Knight Black
+     , Bishop Black
+     , Queen Black
+     , King Black
+     , Bishop Black
+     , Knight Black
+     , Rook Black
      ])
 
 emptyBoard :: Position
-emptyBoard = Position $ Map.fromList $ zip board (repeat Nothing)
+emptyBoard = Position $ Map.empty
 
 movePiece :: Position -> Square -> Square -> Position
 movePiece pos from to
@@ -213,30 +211,25 @@ vacantAt pos t = isNothing $ pieceAt pos t
 
 removePieceAt :: Position -> Square -> Position
 removePieceAt (Position pos) square =
-  Position $ Map.adjust (\_ -> Nothing) square pos
+  Position $ Map.delete square pos
 
 replacePieceAt :: Position -> Square -> Piece -> Position
 replacePieceAt (Position pos) square piece =
-  Position $ Map.adjust (\_ -> Just piece) square pos
+  Position $ Map.insert square piece pos
 
 makeMoves :: GameHistory -> [(Square, Square)] -> GameHistory
 makeMoves gh []     = gh
 makeMoves gh (x:xs) = makeMoves (movePiece (head gh) (fst x) (snd x) : gh) xs
 
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt = safeLookup
-
-safeLookup :: Position -> Square -> Maybe Piece
-safeLookup (Position m) square = if insideBoard square then m Map.! square else Nothing
+pieceAt (Position pos) square = pos Map.!? square
 
 whitePieces :: Position -> [(Square, Piece)]
-whitePieces = Map.foldMapWithKey (compact White) . m
-
-compact :: Color -> Square -> Maybe Piece -> [(Square, Piece)]
-compact _ _ Nothing = []
-compact c s (Just p)
-  | colr p == c = [(s, p)]
-  | otherwise = []
+whitePieces (Position pos) = Map.foldMapWithKey f pos
+  where f :: Square -> Piece -> [(Square, Piece)]
+        f s p
+          | colr p == White = [(s, p)]
+          | otherwise = []
 
 isWhite :: (Square, Maybe Piece) -> Bool
 isWhite t =
@@ -252,7 +245,11 @@ isBlack t =
    in p == Black
 
 blackPieces :: Position -> [(Square, Piece)]
-blackPieces = Map.foldMapWithKey (compact Black) . m
+blackPieces (Position pos) = Map.foldMapWithKey f pos
+  where f :: Square -> Piece -> [(Square, Piece)]
+        f s p
+          | colr p == Black = [(s, p)]
+          | otherwise = []
 
 whiteToPlay :: GameHistory -> Bool
 whiteToPlay = odd . length
@@ -361,16 +358,9 @@ enPassant gh s
     wasLastPieceToMove gh' s' =
       movePiece (head gh) s' toCol == (head . tail) gh'
 
--- promotions :: promote one position
-prom :: Color -> Piece -> (Square, Maybe Piece) -> (Square, Maybe Piece)
-prom White p (s, mp) =
-  if snd s == 8 && mp == Just (Pawn White)
-    then (s, Just p)
-    else (s, mp)
-prom Black p (s, mp) =
-  if snd s == 1 && mp == Just (Pawn Black)
-    then (s, Just p)
-    else (s, mp)
+prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
+prom White p1 (s, p2) = if snd s == 8 && p2 == Pawn White then (s, p1) else (s, p2)
+prom Black p1 (s, p2) = if snd s == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
 
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position

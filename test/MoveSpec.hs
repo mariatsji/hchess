@@ -17,6 +17,7 @@ main = hspec $ do
             length Chess.board `shouldBe` (64 :: Int)
         it "moves E2-E4 from start pos" $ do
             let newPos = Chess.movePiece Chess.startPosition ('e',2) ('e',4)
+            print newPos
             Chess.pieceAt newPos ('e', 4) `shouldBe` (Just $ Pawn White :: Maybe Piece)
         it "finds 16 white pieces in startpos" $
             length (Chess.whitePieces Chess.startPosition) `shouldBe` (16 :: Int)
@@ -29,8 +30,7 @@ main = hspec $ do
             length tree  `shouldBe` (20 :: Int)
         it "parses a move text command" $ do
             let (Position newP) = head $ Move.parseMove "e2-e4" [Chess.startPosition]
-            length newP `shouldBe` (64:: Int)
-            (Position newP) `shouldNotBe` Chess.startPosition
+            Position newP `shouldNotBe` Chess.startPosition
         it "does not step on own pieces" $ do
             let b = Chess.canGoThere Chess.startPosition ('a',1) ('a', 2)
             b `shouldBe` (False :: Bool)

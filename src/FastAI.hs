@@ -1,6 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
-
 module FastAI
   ( mkStrategy
   , countEvals
@@ -9,8 +6,6 @@ module FastAI
   ) where
 
 import           Chess
-import           Control.DeepSeq
-import           GHC.Generics    (Generic, Generic1)
 import           Data.Functor
 import           Evaluation
 
@@ -21,7 +16,7 @@ type Outlook = (Float, Float)
 data Strategy =
   Strategy Evaluated
            [Strategy]
-  deriving (Eq, Generic, NFData)
+  deriving (Eq)
 
 mkStrategy :: Int -> GameHistory -> Strategy
 mkStrategy 0 gh = Strategy (evaluate' gh) []

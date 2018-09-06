@@ -11,8 +11,12 @@
     
 # profile performance
 
-    stackbuild --profile && \
-    stack exec -- hchess-exe +RTS -p
+    stack build --profile && \
+    stack exec -- hchess-exe +RTS -hc -p -K100M
+
+    less hchess-exe.prof
+    hp2ps -e8in -c hchess-exe.hp
+    open hchess-exe.ps
 
 # profile with threadscope
 

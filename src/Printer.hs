@@ -8,7 +8,7 @@ import           Chess
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8  as UF
 import           Data.Char
-import qualified Data.Map.Lazy         as Map
+import qualified Data.Map.Strict       as Map
 import           Evaluation
 import           GHC.Exts
 
@@ -28,7 +28,10 @@ prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify (Position p) = groupWith ((* (-1)) . snd . fst) (Map.toList p)
+rowify (Position p) = groupWith ((* (-1)) . snd . fst) (listWithEmpties p)
+
+listWithEmpties :: Map.Map Square Piece -> [((Char, Int), Maybe Piece)]
+listWithEmpties m = fmap (\s -> (s, m Map.!? s)) board
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =
