@@ -2,26 +2,26 @@
 
 # run tests continously
 
-    ./stackw test --file-watch
+    stack test --file-watch
 
 # start app
 
-    ./stackw build --fast --pedantic
-    ./stackw exec hchess-exe
+    stack build --fast --pedantic
+    stack exec hchess-exe
     
 # profile performance
 
-    ./stackw build --profile && \
-    ./stackw exec -- hchess-exe +RTS -p
+    stackbuild --profile && \
+    stack exec -- hchess-exe +RTS -p
 
 # profile with threadscope
 
-    ./stackw build --profile && \
-    ./stackw exec -- hchess-exe +RTS -ls -N2
+    stack build --profile && \
+    stack exec -- hchess-exe +RTS -ls -N2
 
 # run benchmarks
 
-    ./stackw bench
+    stack bench
     
 # todo
     

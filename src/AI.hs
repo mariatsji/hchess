@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedLists #-}
+
 module AI
   ( focused'
   , focused
@@ -5,10 +7,12 @@ module AI
   ) where
 
 import           Chess
-import           Control.Parallel (par, pseq)
 import           Data.List
 import           Data.Ord
 import           Evaluation
+
+import qualified Data.Vector   as V
+import           GHC.Exts      (IsList)
 
 -- best give you Either Status or a gh ++ Position (gh with next position in it)
 focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
@@ -29,7 +33,6 @@ focused gh depth
   | toPlay gh == White = head $ highest' searchWidth (focused' (evaluate' gh) (depth, 3))
   | otherwise = head $ lowest' searchWidth (focused' (evaluate' gh) (depth, 3))
 
--- par greaterForced $ pseq lesserForced  $ lesser ++ x:greater
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
 focused' :: Evaluated -> (Int, Int) -> [Evaluated]
 focused' e (0, _) = [e]

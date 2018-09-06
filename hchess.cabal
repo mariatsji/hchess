@@ -35,7 +35,7 @@ library
 executable hchess-exe
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -O2 -with-rtsopts=-maxN8 -eventlog
+  ghc-options:         -threaded -rtsopts -O3 -with-rtsopts=-maxN8 -eventlog
   build-depends:       base
                      , hchess
   default-language:    Haskell2010

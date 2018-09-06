@@ -1,5 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE OverloadedLists #-}
 
 module Evaluation
   ( Evaluated
@@ -12,6 +11,8 @@ module Evaluation
   ) where
 
 import qualified Data.Map.Lazy as Map
+import qualified Data.Vector   as V
+import           GHC.Exts      (IsList)
 
 import           Chess
 

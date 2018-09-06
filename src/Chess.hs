@@ -55,7 +55,7 @@ import           Control.DeepSeq
 import           Control.Monad
 import           Data.Char
 import           Data.List
-import qualified Data.Map.Lazy   as Map
+import qualified Data.Map.Strict as Map
 import           Data.Maybe
 import qualified Data.Set        as Set
 import           Data.Tuple
@@ -77,7 +77,7 @@ data Piece
 
 type Square = (Char, Int)
 
-data Position = Position
+newtype Position = Position
   { m :: Map.Map Square (Maybe Piece)
   } deriving (Eq, Show, Generic, NFData)
 
@@ -123,7 +123,8 @@ squareTo :: Square -> Int -> Int -> Square
 squareTo (c, r) cols rows = (chr (ord c + cols), r + rows)
 
 startPosition :: Position
-startPosition = Position $ 
+startPosition =
+  Position $
   Map.fromList $
   zip
     board
@@ -211,38 +212,47 @@ vacantAt :: Position -> Square -> Bool
 vacantAt pos t = isNothing $ pieceAt pos t
 
 removePieceAt :: Position -> Square -> Position
-removePieceAt (Position pos) square = Position $ Map.adjust (\_ -> Nothing) square pos
+removePieceAt (Position pos) square =
+  Position $ Map.adjust (\_ -> Nothing) square pos
 
 replacePieceAt :: Position -> Square -> Piece -> Position
-replacePieceAt (Position pos) square piece = Position $ Map.adjust (\_ -> Just piece) square pos
+replacePieceAt (Position pos) square piece =
+  Position $ Map.adjust (\_ -> Just piece) square pos
 
 makeMoves :: GameHistory -> [(Square, Square)] -> GameHistory
 makeMoves gh []     = gh
 makeMoves gh (x:xs) = makeMoves (movePiece (head gh) (fst x) (snd x) : gh) xs
 
--- (a,1), (b,1) .. (h,8)
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt (Position pos) square = join $ pos Map.!? square
+pieceAt = safeLookup
+
+safeLookup :: Position -> Square -> Maybe Piece
+safeLookup (Position m) square = if insideBoard square then m Map.! square else Nothing
 
 whitePieces :: Position -> [(Square, Piece)]
-whitePieces (Position pos) = 
-  fmap (\t -> (fst t, fromJust (snd t))) $ filter isWhite $ Map.assocs pos
+whitePieces = Map.foldMapWithKey (compact White) . m
+
+compact :: Color -> Square -> Maybe Piece -> [(Square, Piece)]
+compact _ _ Nothing = []
+compact c s (Just p)
+  | colr p == c = [(s, p)]
+  | otherwise = []
 
 isWhite :: (Square, Maybe Piece) -> Bool
-isWhite (_, Nothing) = False
-isWhite (_, Just p)
-  | colr p == White = True
-  | otherwise = False
+isWhite t =
+  let mp = snd t
+      p = maybe Black colr mp
+   in p == White
 
+-- cannot be changed to `not . isWhite` because of `Nothing` case
 isBlack :: (Square, Maybe Piece) -> Bool
-isBlack (_, Nothing) = False
-isBlack (_, Just p)
-  | colr p == Black = True
-  | otherwise = False
+isBlack t =
+  let mp = snd t
+      p = maybe White colr mp
+   in p == Black
 
 blackPieces :: Position -> [(Square, Piece)]
-blackPieces (Position pos) =
-  (\t -> (fst t, fromJust (snd t))) <$> filter isBlack (Map.assocs pos)
+blackPieces = Map.foldMapWithKey (compact Black) . m
 
 whiteToPlay :: GameHistory -> Bool
 whiteToPlay = odd . length
@@ -364,7 +374,8 @@ prom Black p (s, mp) =
 
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
-promoteTo c (Position pos) p = Position $ Map.fromList $ fmap (prom c p) (Map.toList pos)
+promoteTo c (Position pos) p =
+  Position $ Map.fromList $ fmap (prom c p) (Map.toList pos)
 
 -- promote one position to [] or all four positions
 maybePromote :: Color -> Position -> Piece -> [Position]
@@ -385,21 +396,13 @@ promote c@Black pos =
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> [Position]
 promoteBindFriendly White pos =
-  if
-    elem (Just (Pawn White)) [pieceAt pos (col, 8) | col <- ['a'..'h']]
-  then
-    promoteBindFriendly' White pos
-  else
-    [pos]
+  if elem (Just (Pawn White)) [pieceAt pos (col, 8) | col <- ['a' .. 'h']]
+    then promoteBindFriendly' White pos
+    else [pos]
 promoteBindFriendly Black pos =
-  if
-    elem (Just (Pawn Black)) [pieceAt pos (col, 1) | col <- ['a'..'h']]
-  then
-    promoteBindFriendly' Black pos
-  else
-    [pos]
-  
-  
+  if elem (Just (Pawn Black)) [pieceAt pos (col, 1) | col <- ['a' .. 'h']]
+    then promoteBindFriendly' Black pos
+    else [pos]
 
 -- same pos or all four
 promoteBindFriendly' :: Color -> Position -> [Position]
