@@ -71,7 +71,7 @@ data Piece
   | King Color
   deriving (Eq, Ord, Show, Generic, NFData)
 
-data Square = Square Int Int deriving (Eq, Ord, Show, Generic, NFData)
+data Square = Square !Int !Int deriving (Eq, Ord, Show, Generic, NFData)
 
 newtype Position = Position
   { m :: Map.Map Square Piece
@@ -236,7 +236,7 @@ makeMoves gh []     = gh
 makeMoves gh (x:xs) = makeMoves (movePiece (head gh) (fst x) (snd x) : gh) xs
 
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt (Position pos) square = pos Map.!? square
+pieceAt pos s = (m pos) Map.!? s
 
 whitePieces :: Position -> [(Square, Piece)]
 whitePieces (Position pos) = Map.foldMapWithKey f pos
@@ -568,8 +568,7 @@ isInCheck :: GameHistory -> Color -> Bool
 isInCheck gh clr =
   let potentialNextPositions = positionTreeIgnoreCheckPromotionsCastle gh (succ' clr)
       anyPWithoutKing = anyPosWithoutKing clr potentialNextPositions
-  in seq anyPWithoutKing anyPWithoutKing
-  --anyPosWithoutKing clr (positionTreeIgnoreCheckPromotionsCastle gh (succ' clr))
+  in anyPWithoutKing
 
 isCheckMate :: GameHistory -> Bool
 isCheckMate gh = isInCheck gh (toPlay gh) && null (positionTree gh)

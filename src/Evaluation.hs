@@ -10,11 +10,11 @@ module Evaluation
   , toGH
   ) where
 
-import qualified Data.Map.Lazy as Map
+import qualified Data.Map.Strict as Map
 
 import           Chess
 
-data Evaluated = Evaluated !GameHistory !Float !Status deriving (Eq, Show)
+data Evaluated = Evaluated !GameHistory Float Status deriving (Eq, Show)
 
 evaluate' :: GameHistory -> Evaluated
 evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)

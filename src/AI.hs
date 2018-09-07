@@ -36,23 +36,19 @@ focused gh depth
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
 focused' :: Evaluated -> (Int, Int) -> [Evaluated]
 focused' !e (0, _) = [e]
-focused' (Evaluated gh _ WhiteToPlay) (d, w) =
-  highest' w firstHalfLazy ++ secondHalfLazy >>= flip focused' (d - 1, w)
-  where
-    allEvaluated = evaluate'' (positionTree gh) gh
-    firstHalfLazy = take (length allEvaluated `div` 2) allEvaluated
-    secondHalfLazy = drop (length allEvaluated `div` 2) allEvaluated
-focused' (Evaluated gh _ BlackToPlay) (d, w) =
+focused' (Evaluated !gh _ WhiteToPlay) (d, w) =
+  highest' w (evaluate'' (positionTree gh) gh) >>= flip focused' (d - 1, w)
+focused' (Evaluated !gh _ BlackToPlay) (d, w) =
   lowest' w (evaluate'' (positionTree gh) gh) >>= flip focused' (d - 1, w)
 focused' !e _ = [e]
 
 highest' :: Int -> [Evaluated] -> [Evaluated]
-highest' cutoff e = take cutoff $ sortBy comp e
+highest' cutoff !e = take cutoff $ sortBy comp e
   where
     comp = comparing (\(Evaluated _ x _) -> negate x)
 
 lowest' :: Int -> [Evaluated] -> [Evaluated]
-lowest' cutoff e = take cutoff $ sortBy comp e
+lowest' cutoff !e = take cutoff $ sortBy comp e
   where
     comp = comparing (\(Evaluated _ x _) -> x)
 
