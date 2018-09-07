@@ -5,13 +5,13 @@ import           Chess
 import           Move
 import           Printer
 
-main :: IO ()
-main = do
+main' :: IO ()
+main' = do
   let fb = focusedBest [Chess.startPosition] 3
   print fb
 
-main' :: IO ()
-main' = do
+main :: IO ()
+main = do
     print "1 Human vs Human"
     print "2 Human vs Machine"
     print "3 Machine vs Machine"

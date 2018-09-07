@@ -5,6 +5,7 @@ module AI
   ( focused'
   , focused
   , focusedBest
+  , highestSoFar
   ) where
 
 import           Chess
@@ -43,14 +44,31 @@ focused' (Evaluated !gh _ BlackToPlay) (d, w) =
 focused' !e _ = [e]
 
 highest' :: Int -> [Evaluated] -> [Evaluated]
-highest' cutoff !e = take cutoff $ sortBy comp e
-  where
-    comp = comparing (\(Evaluated _ x _) -> negate x)
+highest' cutoff = foldr (highestSoFar cutoff) []
+
+highestSoFar :: Int -> Evaluated -> [Evaluated] -> [Evaluated]
+highestSoFar i ev soFar
+  | length soFar < i = ev : soFar
+  | otherwise = replaceLowest ev soFar
+
+replaceLowest :: Evaluated -> [Evaluated] -> [Evaluated]
+replaceLowest e [] = [e]
+replaceLowest e (e':ex) = if getScore e < getScore e' then e' : ex else replaceLowest e ex
 
 lowest' :: Int -> [Evaluated] -> [Evaluated]
-lowest' cutoff !e = take cutoff $ sortBy comp e
-  where
-    comp = comparing (\(Evaluated _ x _) -> x)
+lowest' cutoff = foldr (lowestSoFar cutoff) []
+
+lowestSoFar :: Int -> Evaluated -> [Evaluated] -> [Evaluated]
+lowestSoFar i ev soFar
+  | length soFar < i = ev : soFar
+  | otherwise = replaceHighest ev soFar
+
+replaceHighest :: Evaluated -> [Evaluated] -> [Evaluated]
+replaceHighest e [] = [e]
+replaceHighest e (e':ex) = if getScore e > getScore e' then e' : ex else replaceHighest e ex
+
+getScore :: Evaluated -> Float
+getScore (Evaluated _ x _) = x
 
 ghOneStep :: GameHistory -> GameHistory -> GameHistory
 ghOneStep [] _ = []
