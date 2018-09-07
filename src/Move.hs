@@ -149,3 +149,4 @@ asInt 'e' = 5
 asInt 'f' = 6
 asInt 'g' = 7
 asInt 'h' = 8
+asInt x = error $ "not a column I can parse: " ++ [x]

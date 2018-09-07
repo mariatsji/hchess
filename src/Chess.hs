@@ -51,15 +51,10 @@ module Chess
   , determineStatus
   ) where
 
-import           Control.Arrow
 import           Control.DeepSeq
-import           Control.Monad
-import           Data.Char
 import           Data.List
 import qualified Data.Map.Strict as Map
 import           Data.Maybe
-import qualified Data.Set        as Set
-import           Data.Tuple
 import           GHC.Generics (Generic)
 
 data Color
@@ -171,7 +166,7 @@ emptyBoard :: Position
 emptyBoard = Position $ Map.empty
 
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos from@(Square fc fr) to@(Square tc tr)
+movePiece pos from@(Square fc _) to@(Square tc tr)
   | pieceAt pos from == Just (Pawn White) &&
       (fc /= tc) && vacantAt pos to =
     movePiece' (removePieceAt pos (Square tc (tr - 1))) from to
@@ -250,19 +245,6 @@ whitePieces (Position pos) = Map.foldMapWithKey f pos
           | colr p == White = [(s, p)]
           | otherwise = []
 
-isWhite :: (Square, Maybe Piece) -> Bool
-isWhite t =
-  let mp = snd t
-      p = maybe Black colr mp
-   in p == White
-
--- cannot be changed to `not . isWhite` because of `Nothing` case
-isBlack :: (Square, Maybe Piece) -> Bool
-isBlack t =
-  let mp = snd t
-      p = maybe White colr mp
-   in p == Black
-
 blackPieces :: Position -> [(Square, Piece)]
 blackPieces (Position pos) = Map.foldMapWithKey f pos
   where f :: Square -> Piece -> [(Square, Piece)]
@@ -278,8 +260,6 @@ toPlay pos =
   if whiteToPlay pos
     then White
     else Black
-
-type Move = Square -> Square
 
 positionTree' :: GameHistory -> [GameHistory]
 positionTree' gh = (: gh) <$> positionTree gh
@@ -334,7 +314,7 @@ eliminateEnPassantSquare pos (_, Just s2) = removePieceAt pos s2
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: GameHistory -> (Square, Piece) -> [(Square, Maybe Square)]
-toSquaresPawn gh (s@(Square c r), p)
+toSquaresPawn gh (s@(Square _ r), p)
   | colr p == White =
     filter insideBoard' $
     [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2] ++
@@ -380,8 +360,8 @@ enPassant gh s@(Square c r)
       movePiece (head gh) s' toSquare == (head . tail) gh'
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
-prom White p1 (s@(Square c r), p2) = if r == 8 && p2 == Pawn White then (s, p1) else (s, p2)
-prom Black p1 (s@(Square c r), p2) = if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
+prom White p1 (s@(Square _ r), p2) = if r == 8 && p2 == Pawn White then (s, p1) else (s, p2)
+prom Black p1 (s@(Square _ r), p2) = if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
 
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position

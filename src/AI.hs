@@ -11,9 +11,6 @@ import           Data.List
 import           Data.Ord
 import           Evaluation
 
-import qualified Data.Vector   as V
-import           GHC.Exts      (IsList)
-
 -- best give you Either Status or a gh ++ Position (gh with next position in it)
 focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
 focusedBest gh depth =

@@ -2,7 +2,6 @@ import qualified AI             as AI
 import qualified Chess          as Chess
 import           Criterion.Main
 import qualified Evaluation     as Evaluation
-import qualified FastAI         as FastAI
 import qualified Printer        as Printer
 
 import           Control.Monad
@@ -11,25 +10,9 @@ import           Data.Maybe
 main = do
   defaultMain
     [ 
-      -- fastAIBench
     legacyBench
     ]
 
-
-fastAIBench =
-  bgroup
-    "fast ai"
-    [ {--
-      bench "mkStrategy startposition depth 0" $
-      nf (FastAI.mkStrategy' [Chess.startPosition]) 0
-    , bench "mkStrategy startposition depth 1" $
-      nf (FastAI.mkStrategy' [Chess.startPosition]) 1
-    , bench "mkStrategy startposition depth 2" $
-      nf (FastAI.mkStrategy' [Chess.startPosition]) 2
-    , bench "mkStrategy startposition depth 3" $
-      nf (FastAI.mkStrategy' [Chess.startPosition]) 3
-      --}
-    ]
 
 legacyBench =
   bgroup
