@@ -1,6 +1,8 @@
 module Move
   ( parseMove
   , parseMoves
+  , parseFrom
+  , parseTo
   ) where
 
 import           Chess
@@ -94,8 +96,8 @@ parseMove s gh
             else Just Black
         fromSquare =
           if toPlay gh == White
-            then ('e', 1)
-            else ('e', 8)
+            then (Square 5 1)
+            else (Square 5 8)
      in if [] /= castleAttempt &&
            head castleAttempt `elem` legalMoves &&
            colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
@@ -110,8 +112,8 @@ parseMove s gh
             else Just Black
         fromSquare =
           if toPlay gh == White
-            then ('e', 1)
-            else ('e', 8)
+            then (Square 5 1)
+            else (Square 5 8)
      in if [] /= castleAttempt &&
            head castleAttempt `elem` legalMoves &&
            colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
@@ -123,7 +125,27 @@ parseMoves :: [String] -> GameHistory
 parseMoves = foldl (flip parseMove) [Chess.startPosition]
 
 parseFrom :: String -> Square
-parseFrom x = (head x, digitToInt (x !! 1))
+parseFrom x = 
+  let cC = head x
+      c = asInt cC
+      rC = x !! 1
+      r = digitToInt rC
+  in Square c r
 
 parseTo :: String -> Square
-parseTo x = (x !! 3, digitToInt (x !! 4))
+parseTo x = 
+  let cC = x !! 3
+      c = asInt cC
+      rC = x !! 4
+      r = digitToInt rC
+  in Square c r
+
+asInt :: Char -> Int
+asInt 'a' = 1
+asInt 'b' = 2
+asInt 'c' = 3
+asInt 'd' = 4
+asInt 'e' = 5
+asInt 'f' = 6
+asInt 'g' = 7
+asInt 'h' = 8

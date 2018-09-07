@@ -28,9 +28,9 @@ prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify (Position p) = groupWith ((* (-1)) . snd . fst) (listWithEmpties p)
+rowify (Position p) = groupWith (\(s@(Square c r), mp) -> c) (listWithEmpties p)
 
-listWithEmpties :: Map.Map Square Piece -> [((Char, Int), Maybe Piece)]
+listWithEmpties :: Map.Map Square Piece -> [(Square, Maybe Piece)]
 listWithEmpties m = fmap (\s -> (s, m Map.!? s)) board
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
@@ -38,8 +38,8 @@ prettyRow row =
   UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row
 
 prettyPiece :: (Square, Maybe Piece) -> String
-prettyPiece ((c, r), Nothing) =
-  if even (ord c + r)
+prettyPiece (Square c r, Nothing) =
+  if even (c + r)
     then "▯"
     else " "
 prettyPiece (_, Just (Pawn White)) = "♙"

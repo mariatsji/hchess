@@ -19,6 +19,6 @@ main =
     e `shouldSatisfy` (> (-1.1))
     e `shouldSatisfy` (< 1.1)
   it "evaluate advanced pawns over home pawns" $ do
-    let p = Chess.makeMoves [Chess.startPosition] [(('e', 2), ('e', 4))]
+    let p = Chess.makeMoves [Chess.startPosition] [((Square 5  2), (Square 5  4))]
     let e = Evaluation.evaluate $ head p
     e `shouldSatisfy` (> 0.0)
