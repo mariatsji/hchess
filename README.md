@@ -12,7 +12,7 @@
 # profile performance
 
     stack build --profile && \
-    stack exec -- hchess-exe +RTS -hc -p -K100M
+    time stack exec -- hchess-exe +RTS -hc -p -s -K100M
 
     less hchess-exe.prof
     hp2ps -e8in -c hchess-exe.hp

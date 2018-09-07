@@ -10,14 +10,17 @@ import           Data.Maybe
 
 main = do
   defaultMain
-    [ fastAIBench
-    -- , legacyBench
+    [ 
+      -- fastAIBench
+    legacyBench
     ]
+
 
 fastAIBench =
   bgroup
     "fast ai"
-    [ bench "mkStrategy startposition depth 0" $
+    [ {--
+      bench "mkStrategy startposition depth 0" $
       nf (FastAI.mkStrategy' [Chess.startPosition]) 0
     , bench "mkStrategy startposition depth 1" $
       nf (FastAI.mkStrategy' [Chess.startPosition]) 1
@@ -25,21 +28,24 @@ fastAIBench =
       nf (FastAI.mkStrategy' [Chess.startPosition]) 2
     , bench "mkStrategy startposition depth 3" $
       nf (FastAI.mkStrategy' [Chess.startPosition]) 3
+      --}
     ]
 
 legacyBench =
   bgroup
     "chess"
     [ bench "positionTree' startposition" $
-      whnf Chess.positionTree' [Chess.startPosition]
+      nf Chess.positionTree' [Chess.startPosition]
     , bench "evaluation' startposition" $
-      whnf Evaluation.evaluate' [Chess.startPosition]
+      nf Evaluation.evaluate' [Chess.startPosition]
+      {--
     , bench "focusedBest startposition depth 1" $
       whnf (AI.focusedBest [Chess.startPosition]) 1
     , bench "focusedBest startposition depth 3" $
       whnf (AI.focusedBest [Chess.startPosition]) 3
     , bench "focusedBest startposition depth 5" $
       whnf (AI.focusedBest [Chess.startPosition]) 5
+      --}
     ]
 
 someCounting = do

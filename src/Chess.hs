@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric  #-}
+
 module Chess
   ( board
   , Color(..)
@@ -56,11 +59,12 @@ import qualified Data.Map.Strict as Map
 import           Data.Maybe
 import qualified Data.Set        as Set
 import           Data.Tuple
+import           GHC.Generics (Generic)
 
 data Color
   = White
   | Black
-  deriving (Eq, Ord, Enum, Show)
+  deriving (Eq, Ord, Enum, Show, Generic, NFData)
 
 data Piece
   = Pawn Color
@@ -69,13 +73,13 @@ data Piece
   | Rook Color
   | Queen Color
   | King Color
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 type Square = (Char, Int)
 
 newtype Position = Position
   { m :: Map.Map Square Piece
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, Generic, NFData)
 
 type GameHistory = [Position]
 
@@ -85,7 +89,7 @@ data Status
   | Remis
   | WhiteIsMate
   | BlackIsMate
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 board :: [Square]
 board = fmap swap $ (,) <$> [1 .. 8] <*> ['a' .. 'h']
@@ -170,15 +174,13 @@ movePiece' pos from to =
 points' :: (Int, Int) -> (Int, Int) -> [(Int, Int)] -- all visited squares
 points' (c1, r1) (c2, r2)
   | c1 == c2 || r1 == r2 =
-    [ (a, b)
-    | a <- [min c1 c2 .. max c1 c2]
-    , b <- [min r1 r2 .. max r1 r2]
-    , (a, b) /= (c1, r1)
-    , (a, b) /= (c2, r2)
-    ]
+      middle $ (,) <$> to' c1 c2 <*> to' r1 r2
   | otherwise =
-    filter (\(a, b) -> (a, b) /= (c1, r1) && (a, b) /= (c2, r2)) $
-    zip (c1 `to'` c2) (r1 `to'` r2)
+      filter (\(a, b) -> (a, b) /= (c1, r1) && (a, b) /= (c2, r2)) $
+      zip (c1 `to'` c2) (r1 `to'` r2)
+
+middle :: [a] -> [a]
+middle l = if length l > 1 then (reverse . init . reverse . init) l else []
 
 to' :: Int -> Int -> [Int]
 to' a b
@@ -435,9 +437,9 @@ toSquaresRook s =
     [ squareTo s a b
     | a <- [-7 .. 7]
     , b <- [-7 .. 7]
+    , insideBoard $ squareTo s a b
     , a == 0 || b == 0
     , (a, b) /= (0, 0)
-    , insideBoard $ squareTo s a b
     ]
 
 -- queens
@@ -557,7 +559,13 @@ willNotPassCheck _ s1 s2 =
   show s1 ++ " and " ++ show s2 ++ " as castling squares"
 
 insideBoard :: Square -> Bool
-insideBoard s = snd s >= 1 && snd s <= 8 && fst s >= 'a' && fst s <= 'h'
+insideBoard = liftM2 (&&) (validRow . snd) (validCol . fst)
+
+validCol :: Char -> Bool
+validCol = liftM2 (&&) (>= 'a') (<= 'h')
+
+validRow :: Int -> Bool
+validRow = liftM2 (&&) (>= 1) (<= 8)
 
 insideBoard' :: (Square, Maybe Square) -> Bool
 insideBoard' (s, Nothing) =
@@ -566,7 +574,10 @@ insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
 
 isInCheck :: GameHistory -> Color -> Bool
 isInCheck gh clr =
-  anyPosWithoutKing clr (positionTreeIgnoreCheckPromotionsCastle gh (succ' clr))
+  let potentialNextPositions = positionTreeIgnoreCheckPromotionsCastle gh (succ' clr)
+      anyPWithoutKing = anyPosWithoutKing clr potentialNextPositions
+  in seq anyPWithoutKing anyPWithoutKing
+  --anyPosWithoutKing clr (positionTreeIgnoreCheckPromotionsCastle gh (succ' clr))
 
 isCheckMate :: GameHistory -> Bool
 isCheckMate gh = isInCheck gh (toPlay gh) && null (positionTree gh)

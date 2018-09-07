@@ -4,22 +4,13 @@ import           AI
 import           Chess
 import           Move
 import           Printer
-import qualified FastAI         as FastAI
-
-tests :: IO ()
-tests = do
-  putStrLn "starting"
-  let strat = FastAI.mkStrategy 8 [Chess.startPosition]
-      mEval = FastAI.getEval strat [6, 8, 2, 10, 1, 1, 2, 8]
-  case mEval of
-    Nothing -> putStrLn "nothing"
-    Just e -> do
-      putStrLn "done"
-      Printer.prettyE e
-
 
 main :: IO ()
-main = do
+main = print $ 
+  isInCheck [Chess.startPosition] White
+
+main' :: IO ()
+main' = do
     print "1 Human vs Human"
     print "2 Human vs Machine"
     print "3 Machine vs Machine"
