@@ -28,7 +28,7 @@ prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify (Position p) = groupWith (\(s@(Square c r), mp) -> c) (listWithEmpties p)
+rowify (Position p) = reverse $ groupWith (\(s@(Square c r), mp) -> r) (listWithEmpties p)
 
 listWithEmpties :: Map.Map Square Piece -> [(Square, Maybe Piece)]
 listWithEmpties m = fmap (\s -> (s, m Map.!? s)) board
