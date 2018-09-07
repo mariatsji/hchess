@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedLists #-}
 
 module Evaluation
-  ( Evaluated
+  ( Evaluated(..)
   , evaluate
   , evaluate'
   , evaluate''
@@ -14,17 +14,17 @@ import qualified Data.Map.Lazy as Map
 
 import           Chess
 
-type Evaluated = (GameHistory, Float, Status)
+data Evaluated = Evaluated !GameHistory !Float !Status deriving (Eq, Show)
 
 evaluate' :: GameHistory -> Evaluated
-evaluate' gh = (gh, evaluateGH gh, determineStatus gh)
+evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)
 
 evaluate'' :: [Position] -> GameHistory -> [Evaluated]
 evaluate'' poses gh = fmap (\p -> evaluate' (p : gh)) poses
 
 toGH :: Evaluated -> (Status, GameHistory)
 toGH e =
-  let gh = (\(x, _, _) -> x) e
+  let gh = (\(Evaluated x _ _) -> x) e
    in (determineStatus gh, gh)
 
 evaluate :: Position -> Float

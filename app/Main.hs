@@ -5,16 +5,13 @@ import           Chess
 import           Move
 import           Printer
 
-import Evaluation -- for testmain
+main :: IO ()
+main = do
+  let fb = focusedBest [Chess.startPosition] 3
+  print fb
 
 main' :: IO ()
 main' = do
-  let pt = positionTree' [Chess.startPosition]
-      evaled = evaluate' <$> pt
-  print evaled
-
-main :: IO ()
-main = do
     print "1 Human vs Human"
     print "2 Human vs Machine"
     print "3 Machine vs Machine"

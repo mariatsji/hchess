@@ -18,7 +18,7 @@ pretty pos = do
   return ()
 
 prettyE :: Evaluated -> IO ()
-prettyE (gh, score, status) = do
+prettyE (Evaluated gh score status) = do
   prettyGH gh
   putStrLn $ "score : " ++ show score
   putStrLn $ "status : " ++ show status
