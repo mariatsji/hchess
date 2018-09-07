@@ -7,7 +7,7 @@ module Printer
 import           Chess
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8  as UF
-import qualified Data.IntMap.Strict as Map
+import qualified Data.Map.Strict       as Map
 import           Evaluation
 import           GHC.Exts
 
@@ -29,8 +29,8 @@ prettyGH gh = mapM_ pretty (reverse gh)
 rowify :: Position -> [[(Square, Maybe Piece)]]
 rowify (Position p) = reverse $ groupWith (\((Square _ r), _) -> r) (listWithEmpties p)
 
-listWithEmpties :: Map.IntMap Piece -> [(Square, Maybe Piece)]
-listWithEmpties m' = fmap (\s -> (s, m' Map.!? (asKey s))) board
+listWithEmpties :: Map.Map Square Piece -> [(Square, Maybe Piece)]
+listWithEmpties m' = fmap (\s -> (s, m' Map.!? s)) board
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =
