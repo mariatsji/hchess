@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE OverloadedLists #-}
 
 module Evaluation
@@ -10,11 +12,17 @@ module Evaluation
   , toGH
   ) where
 
+import           Control.DeepSeq
 import qualified Data.Map.Strict as Map
+import           GHC.Generics    (Generic)
 
 import           Chess
 
-data Evaluated = Evaluated !GameHistory Float Status deriving (Eq, Show)
+data Evaluated =
+  Evaluated !GameHistory
+            Float
+            Status
+  deriving (Eq, Show, Generic, NFData)
 
 evaluate' :: GameHistory -> Evaluated
 evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)
@@ -88,13 +96,13 @@ pawnPosValue (Square 3 r, Pawn White) = r' r * 0.06
 pawnPosValue (Square 6 r, Pawn White) = r' r * 0.06
 pawnPosValue (Square 4 r, Pawn White) = r' r * 0.07
 pawnPosValue (Square 5 r, Pawn White) = r' r * 0.07
-pawnPosValue (Square _ r, Pawn White)   = r' r * 0.05
+pawnPosValue (Square _ r, Pawn White) = r' r * 0.05
 pawnPosValue (Square 3 r, Pawn Black) = (9 - r' r) * (-0.06)
 pawnPosValue (Square 6 r, Pawn Black) = (9 - r' r) * (-0.06)
 pawnPosValue (Square 4 r, Pawn Black) = (9 - r' r) * (-0.07)
 pawnPosValue (Square 5 r, Pawn Black) = (9 - r' r) * (-0.07)
 pawnPosValue (Square _ r, Pawn Black) = (9 - r' r) * (-0.05)
-pawnPosValue _                             = 0.00
+pawnPosValue _                        = 0.00
 
 r' :: Int -> Float
 r' n = fromIntegral n :: Float

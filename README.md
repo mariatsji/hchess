@@ -6,22 +6,22 @@
 
 # start app
 
-    stack build --fast --pedantic
-    stack exec hchess-exe
+    stack build
+    stack exec hchess
     
 # profile performance
 
     stack build --profile && \
-    time stack exec -- hchess-exe +RTS -hc -p -s -K100M
+    time stack exec -- hchess +RTS -hc -p -s -K100M
 
-    less hchess-exe.prof
-    hp2ps -e8in -c hchess-exe.hp
-    open hchess-exe.ps
+    less hchess.prof
+    hp2ps -e8in -c hchess.hp
+    open hchess.ps
 
 # profile with threadscope
 
     stack build --profile && \
-    stack exec -- hchess-exe +RTS -ls -N2
+    stack exec -- hchess +RTS -ls -N2
 
 # run benchmarks
 

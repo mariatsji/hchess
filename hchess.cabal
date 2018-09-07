@@ -30,7 +30,7 @@ library
                       ,deepseq
   default-language:    Haskell2010
 
-executable hchess-exe
+executable hchess
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -O3 -with-rtsopts=-maxN8 -eventlog

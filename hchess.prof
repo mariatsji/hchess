@@ -1,45 +1,41 @@
-	Fri Sep  7 19:50 2018 Time and Allocation Profiling Report  (Final)
+	Fri Sep  7 19:56 2018 Time and Allocation Profiling Report  (Final)
 
-	   hchess-exe +RTS -maxN8 -hc -p -s -K100M -RTS
+	   hchess +RTS -maxN8 -hc -p -s -K100M -RTS
 
-	total time  =        0.14 secs   (137 ticks @ 1000 us, 1 processor)
+	total time  =        0.14 secs   (139 ticks @ 1000 us, 1 processor)
 	total alloc = 244,271,264 bytes  (excludes profiling overheads)
 
 COST CENTRE      MODULE    SRC                            %time %alloc
 
-pieceAt          Chess     src/Chess.hs:239:1-32           18.2    1.3
-toSquaresRook    Chess     src/Chess.hs:(434,1)-(442,5)    14.6   13.2
-blackPieces.f    Chess     src/Chess.hs:(251,9)-(253,26)    7.3    2.9
-blackPieces      Chess     src/Chess.hs:(249,1)-(253,26)    6.6   11.2
-points'          Chess     src/Chess.hs:(190,1)-(195,37)    6.6   16.5
-unique.\         Chess     src/Chess.hs:(116,8)-(118,19)    5.1    0.6
-whitePieces      Chess     src/Chess.hs:(242,1)-(246,26)    4.4    8.1
-toSquaresBishop  Chess     src/Chess.hs:(422,1)-(430,5)     4.4   12.3
-allHasKing       Chess     src/Chess.hs:(607,1)-(610,60)    3.6    0.0
-MAIN             MAIN      <built-in>                       2.9    0.0
-middle           Chess     src/Chess.hs:198:1-75            2.9    9.3
-compare          Chess     src/Chess.hs:74:46-48            1.5    0.0
-positionsPrPiece Chess     src/Chess.hs:(290,1)-(309,17)    1.5    1.5
-toSquaresPawn    Chess     src/Chess.hs:(317,1)-(342,17)    1.5    1.5
-canGoThere       Chess     src/Chess.hs:(207,1)-(209,47)    1.5    0.0
-unique           Chess     src/Chess.hs:(113,1)-(119,6)     1.5    1.1
-movePiece        Chess     src/Chess.hs:(169,1)-(176,38)    1.5    0.2
-movePiece'       Chess     src/Chess.hs:(179,1)-(182,23)    1.5    0.0
-points           Chess     src/Chess.hs:(185,1)-(187,43)    1.5    3.2
-to'              Chess     src/Chess.hs:(201,1)-(204,33)    1.5    5.6
-removePieceAt    Chess     src/Chess.hs:(227,1)-(228,34)    1.5    2.1
-toPlay           Chess     src/Chess.hs:(259,1)-(262,14)    1.5    0.0
-whitePieces.f    Chess     src/Chess.hs:(244,9)-(246,26)    0.7    2.0
-replacePieceAt   Chess     src/Chess.hs:(231,1)-(232,40)    0.0    3.2
+pieceAt          Chess     src/Chess.hs:239:1-32           20.9    1.3
+toSquaresRook    Chess     src/Chess.hs:(434,1)-(442,5)    10.1   13.2
+points'          Chess     src/Chess.hs:(190,1)-(195,37)    7.9   16.5
+blackPieces      Chess     src/Chess.hs:(249,1)-(253,26)    6.5   11.2
+whitePieces      Chess     src/Chess.hs:(242,1)-(246,26)    5.8    8.1
+unique.\         Chess     src/Chess.hs:(116,8)-(118,19)    5.8    0.6
+toSquaresBishop  Chess     src/Chess.hs:(422,1)-(430,5)     5.0   12.3
+blackPieces.f    Chess     src/Chess.hs:(251,9)-(253,26)    4.3    2.9
+middle           Chess     src/Chess.hs:198:1-75            4.3    9.3
+positionsPrPiece Chess     src/Chess.hs:(290,1)-(309,17)    3.6    1.5
+removePieceAt    Chess     src/Chess.hs:(227,1)-(228,34)    3.6    2.1
+whitePieces.f    Chess     src/Chess.hs:(244,9)-(246,26)    2.2    2.0
+to'              Chess     src/Chess.hs:(201,1)-(204,33)    2.2    5.6
+replacePieceAt   Chess     src/Chess.hs:(231,1)-(232,40)    2.2    3.2
+MAIN             MAIN      <built-in>                       1.4    0.0
+toSquaresPawn    Chess     src/Chess.hs:(317,1)-(342,17)    1.4    1.5
+movePiece        Chess     src/Chess.hs:(169,1)-(176,38)    1.4    0.2
+points.toSquare  Chess     src/Chess.hs:186:7-33            1.4    0.6
+unique           Chess     src/Chess.hs:(113,1)-(119,6)     0.7    1.1
+points           Chess     src/Chess.hs:(185,1)-(187,43)    0.7    3.2
 
 
                                                                                                                                        individual      inherited
 COST CENTRE                                               MODULE                SRC                                no.      entries  %time %alloc   %time %alloc
 
-MAIN                                                      MAIN                  <built-in>                          968          0    2.9    0.0   100.0  100.0
+MAIN                                                      MAIN                  <built-in>                          968          0    1.4    0.0   100.0  100.0
  CAF                                                      Data.Either           <entire-module>                    1093          0    0.0    0.0     0.0    0.0
  CAF                                                      GHC.Conc.Signal       <entire-module>                    1066          0    0.0    0.0     0.0    0.0
- CAF                                                      GHC.IO.Encoding       <entire-module>                    1048          0    0.7    0.0     0.7    0.0
+ CAF                                                      GHC.IO.Encoding       <entire-module>                    1048          0    0.0    0.0     0.0    0.0
  CAF                                                      GHC.IO.Encoding.Iconv <entire-module>                    1046          0    0.0    0.0     0.0    0.0
  CAF                                                      GHC.IO.Handle.FD      <entire-module>                    1037          0    0.0    0.0     0.0    0.0
  CAF                                                      GHC.IO.Handle.Text    <entire-module>                    1035          0    0.0    0.0     0.0    0.0
@@ -61,76 +57,76 @@ MAIN                                                      MAIN                  
  CAF:$fShowSquare2                                        Chess                 <no location info>                 1880          0    0.0    0.0     0.0    0.0
  CAF:main1                                                Main                  <no location info>                 1916          0    0.0    0.0     0.0    0.0
   main                                                    Main                  app/Main.hs:(9,1)-(11,10)          1936          1    0.0    0.0     0.0    0.0
- CAF:main2                                                Main                  <no location info>                 1915          0    0.0    0.0    96.4  100.0
-  main                                                    Main                  app/Main.hs:(9,1)-(11,10)          1938          0    0.0    0.0    96.4  100.0
+ CAF:main2                                                Main                  <no location info>                 1915          0    0.0    0.0    98.6  100.0
+  main                                                    Main                  app/Main.hs:(9,1)-(11,10)          1938          0    0.0    0.0    98.6  100.0
    showsPrec                                              Chess                 src/Chess.hs:78:19-22              3860          2    0.0    0.0     0.0    0.0
     showsPrec                                             Chess                 src/Chess.hs:72:22-25              3862         64    0.0    0.0     0.0    0.0
      showsPrec                                            Chess                 src/Chess.hs:63:28-31              3863         64    0.0    0.0     0.0    0.0
     showsPrec                                             Chess                 src/Chess.hs:74:51-54              3861         64    0.0    0.0     0.0    0.0
-   main.fb                                                Main                  app/Main.hs:10:7-46                1939          1    0.0    0.0    96.4   99.9
-    focusedBest                                           AI                    src/AI.hs:(18,1)-(25,38)           1940          1    0.0    0.0    96.4   99.9
+   main.fb                                                Main                  app/Main.hs:10:7-46                1939          1    0.0    0.0    98.6   99.9
+    focusedBest                                           AI                    src/AI.hs:(18,1)-(25,38)           1940          1    0.0    0.0    98.6   99.9
      focusedBest.ghOneStep'                               AI                    src/AI.hs:21:7-43                  3854          1    0.0    0.0     0.0    0.0
       ghOneStep                                           AI                    src/AI.hs:(74,1)-(79,39)           3855          3    0.0    0.0     0.0    0.0
        ==                                                 Chess                 src/Chess.hs:78:15-16              3856          0    0.0    0.0     0.0    0.0
         ==                                                Chess                 src/Chess.hs:74:42-43              3857         52    0.0    0.0     0.0    0.0
         ==                                                Chess                 src/Chess.hs:72:13-14              3858         50    0.0    0.0     0.0    0.0
          ==                                               Chess                 src/Chess.hs:63:13-14              3859         50    0.0    0.0     0.0    0.0
-     focusedBest.ghPotential                              AI                    src/AI.hs:19:7-46                  1941          1    0.0    0.0    96.4   99.9
-      focused                                             AI                    src/AI.hs:(33,1)-(35,79)           1942          1    0.0    0.0    96.4   99.9
-       focused'                                           AI                    src/AI.hs:(39,1)-(44,19)           1949         29    0.0    0.0    95.6   99.5
-        evaluate''                                        Evaluation            src/Evaluation.hs:31:1-59          2689         13    0.0    0.0    62.8   67.4
-         evaluate''.\                                     Evaluation            src/Evaluation.hs:31:35-52         2791        294    0.0    0.0    62.8   67.4
-          evaluate'                                       Evaluation            src/Evaluation.hs:28:1-64          2792        294    0.0    0.0    62.8   67.4
-           evaluateGH                                     Evaluation            src/Evaluation.hs:(44,1)-(47,34)   2793        286    0.0    0.0    57.7   62.4
-            isCheckMate                                   Chess                 src/Chess.hs:574:1-67              2794        572    0.0    0.0    56.2   60.7
-             isInCheck                                    Chess                 src/Chess.hs:(568,1)-(571,20)      2797        572    0.0    0.0    55.5   59.3
-              isInCheck.anyPWithoutKing                   Chess                 src/Chess.hs:570:7-68              2853        572    0.0    0.0    10.9   13.6
-               anyPosWithoutKing                          Chess                 src/Chess.hs:604:1-52              2854        572    0.0    0.0    10.9   13.6
-                allHasKing                                Chess                 src/Chess.hs:(607,1)-(610,60)      2855        572    0.0    0.0    10.9   13.6
-                 allHasKing.\                             Chess                 src/Chess.hs:610:24-38             2876     116854    0.7    0.0     0.7    0.0
+     focusedBest.ghPotential                              AI                    src/AI.hs:19:7-46                  1941          1    0.0    0.0    98.6   99.9
+      focused                                             AI                    src/AI.hs:(33,1)-(35,79)           1942          1    0.0    0.0    98.6   99.9
+       focused'                                           AI                    src/AI.hs:(39,1)-(44,19)           1949         29    0.0    0.0    97.1   99.5
+        evaluate''                                        Evaluation            src/Evaluation.hs:31:1-59          2689         13    0.0    0.0    64.0   67.4
+         evaluate''.\                                     Evaluation            src/Evaluation.hs:31:35-52         2791        294    0.0    0.0    64.0   67.4
+          evaluate'                                       Evaluation            src/Evaluation.hs:28:1-64          2792        294    0.0    0.0    64.0   67.4
+           evaluateGH                                     Evaluation            src/Evaluation.hs:(44,1)-(47,34)   2793        286    0.0    0.0    58.3   62.4
+            isCheckMate                                   Chess                 src/Chess.hs:574:1-67              2794        572    0.7    0.0    57.6   60.7
+             isInCheck                                    Chess                 src/Chess.hs:(568,1)-(571,20)      2797        572    0.0    0.0    56.1   59.3
+              isInCheck.anyPWithoutKing                   Chess                 src/Chess.hs:570:7-68              2853        572    0.0    0.0    10.8   13.6
+               anyPosWithoutKing                          Chess                 src/Chess.hs:604:1-52              2854        572    0.0    0.0    10.8   13.6
+                allHasKing                                Chess                 src/Chess.hs:(607,1)-(610,60)      2855        572    0.0    0.0    10.8   13.6
+                 allHasKing.\                             Chess                 src/Chess.hs:610:24-38             2876     116854    0.0    0.0     0.0    0.0
                   ==                                      Chess                 src/Chess.hs:72:13-14              2877     116854    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              2878      11700    0.0    0.0     0.0    0.0
                  allHasKing.\                             Chess                 src/Chess.hs:608:24-38             3490      22706    0.0    0.0     0.0    0.0
                   ==                                      Chess                 src/Chess.hs:72:13-14              3491      22706    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              3492       2524    0.0    0.0     0.0    0.0
-                 blackPieces                              Chess                 src/Chess.hs:(249,1)-(253,26)      2856      11708    5.1    9.0     8.8   11.3
-                  blackPieces.f                           Chess                 src/Chess.hs:(251,9)-(253,26)      2873     233016    3.6    2.3     3.6    2.3
+                 blackPieces                              Chess                 src/Chess.hs:(249,1)-(253,26)      2856      11708    5.8    9.0     8.6   11.3
+                  blackPieces.f                           Chess                 src/Chess.hs:(251,9)-(253,26)      2873     233016    2.9    2.3     2.9    2.3
                    ==                                     Chess                 src/Chess.hs:63:13-14              2874     233016    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       2875     233016    0.0    0.0     0.0    0.0
-                 whitePieces                              Chess                 src/Chess.hs:(242,1)-(246,26)      3486       2524    1.5    1.9     1.5    2.3
-                  whitePieces.f                           Chess                 src/Chess.hs:(244,9)-(246,26)      3487      42876    0.0    0.4     0.0    0.4
+                 whitePieces                              Chess                 src/Chess.hs:(242,1)-(246,26)      3486       2524    0.7    1.9     2.2    2.3
+                  whitePieces.f                           Chess                 src/Chess.hs:(244,9)-(246,26)      3487      42876    1.4    0.4     1.4    0.4
                    ==                                     Chess                 src/Chess.hs:63:13-14              3488      42876    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       3489      42876    0.0    0.0     0.0    0.0
-              isInCheck.potentialNextPositions            Chess                 src/Chess.hs:569:7-85              2798        572    0.0    0.0    44.5   45.7
-               positionTreeIgnoreCheckPromotionsCastle    Chess                 src/Chess.hs:(284,1)-(287,47)      2800        572    0.0    0.4    44.5   45.7
-                positionsPrPiece                          Chess                 src/Chess.hs:(290,1)-(309,17)      2805       9048    1.5    0.9    42.3   44.4
-                 canGoThere                               Chess                 src/Chess.hs:(207,1)-(209,47)      2812      38646    0.7    0.0    13.9   19.3
-                  points                                  Chess                 src/Chess.hs:(185,1)-(187,43)      2813      38646    0.7    1.7     9.5   18.8
-                   points'                                Chess                 src/Chess.hs:(190,1)-(195,37)      2814      38646    5.1    8.5     8.8   16.7
-                    to'                                   Chess                 src/Chess.hs:(201,1)-(204,33)      2815     200766    1.5    3.1     1.5    3.1
+              isInCheck.potentialNextPositions            Chess                 src/Chess.hs:569:7-85              2798        572    0.7    0.0    45.3   45.7
+               positionTreeIgnoreCheckPromotionsCastle    Chess                 src/Chess.hs:(284,1)-(287,47)      2800        572    0.0    0.4    44.6   45.7
+                positionsPrPiece                          Chess                 src/Chess.hs:(290,1)-(309,17)      2805       9048    2.9    0.9    44.6   44.4
+                 canGoThere                               Chess                 src/Chess.hs:(207,1)-(209,47)      2812      38646    0.0    0.0    13.7   19.3
+                  points                                  Chess                 src/Chess.hs:(185,1)-(187,43)      2813      38646    0.7    1.7    10.1   18.8
+                   points'                                Chess                 src/Chess.hs:(190,1)-(195,37)      2814      38646    3.6    8.5     7.9   16.7
+                    to'                                   Chess                 src/Chess.hs:(201,1)-(204,33)      2815     200766    0.0    3.1     0.0    3.1
                     points'.\                             Chess                 src/Chess.hs:194:26-65             2915      29916    0.0    0.0     0.0    0.0
-                    middle                                Chess                 src/Chess.hs:198:1-75              2816      25498    2.2    5.1     2.2    5.1
-                   points.toSquare                        Chess                 src/Chess.hs:186:7-33              2819      33120    0.0    0.3     0.0    0.3
-                  pieceAt                                 Chess                 src/Chess.hs:239:1-32              2817      33120    2.9    0.2     2.9    0.2
+                    middle                                Chess                 src/Chess.hs:198:1-75              2816      25498    4.3    5.1     4.3    5.1
+                   points.toSquare                        Chess                 src/Chess.hs:186:7-33              2819      33120    1.4    0.3     1.4    0.3
+                  pieceAt                                 Chess                 src/Chess.hs:239:1-32              2817      33120    3.6    0.2     3.6    0.2
                    compare                                Chess                 src/Chess.hs:74:46-48              2821     143494    0.0    0.0     0.0    0.0
                    m                                      Chess                 src/Chess.hs:77:5                  2818      33120    0.0    0.0     0.0    0.0
-                  finalDestinationNotOccupiedBySelf       Chess                 src/Chess.hs:(212,1)-(213,56)      2822      12878    0.0    0.2     0.7    0.4
-                   pieceAt                                Chess                 src/Chess.hs:239:1-32              2823      25756    0.7    0.1     0.7    0.1
+                  finalDestinationNotOccupiedBySelf       Chess                 src/Chess.hs:(212,1)-(213,56)      2822      12878    0.0    0.2     0.0    0.4
+                   pieceAt                                Chess                 src/Chess.hs:239:1-32              2823      25756    0.0    0.1     0.0    0.1
                     compare                               Chess                 src/Chess.hs:74:46-48              2825      97274    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  2824      25756    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       2827      18564    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              2826       9282    0.0    0.0     0.0    0.0
                  positionsPrPiece.pos                     Chess                 src/Chess.hs:309:5-17              2820       8982    0.0    0.0     0.0    0.0
-                 positionsPrPiece.\                       Chess                 src/Chess.hs:295:24-47             2839       8192    0.0    0.0     2.2    2.6
-                  canGoThere                              Chess                 src/Chess.hs:(207,1)-(209,47)      2840       8192    0.0    0.0     2.2    2.6
-                   points                                 Chess                 src/Chess.hs:(185,1)-(187,43)      2841       8192    0.0    0.2     0.0    2.4
-                    points'                               Chess                 src/Chess.hs:(190,1)-(195,37)      2842       8192    0.0    1.4     0.0    2.1
+                 positionsPrPiece.\                       Chess                 src/Chess.hs:295:24-47             2839       8192    0.0    0.0     2.9    2.6
+                  canGoThere                              Chess                 src/Chess.hs:(207,1)-(209,47)      2840       8192    0.7    0.0     2.9    2.6
+                   points                                 Chess                 src/Chess.hs:(185,1)-(187,43)      2841       8192    0.0    0.2     0.7    2.4
+                    points'                               Chess                 src/Chess.hs:(190,1)-(195,37)      2842       8192    0.7    1.4     0.7    2.1
                      to'                                  Chess                 src/Chess.hs:(201,1)-(204,33)      2843      28424    0.0    0.2     0.0    0.2
                      middle                               Chess                 src/Chess.hs:198:1-75              2844       8070    0.0    0.5     0.0    0.5
                      points'.\                            Chess                 src/Chess.hs:194:26-65             3496        244    0.0    0.0     0.0    0.0
                     points.toSquare                       Chess                 src/Chess.hs:186:7-33              2847       3726    0.0    0.0     0.0    0.0
-                   finalDestinationNotOccupiedBySelf      Chess                 src/Chess.hs:(212,1)-(213,56)      2849       8082    0.0    0.1     2.2    0.2
-                    pieceAt                               Chess                 src/Chess.hs:239:1-32              2850      16164    2.2    0.1     2.2    0.1
+                   finalDestinationNotOccupiedBySelf      Chess                 src/Chess.hs:(212,1)-(213,56)      2849       8082    0.0    0.1     1.4    0.2
+                    pieceAt                               Chess                 src/Chess.hs:239:1-32              2850      16164    1.4    0.1     1.4    0.1
                      compare                              Chess                 src/Chess.hs:74:46-48              2852      79406    0.0    0.0     0.0    0.0
                      m                                    Chess                 src/Chess.hs:77:5                  2851      16164    0.0    0.0     0.0    0.0
                     colr                                  Chess                 src/Chess.hs:(97,1)-(102,19)       3498        244    0.0    0.0     0.0    0.0
@@ -138,19 +134,19 @@ MAIN                                                      MAIN                  
                    pieceAt                                Chess                 src/Chess.hs:239:1-32              2845       3726    0.0    0.0     0.0    0.0
                     compare                               Chess                 src/Chess.hs:74:46-48              2848      19068    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  2846       3726    0.0    0.0     0.0    0.0
-                 positionsPrPiece.\                       Chess                 src/Chess.hs:294:16-67             2857       8082    0.0    0.0     0.7    2.0
+                 positionsPrPiece.\                       Chess                 src/Chess.hs:294:16-67             2857       8082    0.0    0.0     5.8    2.0
                   eliminateEnPassantSquare                Chess                 src/Chess.hs:(312,1)-(313,64)      2858       8082    0.0    0.0     0.0    0.0
-                  movePiece                               Chess                 src/Chess.hs:(169,1)-(176,38)      2859       8082    0.0    0.1     0.7    2.0
+                  movePiece                               Chess                 src/Chess.hs:(169,1)-(176,38)      2859       8082    0.7    0.1     5.8    2.0
                    ==                                     Chess                 src/Chess.hs:72:13-14              2863      16164    0.0    0.0     0.0    0.0
                     ==                                    Chess                 src/Chess.hs:63:13-14              2864      16164    0.0    0.0     0.0    0.0
-                   pieceAt                                Chess                 src/Chess.hs:239:1-32              2860      16164    0.0    0.1     0.0    0.1
+                   pieceAt                                Chess                 src/Chess.hs:239:1-32              2860      16164    2.2    0.1     2.2    0.1
                     compare                               Chess                 src/Chess.hs:74:46-48              2862      76600    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  2861      16164    0.0    0.0     0.0    0.0
-                   movePiece'                             Chess                 src/Chess.hs:(179,1)-(182,23)      2865       8082    0.0    0.0     0.7    1.8
+                   movePiece'                             Chess                 src/Chess.hs:(179,1)-(182,23)      2865       8082    0.7    0.0     2.9    1.8
                     pieceAt                               Chess                 src/Chess.hs:239:1-32              2866       8082    0.7    0.1     0.7    0.1
                      compare                              Chess                 src/Chess.hs:74:46-48              2868      38300    0.0    0.0     0.0    0.0
                      m                                    Chess                 src/Chess.hs:77:5                  2867       8082    0.0    0.0     0.0    0.0
-                    removePieceAt                         Chess                 src/Chess.hs:(227,1)-(228,34)      2869       8082    0.0    0.7     0.0    0.7
+                    removePieceAt                         Chess                 src/Chess.hs:(227,1)-(228,34)      2869       8082    1.4    0.7     1.4    0.7
                      compare                              Chess                 src/Chess.hs:74:46-48              2870      38300    0.0    0.0     0.0    0.0
                     replacePieceAt                        Chess                 src/Chess.hs:(231,1)-(232,40)      2871       8082    0.0    1.0     0.0    1.0
                      compare                              Chess                 src/Chess.hs:74:46-48              2872      37142    0.0    0.0     0.0    0.0
@@ -158,29 +154,29 @@ MAIN                                                      MAIN                  
                     pieceAt                               Chess                 src/Chess.hs:239:1-32              3500        122    0.0    0.0     0.0    0.0
                      compare                              Chess                 src/Chess.hs:74:46-48              3502        496    0.0    0.0     0.0    0.0
                      m                                    Chess                 src/Chess.hs:77:5                  3501        122    0.0    0.0     0.0    0.0
-                 movePiece                                Chess                 src/Chess.hs:(169,1)-(176,38)      2894       6150    0.7    0.1     1.5    1.6
+                 movePiece                                Chess                 src/Chess.hs:(169,1)-(176,38)      2894       6150    0.0    0.1     2.2    1.6
                   ==                                      Chess                 src/Chess.hs:72:13-14              2898      12300    0.0    0.0     0.0    0.0
                   pieceAt                                 Chess                 src/Chess.hs:239:1-32              2895      12300    0.0    0.1     0.0    0.1
                    compare                                Chess                 src/Chess.hs:74:46-48              2897      40812    0.0    0.0     0.0    0.0
                    m                                      Chess                 src/Chess.hs:77:5                  2896      12300    0.0    0.0     0.0    0.0
-                  movePiece'                              Chess                 src/Chess.hs:(179,1)-(182,23)      2899       6150    0.7    0.0     0.7    1.4
-                   pieceAt                                Chess                 src/Chess.hs:239:1-32              2900       6150    0.0    0.0     0.0    0.0
+                  movePiece'                              Chess                 src/Chess.hs:(179,1)-(182,23)      2899       6150    0.0    0.0     2.2    1.4
+                   pieceAt                                Chess                 src/Chess.hs:239:1-32              2900       6150    0.7    0.0     0.7    0.0
                     compare                               Chess                 src/Chess.hs:74:46-48              2902      20406    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  2901       6150    0.0    0.0     0.0    0.0
-                   removePieceAt                          Chess                 src/Chess.hs:(227,1)-(228,34)      2903       6150    0.0    0.6     0.0    0.6
+                   removePieceAt                          Chess                 src/Chess.hs:(227,1)-(228,34)      2903       6150    0.7    0.6     0.7    0.6
                     compare                               Chess                 src/Chess.hs:74:46-48              2904      20406    0.0    0.0     0.0    0.0
-                   replacePieceAt                         Chess                 src/Chess.hs:(231,1)-(232,40)      2905       6150    0.0    0.8     0.0    0.8
+                   replacePieceAt                         Chess                 src/Chess.hs:(231,1)-(232,40)      2905       6150    0.7    0.8     0.7    0.8
                     compare                               Chess                 src/Chess.hs:74:46-48              2906      30768    0.0    0.0     0.0    0.0
-                 toSquaresPawn                            Chess                 src/Chess.hs:(317,1)-(342,17)      2828       4520    1.5    0.9     6.6    1.3
+                 toSquaresPawn                            Chess                 src/Chess.hs:(317,1)-(342,17)      2828       4520    0.0    0.9     0.7    1.3
                   squareTo                                Chess                 src/Chess.hs:122:1-62              2831      34536    0.0    0.0     0.0    0.0
-                  enPassant                               Chess                 src/Chess.hs:(346,1)-(360,58)      2883       9040    0.0    0.1     1.5    0.1
+                  enPassant                               Chess                 src/Chess.hs:(346,1)-(360,58)      2883       9040    0.0    0.1     0.0    0.1
                    ==                                     Chess                 src/Chess.hs:63:13-14              2884       9040    0.0    0.0     0.0    0.0
-                   toPlay                                 Chess                 src/Chess.hs:(259,1)-(262,14)      2885       9040    1.5    0.0     1.5    0.0
+                   toPlay                                 Chess                 src/Chess.hs:(259,1)-(262,14)      2885       9040    0.0    0.0     0.0    0.0
                    pieceAt                                Chess                 src/Chess.hs:239:1-32              3493         96    0.0    0.0     0.0    0.0
                     compare                               Chess                 src/Chess.hs:74:46-48              3495        492    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  3494         96    0.0    0.0     0.0    0.0
-                  enemyAt                                 Chess                 src/Chess.hs:(216,1)-(217,66)      2879       9040    0.0    0.1     2.9    0.2
-                   pieceAt                                Chess                 src/Chess.hs:239:1-32              2880      18080    2.9    0.1     2.9    0.1
+                  enemyAt                                 Chess                 src/Chess.hs:(216,1)-(217,66)      2879       9040    0.0    0.1     0.0    0.2
+                   pieceAt                                Chess                 src/Chess.hs:239:1-32              2880      18080    0.0    0.1     0.0    0.1
                     compare                               Chess                 src/Chess.hs:74:46-48              2882      89202    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  2881      18080    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       2959       1600    0.0    0.0     0.0    0.0
@@ -195,49 +191,49 @@ MAIN                                                      MAIN                  
                   ==                                      Chess                 src/Chess.hs:63:13-14              2829       4520    0.0    0.0     0.0    0.0
                   colr                                    Chess                 src/Chess.hs:(97,1)-(102,19)       2830       4520    0.0    0.0     0.0    0.0
                   toSquaresPawn.pos                       Chess                 src/Chess.hs:342:5-17              2835       4520    0.0    0.0     0.0    0.0
-                 finalDestinationNotOccupiedBySelf        Chess                 src/Chess.hs:(212,1)-(213,56)      2890       3684    0.0    0.1     1.5    0.1
-                  pieceAt                                 Chess                 src/Chess.hs:239:1-32              2891       7368    1.5    0.0     1.5    0.0
+                 finalDestinationNotOccupiedBySelf        Chess                 src/Chess.hs:(212,1)-(213,56)      2890       3684    0.7    0.1     0.7    0.1
+                  pieceAt                                 Chess                 src/Chess.hs:239:1-32              2891       7368    0.0    0.0     0.0    0.0
                    compare                                Chess                 src/Chess.hs:74:46-48              2893      31270    0.0    0.0     0.0    0.0
                    m                                      Chess                 src/Chess.hs:77:5                  2892       7368    0.0    0.0     0.0    0.0
                   colr                                    Chess                 src/Chess.hs:(97,1)-(102,19)       2908       2424    0.0    0.0     0.0    0.0
                   ==                                      Chess                 src/Chess.hs:63:13-14              2907       1212    0.0    0.0     0.0    0.0
-                 toSquaresRook                            Chess                 src/Chess.hs:(434,1)-(442,5)       2806       1136    7.3    5.3    10.9    5.7
+                 toSquaresRook                            Chess                 src/Chess.hs:(434,1)-(442,5)       2806       1136    4.3    5.3     6.5    5.7
                   squareTo                                Chess                 src/Chess.hs:122:1-62              2808     271504    0.0    0.0     0.0    0.0
                   insideBoard                             Chess                 src/Chess.hs:561:1-63              2809     255600    0.0    0.0     0.0    0.0
-                  unique                                  Chess                 src/Chess.hs:(113,1)-(119,6)       2807       1136    0.7    0.3     3.6    0.4
-                   unique.\                               Chess                 src/Chess.hs:(116,8)-(118,19)      2810      15904    2.9    0.2     2.9    0.2
-                    ==                                    Chess                 src/Chess.hs:74:42-43              2811     103376    0.0    0.0     0.0    0.0
-                 toSquaresBishop                          Chess                 src/Chess.hs:(422,1)-(430,5)       2909       1128    1.5    4.9     2.2    5.2
+                  unique                                  Chess                 src/Chess.hs:(113,1)-(119,6)       2807       1136    0.7    0.3     2.2    0.4
+                   unique.\                               Chess                 src/Chess.hs:(116,8)-(118,19)      2810      15904    0.7    0.2     1.4    0.2
+                    ==                                    Chess                 src/Chess.hs:74:42-43              2811     103376    0.7    0.0     0.7    0.0
+                 toSquaresBishop                          Chess                 src/Chess.hs:(422,1)-(430,5)       2909       1128    1.4    4.9     2.9    5.2
                   squareTo                                Chess                 src/Chess.hs:122:1-62              2912      39552    0.0    0.0     0.0    0.0
                   insideBoard                             Chess                 src/Chess.hs:561:1-63              2911      31584    0.0    0.0     0.0    0.0
-                  unique                                  Chess                 src/Chess.hs:(113,1)-(119,6)       2910       1128    0.0    0.1     0.7    0.2
-                   unique.\                               Chess                 src/Chess.hs:(116,8)-(118,19)      2913       7968    0.7    0.1     0.7    0.1
+                  unique                                  Chess                 src/Chess.hs:(113,1)-(119,6)       2910       1128    0.0    0.1     1.4    0.2
+                   unique.\                               Chess                 src/Chess.hs:(116,8)-(118,19)      2913       7968    1.4    0.1     1.4    0.1
                     ==                                    Chess                 src/Chess.hs:74:42-43              2914      24276    0.0    0.0     0.0    0.0
                  toSquaresKnight                          Chess                 src/Chess.hs:(407,1)-(418,5)       2887       1128    0.0    0.2     0.0    0.2
                   insideBoard                             Chess                 src/Chess.hs:561:1-63              2888       9024    0.0    0.0     0.0    0.0
                   squareTo                                Chess                 src/Chess.hs:122:1-62              2889       9024    0.0    0.0     0.0    0.0
-                 toSquaresQueen                           Chess                 src/Chess.hs:446:1-62              2916        572    0.7    0.1     1.5    5.6
-                  toSquaresBishop                         Chess                 src/Chess.hs:(422,1)-(430,5)       2917        572    0.0    2.5     0.0    2.6
+                 toSquaresQueen                           Chess                 src/Chess.hs:446:1-62              2916        572    0.0    0.1     6.5    5.6
+                  toSquaresBishop                         Chess                 src/Chess.hs:(422,1)-(430,5)       2917        572    2.9    2.5     2.9    2.6
                    squareTo                               Chess                 src/Chess.hs:122:1-62              2920      20104    0.0    0.0     0.0    0.0
                    insideBoard                            Chess                 src/Chess.hs:561:1-63              2919      16016    0.0    0.0     0.0    0.0
                    unique                                 Chess                 src/Chess.hs:(113,1)-(119,6)       2918        572    0.0    0.1     0.0    0.1
                     unique.\                              Chess                 src/Chess.hs:(116,8)-(118,19)      2921       4088    0.0    0.0     0.0    0.0
                      ==                                   Chess                 src/Chess.hs:74:42-43              2922      12666    0.0    0.0     0.0    0.0
-                  toSquaresRook                           Chess                 src/Chess.hs:(434,1)-(442,5)       2923        564    0.7    2.6     0.7    2.8
+                  toSquaresRook                           Chess                 src/Chess.hs:(434,1)-(442,5)       2923        564    2.9    2.6     3.6    2.8
                    squareTo                               Chess                 src/Chess.hs:122:1-62              2925     134796    0.0    0.0     0.0    0.0
                    insideBoard                            Chess                 src/Chess.hs:561:1-63              2926     126900    0.0    0.0     0.0    0.0
-                   unique                                 Chess                 src/Chess.hs:(113,1)-(119,6)       2924        564    0.0    0.1     0.0    0.2
-                    unique.\                              Chess                 src/Chess.hs:(116,8)-(118,19)      2927       7896    0.0    0.1     0.0    0.1
+                   unique                                 Chess                 src/Chess.hs:(113,1)-(119,6)       2924        564    0.0    0.1     0.7    0.2
+                    unique.\                              Chess                 src/Chess.hs:(116,8)-(118,19)      2927       7896    0.7    0.1     0.7    0.1
                      ==                                   Chess                 src/Chess.hs:74:42-43              2928      51324    0.0    0.0     0.0    0.0
                  toSquaresKing                            Chess                 src/Chess.hs:(450,1)-(456,3)       2929        564    0.0    0.2     0.0    0.2
                   squareTo                                Chess                 src/Chess.hs:122:1-62              2931       7350    0.0    0.0     0.0    0.0
                   insideBoard                             Chess                 src/Chess.hs:561:1-63              2930       4512    0.0    0.0     0.0    0.0
-                whitePieces                               Chess                 src/Chess.hs:(242,1)-(246,26)      2801        458    0.7    0.5     0.7    0.7
+                whitePieces                               Chess                 src/Chess.hs:(242,1)-(246,26)      2801        458    0.0    0.5     0.0    0.7
                  whitePieces.f                            Chess                 src/Chess.hs:(244,9)-(246,26)      2802      14420    0.0    0.1     0.0    0.1
                   ==                                      Chess                 src/Chess.hs:63:13-14              2803      14420    0.0    0.0     0.0    0.0
                   colr                                    Chess                 src/Chess.hs:(97,1)-(102,19)       2804      14420    0.0    0.0     0.0    0.0
-                blackPieces                               Chess                 src/Chess.hs:(249,1)-(253,26)      3482        114    0.7    0.1     1.5    0.2
-                 blackPieces.f                            Chess                 src/Chess.hs:(251,9)-(253,26)      3483       3648    0.7    0.0     0.7    0.0
+                blackPieces                               Chess                 src/Chess.hs:(249,1)-(253,26)      3482        114    0.0    0.1     0.0    0.2
+                 blackPieces.f                            Chess                 src/Chess.hs:(251,9)-(253,26)      3483       3648    0.0    0.0     0.0    0.0
                   ==                                      Chess                 src/Chess.hs:63:13-14              3484       3648    0.0    0.0     0.0    0.0
                   colr                                    Chess                 src/Chess.hs:(97,1)-(102,19)       3485       3648    0.0    0.0     0.0    0.0
                succ'                                      Chess                 src/Chess.hs:(220,1)-(221,19)      2799        572    0.0    0.0     0.0    0.0
@@ -334,12 +330,12 @@ MAIN                                                      MAIN                  
                isInCheck                                  Chess                 src/Chess.hs:(568,1)-(571,20)      3669         24    0.0    0.0     0.7    1.3
                 isInCheck.anyPWithoutKing                 Chess                 src/Chess.hs:570:7-68              3724         24    0.0    0.0     0.7    0.3
                  anyPosWithoutKing                        Chess                 src/Chess.hs:604:1-52              3725         24    0.0    0.0     0.7    0.3
-                  allHasKing                              Chess                 src/Chess.hs:(607,1)-(610,60)      3726         24    0.0    0.0     0.7    0.3
+                  allHasKing                              Chess                 src/Chess.hs:(607,1)-(610,60)      3726         24    0.7    0.0     0.7    0.3
                    allHasKing.\                           Chess                 src/Chess.hs:610:24-38             3747       2878    0.0    0.0     0.0    0.0
                     ==                                    Chess                 src/Chess.hs:72:13-14              3748       2878    0.0    0.0     0.0    0.0
                      ==                                   Chess                 src/Chess.hs:63:13-14              3749        266    0.0    0.0     0.0    0.0
-                   blackPieces                            Chess                 src/Chess.hs:(249,1)-(253,26)      3727        282    0.0    0.2     0.7    0.3
-                    blackPieces.f                         Chess                 src/Chess.hs:(251,9)-(253,26)      3744       5782    0.7    0.1     0.7    0.1
+                   blackPieces                            Chess                 src/Chess.hs:(249,1)-(253,26)      3727        282    0.0    0.2     0.0    0.3
+                    blackPieces.f                         Chess                 src/Chess.hs:(251,9)-(253,26)      3744       5782    0.0    0.1     0.0    0.1
                      ==                                   Chess                 src/Chess.hs:63:13-14              3745       5782    0.0    0.0     0.0    0.0
                      colr                                 Chess                 src/Chess.hs:(97,1)-(102,19)       3746       5782    0.0    0.0     0.0    0.0
                 isInCheck.potentialNextPositions          Chess                 src/Chess.hs:569:7-85              3670         24    0.0    0.0     0.0    1.0
@@ -477,13 +473,13 @@ MAIN                                                      MAIN                  
                  succ'                                    Chess                 src/Chess.hs:(220,1)-(221,19)      3671         24    0.0    0.0     0.0    0.0
               positionTree.player                         Chess                 src/Chess.hs:269:7-24              3672          8    0.0    0.0     0.0    0.0
                toPlay                                     Chess                 src/Chess.hs:(259,1)-(262,14)      3673          8    0.0    0.0     0.0    0.0
-            evaluate                                      Evaluation            src/Evaluation.hs:(39,1)-(41,12)   2932        286    0.0    0.0     1.5    1.6
-             blackPieces'                                 Evaluation            src/Evaluation.hs:114:1-46         2941        286    0.0    0.0     1.5    0.4
-              count                                       Evaluation            src/Evaluation.hs:117:1-60         2942        286    0.0    0.0     1.5    0.4
+            evaluate                                      Evaluation            src/Evaluation.hs:(39,1)-(41,12)   2932        286    0.0    0.0     0.7    1.6
+             blackPieces'                                 Evaluation            src/Evaluation.hs:114:1-46         2941        286    0.0    0.0     0.0    0.4
+              count                                       Evaluation            src/Evaluation.hs:117:1-60         2942        286    0.0    0.0     0.0    0.4
                count.\                                    Evaluation            src/Evaluation.hs:117:35-47        2947       4574    0.0    0.0     0.0    0.0
                 valueOf                                   Evaluation            src/Evaluation.hs:(120,1)-(131,30) 2948       4574    0.0    0.0     0.0    0.0
-               blackPieces                                Chess                 src/Chess.hs:(249,1)-(253,26)      2943        286    0.0    0.3     1.5    0.4
-                blackPieces.f                             Chess                 src/Chess.hs:(251,9)-(253,26)      2944       9150    1.5    0.1     1.5    0.1
+               blackPieces                                Chess                 src/Chess.hs:(249,1)-(253,26)      2943        286    0.0    0.3     0.0    0.4
+                blackPieces.f                             Chess                 src/Chess.hs:(251,9)-(253,26)      2944       9150    0.0    0.1     0.0    0.1
                  ==                                       Chess                 src/Chess.hs:63:13-14              2945       9150    0.0    0.0     0.0    0.0
                  colr                                     Chess                 src/Chess.hs:(97,1)-(102,19)       2946       9150    0.0    0.0     0.0    0.0
              development                                  Evaluation            src/Evaluation.hs:62:1-76          2952        286    0.0    0.3     0.0    0.3
@@ -496,22 +492,22 @@ MAIN                                                      MAIN                  
                compare                                    Chess                 src/Chess.hs:74:46-48              2957       4952    0.0    0.0     0.0    0.0
                m                                          Chess                 src/Chess.hs:77:5                  2956       1144    0.0    0.0     0.0    0.0
               ==                                          Chess                 src/Chess.hs:72:13-14              2958       1103    0.0    0.0     0.0    0.0
-             whitePieces'                                 Evaluation            src/Evaluation.hs:111:1-46         2933        286    0.0    0.0     0.0    0.4
-              count                                       Evaluation            src/Evaluation.hs:117:1-60         2934        286    0.0    0.0     0.0    0.4
-               count.\                                    Evaluation            src/Evaluation.hs:117:35-47        2939       4576    0.0    0.0     0.0    0.0
+             whitePieces'                                 Evaluation            src/Evaluation.hs:111:1-46         2933        286    0.0    0.0     0.7    0.4
+              count                                       Evaluation            src/Evaluation.hs:117:1-60         2934        286    0.0    0.0     0.7    0.4
+               count.\                                    Evaluation            src/Evaluation.hs:117:35-47        2939       4576    0.7    0.0     0.7    0.0
                 valueOf                                   Evaluation            src/Evaluation.hs:(120,1)-(131,30) 2940       4576    0.0    0.0     0.0    0.0
                whitePieces                                Chess                 src/Chess.hs:(242,1)-(246,26)      2935        286    0.0    0.3     0.0    0.4
                 whitePieces.f                             Chess                 src/Chess.hs:(244,9)-(246,26)      2936       9150    0.0    0.1     0.0    0.1
                  ==                                       Chess                 src/Chess.hs:63:13-14              2937       9150    0.0    0.0     0.0    0.0
                  colr                                     Chess                 src/Chess.hs:(97,1)-(102,19)       2938       9150    0.0    0.0     0.0    0.0
-           determineStatus                                Chess                 src/Chess.hs:(613,1)-(618,27)      2962         12    0.0    0.0     5.1    5.0
+           determineStatus                                Chess                 src/Chess.hs:(613,1)-(618,27)      2962         12    0.0    0.0     5.8    5.0
             ==                                            Chess                 src/Chess.hs:63:13-14              2963         24    0.0    0.0     0.0    0.0
             toPlay                                        Chess                 src/Chess.hs:(259,1)-(262,14)      2964         24    0.0    0.0     0.0    0.0
-            isCheckMate                                   Chess                 src/Chess.hs:574:1-67              2966         21    0.0    0.0     2.2    2.2
-             isInCheck                                    Chess                 src/Chess.hs:(568,1)-(571,20)      2969         21    0.0    0.0     2.2    2.2
-              isInCheck.anyPWithoutKing                   Chess                 src/Chess.hs:570:7-68              3025         21    0.0    0.0     0.7    0.5
-               anyPosWithoutKing                          Chess                 src/Chess.hs:604:1-52              3026         21    0.0    0.0     0.7    0.5
-                allHasKing                                Chess                 src/Chess.hs:(607,1)-(610,60)      3027         21    0.0    0.0     0.7    0.5
+            isCheckMate                                   Chess                 src/Chess.hs:574:1-67              2966         21    0.0    0.0     4.3    2.2
+             isInCheck                                    Chess                 src/Chess.hs:(568,1)-(571,20)      2969         21    0.0    0.0     4.3    2.2
+              isInCheck.anyPWithoutKing                   Chess                 src/Chess.hs:570:7-68              3025         21    0.0    0.0     0.0    0.5
+               anyPosWithoutKing                          Chess                 src/Chess.hs:604:1-52              3026         21    0.0    0.0     0.0    0.5
+                allHasKing                                Chess                 src/Chess.hs:(607,1)-(610,60)      3027         21    0.0    0.0     0.0    0.5
                  allHasKing.\                             Chess                 src/Chess.hs:608:24-38             3511       4352    0.0    0.0     0.0    0.0
                   ==                                      Chess                 src/Chess.hs:72:13-14              3512       4352    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              3513        484    0.0    0.0     0.0    0.0
@@ -522,19 +518,19 @@ MAIN                                                      MAIN                  
                   whitePieces.f                           Chess                 src/Chess.hs:(244,9)-(246,26)      3508       8194    0.0    0.1     0.0    0.1
                    ==                                     Chess                 src/Chess.hs:63:13-14              3509       8194    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       3510       8194    0.0    0.0     0.0    0.0
-                 blackPieces                              Chess                 src/Chess.hs:(249,1)-(253,26)      3028         71    0.0    0.1     0.7    0.1
-                  blackPieces.f                           Chess                 src/Chess.hs:(251,9)-(253,26)      3045       1417    0.7    0.0     0.7    0.0
+                 blackPieces                              Chess                 src/Chess.hs:(249,1)-(253,26)      3028         71    0.0    0.1     0.0    0.1
+                  blackPieces.f                           Chess                 src/Chess.hs:(251,9)-(253,26)      3045       1417    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              3046       1417    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       3047       1417    0.0    0.0     0.0    0.0
-              isInCheck.potentialNextPositions            Chess                 src/Chess.hs:569:7-85              2970         21    0.0    0.0     1.5    1.7
-               positionTreeIgnoreCheckPromotionsCastle    Chess                 src/Chess.hs:(284,1)-(287,47)      2972         21    0.0    0.0     1.5    1.7
-                positionsPrPiece                          Chess                 src/Chess.hs:(290,1)-(309,17)      2977        336    0.0    0.0     1.5    1.7
-                 canGoThere                               Chess                 src/Chess.hs:(207,1)-(209,47)      2984       1428    0.0    0.0     0.7    0.7
-                  points                                  Chess                 src/Chess.hs:(185,1)-(187,43)      2985       1428    0.0    0.1     0.7    0.7
-                   points'                                Chess                 src/Chess.hs:(190,1)-(195,37)      2986       1428    0.0    0.3     0.7    0.6
+              isInCheck.potentialNextPositions            Chess                 src/Chess.hs:569:7-85              2970         21    0.0    0.0     4.3    1.7
+               positionTreeIgnoreCheckPromotionsCastle    Chess                 src/Chess.hs:(284,1)-(287,47)      2972         21    0.0    0.0     4.3    1.7
+                positionsPrPiece                          Chess                 src/Chess.hs:(290,1)-(309,17)      2977        336    0.0    0.0     3.6    1.7
+                 canGoThere                               Chess                 src/Chess.hs:(207,1)-(209,47)      2984       1428    0.0    0.0     0.0    0.7
+                  points                                  Chess                 src/Chess.hs:(185,1)-(187,43)      2985       1428    0.0    0.1     0.0    0.7
+                   points'                                Chess                 src/Chess.hs:(190,1)-(195,37)      2986       1428    0.0    0.3     0.0    0.6
                     to'                                   Chess                 src/Chess.hs:(201,1)-(204,33)      2987       7545    0.0    0.1     0.0    0.1
                     points'.\                             Chess                 src/Chess.hs:194:26-65             3087       1158    0.0    0.0     0.0    0.0
-                    middle                                Chess                 src/Chess.hs:198:1-75              2988        945    0.7    0.2     0.7    0.2
+                    middle                                Chess                 src/Chess.hs:198:1-75              2988        945    0.0    0.2     0.0    0.2
                    points.toSquare                        Chess                 src/Chess.hs:186:7-33              2991       1241    0.0    0.0     0.0    0.0
                   pieceAt                                 Chess                 src/Chess.hs:239:1-32              2989       1241    0.0    0.0     0.0    0.0
                    compare                                Chess                 src/Chess.hs:74:46-48              2993       5817    0.0    0.0     0.0    0.0
@@ -546,19 +542,19 @@ MAIN                                                      MAIN                  
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       2999        676    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              2998        338    0.0    0.0     0.0    0.0
                  positionsPrPiece.pos                     Chess                 src/Chess.hs:309:5-17              2992        334    0.0    0.0     0.0    0.0
-                 positionsPrPiece.\                       Chess                 src/Chess.hs:294:16-67             3029        317    0.0    0.0     0.0    0.1
+                 positionsPrPiece.\                       Chess                 src/Chess.hs:294:16-67             3029        317    0.0    0.0     1.4    0.1
                   eliminateEnPassantSquare                Chess                 src/Chess.hs:(312,1)-(313,64)      3030        317    0.0    0.0     0.0    0.0
-                  movePiece                               Chess                 src/Chess.hs:(169,1)-(176,38)      3031        317    0.0    0.0     0.0    0.1
+                  movePiece                               Chess                 src/Chess.hs:(169,1)-(176,38)      3031        317    0.0    0.0     1.4    0.1
                    ==                                     Chess                 src/Chess.hs:72:13-14              3035        634    0.0    0.0     0.0    0.0
                     ==                                    Chess                 src/Chess.hs:63:13-14              3036        634    0.0    0.0     0.0    0.0
                    pieceAt                                Chess                 src/Chess.hs:239:1-32              3032        634    0.0    0.0     0.0    0.0
                     compare                               Chess                 src/Chess.hs:74:46-48              3034       2770    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  3033        634    0.0    0.0     0.0    0.0
-                   movePiece'                             Chess                 src/Chess.hs:(179,1)-(182,23)      3037        317    0.0    0.0     0.0    0.1
-                    pieceAt                               Chess                 src/Chess.hs:239:1-32              3038        317    0.0    0.0     0.0    0.0
+                   movePiece'                             Chess                 src/Chess.hs:(179,1)-(182,23)      3037        317    0.0    0.0     1.4    0.1
+                    pieceAt                               Chess                 src/Chess.hs:239:1-32              3038        317    0.7    0.0     0.7    0.0
                      compare                              Chess                 src/Chess.hs:74:46-48              3040       1385    0.0    0.0     0.0    0.0
                      m                                    Chess                 src/Chess.hs:77:5                  3039        317    0.0    0.0     0.0    0.0
-                    removePieceAt                         Chess                 src/Chess.hs:(227,1)-(228,34)      3041        317    0.0    0.0     0.0    0.0
+                    removePieceAt                         Chess                 src/Chess.hs:(227,1)-(228,34)      3041        317    0.7    0.0     0.7    0.0
                      compare                              Chess                 src/Chess.hs:74:46-48              3042       1385    0.0    0.0     0.0    0.0
                     replacePieceAt                        Chess                 src/Chess.hs:(231,1)-(232,40)      3043        317    0.0    0.1     0.0    0.1
                      compare                              Chess                 src/Chess.hs:74:46-48              3044       1630    0.0    0.0     0.0    0.0
@@ -566,16 +562,16 @@ MAIN                                                      MAIN                  
                     pieceAt                               Chess                 src/Chess.hs:239:1-32              3521          4    0.0    0.0     0.0    0.0
                      compare                              Chess                 src/Chess.hs:74:46-48              3523         20    0.0    0.0     0.0    0.0
                      m                                    Chess                 src/Chess.hs:77:5                  3522          4    0.0    0.0     0.0    0.0
-                 positionsPrPiece.\                       Chess                 src/Chess.hs:295:24-47             3011        317    0.0    0.0     0.7    0.1
-                  canGoThere                              Chess                 src/Chess.hs:(207,1)-(209,47)      3012        317    0.0    0.0     0.7    0.1
+                 positionsPrPiece.\                       Chess                 src/Chess.hs:295:24-47             3011        317    0.0    0.0     0.0    0.1
+                  canGoThere                              Chess                 src/Chess.hs:(207,1)-(209,47)      3012        317    0.0    0.0     0.0    0.1
                    finalDestinationNotOccupiedBySelf      Chess                 src/Chess.hs:(212,1)-(213,56)      3021        317    0.0    0.0     0.0    0.0
                     pieceAt                               Chess                 src/Chess.hs:239:1-32              3022        634    0.0    0.0     0.0    0.0
                      compare                              Chess                 src/Chess.hs:74:46-48              3024       3012    0.0    0.0     0.0    0.0
                      m                                    Chess                 src/Chess.hs:77:5                  3023        634    0.0    0.0     0.0    0.0
                     colr                                  Chess                 src/Chess.hs:(97,1)-(102,19)       3519          8    0.0    0.0     0.0    0.0
                     ==                                    Chess                 src/Chess.hs:63:13-14              3518          4    0.0    0.0     0.0    0.0
-                   points                                 Chess                 src/Chess.hs:(185,1)-(187,43)      3013        317    0.0    0.0     0.7    0.1
-                    points'                               Chess                 src/Chess.hs:(190,1)-(195,37)      3014        317    0.7    0.1     0.7    0.1
+                   points                                 Chess                 src/Chess.hs:(185,1)-(187,43)      3013        317    0.0    0.0     0.0    0.1
+                    points'                               Chess                 src/Chess.hs:(190,1)-(195,37)      3014        317    0.0    0.1     0.0    0.1
                      to'                                  Chess                 src/Chess.hs:(201,1)-(204,33)      3015       1102    0.0    0.0     0.0    0.0
                      middle                               Chess                 src/Chess.hs:198:1-75              3016        313    0.0    0.0     0.0    0.0
                      points'.\                            Chess                 src/Chess.hs:194:26-65             3517          8    0.0    0.0     0.0    0.0
@@ -596,7 +592,7 @@ MAIN                                                      MAIN                  
                     compare                               Chess                 src/Chess.hs:74:46-48              3076       1156    0.0    0.0     0.0    0.0
                    replacePieceAt                         Chess                 src/Chess.hs:(231,1)-(232,40)      3077        238    0.0    0.0     0.0    0.0
                     compare                               Chess                 src/Chess.hs:74:46-48              3078       1190    0.0    0.0     0.0    0.0
-                 toSquaresPawn                            Chess                 src/Chess.hs:(317,1)-(342,17)      3000        168    0.0    0.0     0.0    0.0
+                 toSquaresPawn                            Chess                 src/Chess.hs:(317,1)-(342,17)      3000        168    0.0    0.0     0.7    0.0
                   squareTo                                Chess                 src/Chess.hs:122:1-62              3003       1304    0.0    0.0     0.0    0.0
                   enPassant                               Chess                 src/Chess.hs:(346,1)-(360,58)      3055        336    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              3056        336    0.0    0.0     0.0    0.0
@@ -604,8 +600,8 @@ MAIN                                                      MAIN                  
                    pieceAt                                Chess                 src/Chess.hs:239:1-32              3524         24    0.0    0.0     0.0    0.0
                     compare                               Chess                 src/Chess.hs:74:46-48              3526        120    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  3525         24    0.0    0.0     0.0    0.0
-                  enemyAt                                 Chess                 src/Chess.hs:(216,1)-(217,66)      3051        336    0.0    0.0     0.0    0.0
-                   pieceAt                                Chess                 src/Chess.hs:239:1-32              3052        672    0.0    0.0     0.0    0.0
+                  enemyAt                                 Chess                 src/Chess.hs:(216,1)-(217,66)      3051        336    0.0    0.0     0.7    0.0
+                   pieceAt                                Chess                 src/Chess.hs:239:1-32              3052        672    0.7    0.0     0.7    0.0
                     compare                               Chess                 src/Chess.hs:74:46-48              3054       3174    0.0    0.0     0.0    0.0
                     m                                     Chess                 src/Chess.hs:77:5                  3053        672    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       3514         36    0.0    0.0     0.0    0.0
@@ -626,16 +622,16 @@ MAIN                                                      MAIN                  
                    m                                      Chess                 src/Chess.hs:77:5                  3064        252    0.0    0.0     0.0    0.0
                   colr                                    Chess                 src/Chess.hs:(97,1)-(102,19)       3080         60    0.0    0.0     0.0    0.0
                   ==                                      Chess                 src/Chess.hs:63:13-14              3079         30    0.0    0.0     0.0    0.0
-                 toSquaresBishop                          Chess                 src/Chess.hs:(422,1)-(430,5)       3081         42    0.0    0.2     0.0    0.2
+                 toSquaresBishop                          Chess                 src/Chess.hs:(422,1)-(430,5)       3081         42    0.0    0.2     0.7    0.2
                   squareTo                                Chess                 src/Chess.hs:122:1-62              3084       1470    0.0    0.0     0.0    0.0
                   insideBoard                             Chess                 src/Chess.hs:561:1-63              3083       1176    0.0    0.0     0.0    0.0
-                  unique                                  Chess                 src/Chess.hs:(113,1)-(119,6)       3082         42    0.0    0.0     0.0    0.0
-                   unique.\                               Chess                 src/Chess.hs:(116,8)-(118,19)      3085        294    0.0    0.0     0.0    0.0
+                  unique                                  Chess                 src/Chess.hs:(113,1)-(119,6)       3082         42    0.0    0.0     0.7    0.0
+                   unique.\                               Chess                 src/Chess.hs:(116,8)-(118,19)      3085        294    0.7    0.0     0.7    0.0
                     ==                                    Chess                 src/Chess.hs:74:42-43              3086        882    0.0    0.0     0.0    0.0
                  toSquaresKnight                          Chess                 src/Chess.hs:(407,1)-(418,5)       3059         42    0.0    0.0     0.0    0.0
                   insideBoard                             Chess                 src/Chess.hs:561:1-63              3060        336    0.0    0.0     0.0    0.0
                   squareTo                                Chess                 src/Chess.hs:122:1-62              3061        336    0.0    0.0     0.0    0.0
-                 toSquaresRook                            Chess                 src/Chess.hs:(434,1)-(442,5)       2978         42    0.0    0.2     0.0    0.2
+                 toSquaresRook                            Chess                 src/Chess.hs:(434,1)-(442,5)       2978         42    0.7    0.2     0.7    0.2
                   squareTo                                Chess                 src/Chess.hs:122:1-62              2980      10038    0.0    0.0     0.0    0.0
                   insideBoard                             Chess                 src/Chess.hs:561:1-63              2981       9450    0.0    0.0     0.0    0.0
                   unique                                  Chess                 src/Chess.hs:(113,1)-(119,6)       2979         42    0.0    0.0     0.0    0.0
@@ -657,8 +653,8 @@ MAIN                                                      MAIN                  
                    unique                                 Chess                 src/Chess.hs:(113,1)-(119,6)       3096         21    0.0    0.0     0.0    0.0
                     unique.\                              Chess                 src/Chess.hs:(116,8)-(118,19)      3099        294    0.0    0.0     0.0    0.0
                      ==                                   Chess                 src/Chess.hs:74:42-43              3100       1911    0.0    0.0     0.0    0.0
-                blackPieces                               Chess                 src/Chess.hs:(249,1)-(253,26)      3503         18    0.0    0.0     0.0    0.0
-                 blackPieces.f                            Chess                 src/Chess.hs:(251,9)-(253,26)      3504        576    0.0    0.0     0.0    0.0
+                blackPieces                               Chess                 src/Chess.hs:(249,1)-(253,26)      3503         18    0.0    0.0     0.7    0.0
+                 blackPieces.f                            Chess                 src/Chess.hs:(251,9)-(253,26)      3504        576    0.7    0.0     0.7    0.0
                   ==                                      Chess                 src/Chess.hs:63:13-14              3505        576    0.0    0.0     0.0    0.0
                   colr                                    Chess                 src/Chess.hs:(97,1)-(102,19)       3506        576    0.0    0.0     0.0    0.0
                 whitePieces                               Chess                 src/Chess.hs:(242,1)-(246,26)      2973          3    0.0    0.0     0.0    0.0
@@ -667,8 +663,8 @@ MAIN                                                      MAIN                  
                   colr                                    Chess                 src/Chess.hs:(97,1)-(102,19)       2976         96    0.0    0.0     0.0    0.0
                succ'                                      Chess                 src/Chess.hs:(220,1)-(221,19)      2971         21    0.0    0.0     0.0    0.0
              toPlay                                       Chess                 src/Chess.hs:(259,1)-(262,14)      2967         21    0.0    0.0     0.0    0.0
-            isDraw                                        Chess                 src/Chess.hs:577:1-47              3104         12    0.0    0.0     2.9    2.8
-             isPatt                                       Chess                 src/Chess.hs:601:1-68              3105         12    0.0    0.0     2.2    2.7
+            isDraw                                        Chess                 src/Chess.hs:577:1-47              3104         12    0.0    0.0     1.4    2.8
+             isPatt                                       Chess                 src/Chess.hs:601:1-68              3105         12    0.0    0.0     1.4    2.7
               isInCheck                                   Chess                 src/Chess.hs:(568,1)-(571,20)      3108         12    0.0    0.0     0.0    1.3
                isInCheck.anyPWithoutKing                  Chess                 src/Chess.hs:570:7-68              3164         12    0.0    0.0     0.0    0.3
                 anyPosWithoutKing                         Chess                 src/Chess.hs:604:1-52              3165         12    0.0    0.0     0.0    0.3
@@ -827,7 +823,7 @@ MAIN                                                      MAIN                  
                    ==                                     Chess                 src/Chess.hs:63:13-14              3114         96    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       3115         96    0.0    0.0     0.0    0.0
                 succ'                                     Chess                 src/Chess.hs:(220,1)-(221,19)      3110         12    0.0    0.0     0.0    0.0
-              positionTree                                Chess                 src/Chess.hs:(268,1)-(272,33)      3243         12    0.0    0.0     2.2    1.4
+              positionTree                                Chess                 src/Chess.hs:(268,1)-(272,33)      3243         12    0.0    0.0     1.4    1.4
                positionTree.completePT                    Chess                 src/Chess.hs:271:7-45              3244         12    0.0    0.0     0.0    0.2
                 positionTreeIgnoreCheck                   Chess                 src/Chess.hs:(275,1)-(281,13)      3245         12    0.0    0.0     0.0    0.2
                  positionsPrPiece                         Chess                 src/Chess.hs:(290,1)-(309,17)      3251         21    0.0    0.0     0.0    0.1
@@ -907,11 +903,11 @@ MAIN                                                      MAIN                  
                   blackPieces.f                           Chess                 src/Chess.hs:(251,9)-(253,26)      3248          9    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              3249          9    0.0    0.0     0.0    0.0
                    colr                                   Chess                 src/Chess.hs:(97,1)-(102,19)       3250          9    0.0    0.0     0.0    0.0
-               positionTree.notInCheck                    Chess                 src/Chess.hs:270:7-55              3299         12    0.0    0.0     2.2    1.3
-                isInCheck                                 Chess                 src/Chess.hs:(568,1)-(571,20)      3300         12    0.0    0.0     2.2    1.3
-                 isInCheck.anyPWithoutKing                Chess                 src/Chess.hs:570:7-68              3359         12    0.0    0.0     0.7    0.3
-                  anyPosWithoutKing                       Chess                 src/Chess.hs:604:1-52              3360         12    0.0    0.0     0.7    0.3
-                   allHasKing                             Chess                 src/Chess.hs:(607,1)-(610,60)      3361         12    0.7    0.0     0.7    0.3
+               positionTree.notInCheck                    Chess                 src/Chess.hs:270:7-55              3299         12    0.0    0.0     1.4    1.3
+                isInCheck                                 Chess                 src/Chess.hs:(568,1)-(571,20)      3300         12    0.0    0.0     1.4    1.3
+                 isInCheck.anyPWithoutKing                Chess                 src/Chess.hs:570:7-68              3359         12    0.0    0.0     0.0    0.3
+                  anyPosWithoutKing                       Chess                 src/Chess.hs:604:1-52              3360         12    0.0    0.0     0.0    0.3
+                   allHasKing                             Chess                 src/Chess.hs:(607,1)-(610,60)      3361         12    0.0    0.0     0.0    0.3
                     allHasKing.\                          Chess                 src/Chess.hs:608:24-38             3584       2176    0.0    0.0     0.0    0.0
                      ==                                   Chess                 src/Chess.hs:72:13-14              3585       2176    0.0    0.0     0.0    0.0
                       ==                                  Chess                 src/Chess.hs:63:13-14              3586        242    0.0    0.0     0.0    0.0
@@ -926,12 +922,12 @@ MAIN                                                      MAIN                  
                      blackPieces.f                        Chess                 src/Chess.hs:(251,9)-(253,26)      3379       1417    0.0    0.0     0.0    0.0
                       ==                                  Chess                 src/Chess.hs:63:13-14              3380       1417    0.0    0.0     0.0    0.0
                       colr                                Chess                 src/Chess.hs:(97,1)-(102,19)       3381       1417    0.0    0.0     0.0    0.0
-                 isInCheck.potentialNextPositions         Chess                 src/Chess.hs:569:7-85              3301         12    0.0    0.0     1.5    1.0
-                  positionTreeIgnoreCheckPromotionsCastle Chess                 src/Chess.hs:(284,1)-(287,47)      3306         12    0.0    0.0     1.5    1.0
-                   positionsPrPiece                       Chess                 src/Chess.hs:(290,1)-(309,17)      3311        192    0.0    0.0     1.5    1.0
-                    canGoThere                            Chess                 src/Chess.hs:(207,1)-(209,47)      3318        816    0.0    0.0     0.0    0.4
-                     points                               Chess                 src/Chess.hs:(185,1)-(187,43)      3319        816    0.0    0.0     0.0    0.4
-                      points'                             Chess                 src/Chess.hs:(190,1)-(195,37)      3320        816    0.0    0.2     0.0    0.4
+                 isInCheck.potentialNextPositions         Chess                 src/Chess.hs:569:7-85              3301         12    0.0    0.0     1.4    1.0
+                  positionTreeIgnoreCheckPromotionsCastle Chess                 src/Chess.hs:(284,1)-(287,47)      3306         12    0.0    0.0     1.4    1.0
+                   positionsPrPiece                       Chess                 src/Chess.hs:(290,1)-(309,17)      3311        192    0.0    0.0     1.4    1.0
+                    canGoThere                            Chess                 src/Chess.hs:(207,1)-(209,47)      3318        816    0.0    0.0     0.7    0.4
+                     points                               Chess                 src/Chess.hs:(185,1)-(187,43)      3319        816    0.0    0.0     0.7    0.4
+                      points'                             Chess                 src/Chess.hs:(190,1)-(195,37)      3320        816    0.7    0.2     0.7    0.4
                        to'                                Chess                 src/Chess.hs:(201,1)-(204,33)      3321       4300    0.0    0.1     0.0    0.1
                        points'.\                          Chess                 src/Chess.hs:194:26-65             3421        656    0.0    0.0     0.0    0.0
                        middle                             Chess                 src/Chess.hs:198:1-75              3322        540    0.0    0.1     0.0    0.1
@@ -1037,7 +1033,7 @@ MAIN                                                      MAIN                  
                     toSquaresKnight                       Chess                 src/Chess.hs:(407,1)-(418,5)       3393         24    0.0    0.0     0.0    0.0
                      insideBoard                          Chess                 src/Chess.hs:561:1-63              3394        192    0.0    0.0     0.0    0.0
                      squareTo                             Chess                 src/Chess.hs:122:1-62              3395        192    0.0    0.0     0.0    0.0
-                    toSquaresRook                         Chess                 src/Chess.hs:(434,1)-(442,5)       3312         24    0.7    0.1     0.7    0.1
+                    toSquaresRook                         Chess                 src/Chess.hs:(434,1)-(442,5)       3312         24    0.0    0.1     0.0    0.1
                      squareTo                             Chess                 src/Chess.hs:122:1-62              3314       5736    0.0    0.0     0.0    0.0
                      insideBoard                          Chess                 src/Chess.hs:561:1-63              3315       5400    0.0    0.0     0.0    0.0
                      unique                               Chess                 src/Chess.hs:(113,1)-(119,6)       3313         24    0.0    0.0     0.0    0.0
@@ -1053,11 +1049,11 @@ MAIN                                                      MAIN                  
                       unique                              Chess                 src/Chess.hs:(113,1)-(119,6)       3424         12    0.0    0.0     0.0    0.0
                        unique.\                           Chess                 src/Chess.hs:(116,8)-(118,19)      3427         84    0.0    0.0     0.0    0.0
                         ==                                Chess                 src/Chess.hs:74:42-43              3428        252    0.0    0.0     0.0    0.0
-                     toSquaresRook                        Chess                 src/Chess.hs:(434,1)-(442,5)       3429         12    0.7    0.1     0.7    0.1
+                     toSquaresRook                        Chess                 src/Chess.hs:(434,1)-(442,5)       3429         12    0.0    0.1     0.7    0.1
                       squareTo                            Chess                 src/Chess.hs:122:1-62              3431       2868    0.0    0.0     0.0    0.0
                       insideBoard                         Chess                 src/Chess.hs:561:1-63              3432       2700    0.0    0.0     0.0    0.0
-                      unique                              Chess                 src/Chess.hs:(113,1)-(119,6)       3430         12    0.0    0.0     0.0    0.0
-                       unique.\                           Chess                 src/Chess.hs:(116,8)-(118,19)      3433        168    0.0    0.0     0.0    0.0
+                      unique                              Chess                 src/Chess.hs:(113,1)-(119,6)       3430         12    0.0    0.0     0.7    0.0
+                       unique.\                           Chess                 src/Chess.hs:(116,8)-(118,19)      3433        168    0.7    0.0     0.7    0.0
                         ==                                Chess                 src/Chess.hs:74:42-43              3434       1092    0.0    0.0     0.0    0.0
                    blackPieces                            Chess                 src/Chess.hs:(249,1)-(253,26)      3576          9    0.0    0.0     0.0    0.0
                     blackPieces.f                         Chess                 src/Chess.hs:(251,9)-(253,26)      3577        288    0.0    0.0     0.0    0.0
@@ -1071,25 +1067,25 @@ MAIN                                                      MAIN                  
                positionTree.player                        Chess                 src/Chess.hs:269:7-24              3303         12    0.0    0.0     0.0    0.0
                 toPlay                                    Chess                 src/Chess.hs:(259,1)-(262,14)      3304         12    0.0    0.0     0.0    0.0
               toPlay                                      Chess                 src/Chess.hs:(259,1)-(262,14)      3106         12    0.0    0.0     0.0    0.0
-             threefoldrepetition                          Chess                 src/Chess.hs:580:1-56              3438         12    0.0    0.0     0.7    0.1
+             threefoldrepetition                          Chess                 src/Chess.hs:580:1-56              3438         12    0.0    0.0     0.0    0.1
               max'                                        Chess                 src/Chess.hs:(583,1)-(588,16)      3440         45    0.0    0.0     0.0    0.0
-              posrep                                      Chess                 src/Chess.hs:(591,1)-(595,32)      3439         45    0.0    0.0     0.7    0.1
+              posrep                                      Chess                 src/Chess.hs:(591,1)-(595,32)      3439         45    0.0    0.0     0.0    0.1
                posrep.countHead                           Chess                 src/Chess.hs:595:5-32              3447         33    0.0    0.0     0.0    0.0
-               posrep.it                                  Chess                 src/Chess.hs:594:5-42              3441         33    0.0    0.0     0.7    0.1
-                eqPosition                                Chess                 src/Chess.hs:598:1-27              3442         63    0.0    0.0     0.7    0.1
-                 ==                                       Chess                 src/Chess.hs:78:15-16              3443          0    0.7    0.1     0.7    0.1
+               posrep.it                                  Chess                 src/Chess.hs:594:5-42              3441         33    0.0    0.0     0.0    0.1
+                eqPosition                                Chess                 src/Chess.hs:598:1-27              3442         63    0.0    0.0     0.0    0.1
+                 ==                                       Chess                 src/Chess.hs:78:15-16              3443          0    0.0    0.1     0.0    0.1
                   ==                                      Chess                 src/Chess.hs:74:42-43              3444       1423    0.0    0.0     0.0    0.0
                   ==                                      Chess                 src/Chess.hs:72:13-14              3445       1393    0.0    0.0     0.0    0.0
                    ==                                     Chess                 src/Chess.hs:63:13-14              3446       1393    0.0    0.0     0.0    0.0
-        positionTree                                      Chess                 src/Chess.hs:(268,1)-(272,33)      2468         13    0.0    0.0    32.8   32.1
-         positionTree.completePT                          Chess                 src/Chess.hs:271:7-45              2469         13    0.0    0.0     3.6    1.2
-          positionTreeIgnoreCheck                         Chess                 src/Chess.hs:(275,1)-(281,13)      2470         13    0.0    0.0     3.6    1.2
-           promoteBindFriendly                            Chess                 src/Chess.hs:(389,1)-(396,14)      2524        294    0.0    0.1     0.0    0.1
+        positionTree                                      Chess                 src/Chess.hs:(268,1)-(272,33)      2468         13    0.0    0.0    33.1   32.1
+         positionTree.completePT                          Chess                 src/Chess.hs:271:7-45              2469         13    0.0    0.0     2.2    1.2
+          positionTreeIgnoreCheck                         Chess                 src/Chess.hs:(275,1)-(281,13)      2470         13    0.0    0.0     2.2    1.2
+           promoteBindFriendly                            Chess                 src/Chess.hs:(389,1)-(396,14)      2524        294    0.0    0.1     0.7    0.1
             ==                                            Chess                 src/Chess.hs:72:13-14              2544       2352    0.0    0.0     0.0    0.0
-            pieceAt                                       Chess                 src/Chess.hs:239:1-32              2525       2352    0.0    0.0     0.0    0.0
+            pieceAt                                       Chess                 src/Chess.hs:239:1-32              2525       2352    0.7    0.0     0.7    0.0
              compare                                      Chess                 src/Chess.hs:74:46-48              2543      11128    0.0    0.0     0.0    0.0
              m                                            Chess                 src/Chess.hs:77:5                  2526       2352    0.0    0.0     0.0    0.0
-           positionsPrPiece                               Chess                 src/Chess.hs:(290,1)-(309,17)      2476        208    0.0    0.0     3.6    1.0
+           positionsPrPiece                               Chess                 src/Chess.hs:(290,1)-(309,17)      2476        208    0.0    0.0     1.4    1.0
             canGoThere                                    Chess                 src/Chess.hs:(207,1)-(209,47)      2483        884    0.0    0.0     0.7    0.4
              points                                       Chess                 src/Chess.hs:(185,1)-(187,43)      2484        884    0.0    0.0     0.7    0.4
               points'                                     Chess                 src/Chess.hs:(190,1)-(195,37)      2485        884    0.7    0.2     0.7    0.4
@@ -1112,16 +1108,16 @@ MAIN                                                      MAIN                  
              movePiece                                    Chess                 src/Chess.hs:(169,1)-(176,38)      2529        200    0.0    0.0     0.7    0.0
               ==                                          Chess                 src/Chess.hs:72:13-14              2533        400    0.0    0.0     0.0    0.0
                ==                                         Chess                 src/Chess.hs:63:13-14              2534        400    0.0    0.0     0.0    0.0
-              pieceAt                                     Chess                 src/Chess.hs:239:1-32              2530        400    0.0    0.0     0.7    0.0
-               compare                                    Chess                 src/Chess.hs:74:46-48              2532       1928    0.7    0.0     0.7    0.0
+              pieceAt                                     Chess                 src/Chess.hs:239:1-32              2530        400    0.0    0.0     0.0    0.0
+               compare                                    Chess                 src/Chess.hs:74:46-48              2532       1928    0.0    0.0     0.0    0.0
                m                                          Chess                 src/Chess.hs:77:5                  2531        400    0.0    0.0     0.0    0.0
-              movePiece'                                  Chess                 src/Chess.hs:(179,1)-(182,23)      2535        200    0.0    0.0     0.0    0.0
+              movePiece'                                  Chess                 src/Chess.hs:(179,1)-(182,23)      2535        200    0.0    0.0     0.7    0.0
                pieceAt                                    Chess                 src/Chess.hs:239:1-32              2536        200    0.0    0.0     0.0    0.0
                 compare                                   Chess                 src/Chess.hs:74:46-48              2538        964    0.0    0.0     0.0    0.0
                 m                                         Chess                 src/Chess.hs:77:5                  2537        200    0.0    0.0     0.0    0.0
                removePieceAt                              Chess                 src/Chess.hs:(227,1)-(228,34)      2539        200    0.0    0.0     0.0    0.0
                 compare                                   Chess                 src/Chess.hs:74:46-48              2540        964    0.0    0.0     0.0    0.0
-               replacePieceAt                             Chess                 src/Chess.hs:(231,1)-(232,40)      2541        200    0.0    0.0     0.0    0.0
+               replacePieceAt                             Chess                 src/Chess.hs:(231,1)-(232,40)      2541        200    0.7    0.0     0.7    0.0
                 compare                                   Chess                 src/Chess.hs:74:46-48              2542        920    0.0    0.0     0.0    0.0
               vacantAt                                    Chess                 src/Chess.hs:224:1-42              3608          2    0.0    0.0     0.0    0.0
                pieceAt                                    Chess                 src/Chess.hs:239:1-32              3609          2    0.0    0.0     0.0    0.0
@@ -1170,10 +1166,10 @@ MAIN                                                      MAIN                  
              ==                                           Chess                 src/Chess.hs:63:13-14              2500        104    0.0    0.0     0.0    0.0
              colr                                         Chess                 src/Chess.hs:(97,1)-(102,19)       2501        104    0.0    0.0     0.0    0.0
              toSquaresPawn.pos                            Chess                 src/Chess.hs:342:5-17              2506        104    0.0    0.0     0.0    0.0
-            movePiece                                     Chess                 src/Chess.hs:(169,1)-(176,38)      2705         94    0.0    0.0     0.7    0.0
+            movePiece                                     Chess                 src/Chess.hs:(169,1)-(176,38)      2705         94    0.0    0.0     0.0    0.0
              ==                                           Chess                 src/Chess.hs:72:13-14              2709        188    0.0    0.0     0.0    0.0
-             pieceAt                                      Chess                 src/Chess.hs:239:1-32              2706        188    0.0    0.0     0.7    0.0
-              compare                                     Chess                 src/Chess.hs:74:46-48              2708        488    0.7    0.0     0.7    0.0
+             pieceAt                                      Chess                 src/Chess.hs:239:1-32              2706        188    0.0    0.0     0.0    0.0
+              compare                                     Chess                 src/Chess.hs:74:46-48              2708        488    0.0    0.0     0.0    0.0
               m                                           Chess                 src/Chess.hs:77:5                  2707        188    0.0    0.0     0.0    0.0
              movePiece'                                   Chess                 src/Chess.hs:(179,1)-(182,23)      2710         94    0.0    0.0     0.0    0.0
               pieceAt                                     Chess                 src/Chess.hs:239:1-32              2711         94    0.0    0.0     0.0    0.0
@@ -1198,13 +1194,13 @@ MAIN                                                      MAIN                  
             toSquaresKnight                               Chess                 src/Chess.hs:(407,1)-(418,5)       2698         26    0.0    0.0     0.0    0.0
              insideBoard                                  Chess                 src/Chess.hs:561:1-63              2699        208    0.0    0.0     0.0    0.0
              squareTo                                     Chess                 src/Chess.hs:122:1-62              2700        208    0.0    0.0     0.0    0.0
-            toSquaresRook                                 Chess                 src/Chess.hs:(434,1)-(442,5)       2477         26    0.7    0.1     0.7    0.1
+            toSquaresRook                                 Chess                 src/Chess.hs:(434,1)-(442,5)       2477         26    0.0    0.1     0.0    0.1
              squareTo                                     Chess                 src/Chess.hs:122:1-62              2479       6214    0.0    0.0     0.0    0.0
              insideBoard                                  Chess                 src/Chess.hs:561:1-63              2480       5850    0.0    0.0     0.0    0.0
              unique                                       Chess                 src/Chess.hs:(113,1)-(119,6)       2478         26    0.0    0.0     0.0    0.0
               unique.\                                    Chess                 src/Chess.hs:(116,8)-(118,19)      2481        364    0.0    0.0     0.0    0.0
                ==                                         Chess                 src/Chess.hs:74:42-43              2482       2366    0.0    0.0     0.0    0.0
-            toSquaresKing                                 Chess                 src/Chess.hs:(450,1)-(456,3)       2740         13    0.7    0.0     0.7    0.0
+            toSquaresKing                                 Chess                 src/Chess.hs:(450,1)-(456,3)       2740         13    0.0    0.0     0.0    0.0
              squareTo                                     Chess                 src/Chess.hs:122:1-62              2742        169    0.0    0.0     0.0    0.0
              insideBoard                                  Chess                 src/Chess.hs:561:1-63              2741        104    0.0    0.0     0.0    0.0
             toSquaresQueen                                Chess                 src/Chess.hs:446:1-62              2727         13    0.0    0.0     0.0    0.1
@@ -1272,55 +1268,55 @@ MAIN                                                      MAIN                  
             blackPieces.f                                 Chess                 src/Chess.hs:(251,9)-(253,26)      3450         96    0.0    0.0     0.0    0.0
              ==                                           Chess                 src/Chess.hs:63:13-14              3451         96    0.0    0.0     0.0    0.0
              colr                                         Chess                 src/Chess.hs:(97,1)-(102,19)       3452         96    0.0    0.0     0.0    0.0
-         positionTree.notInCheck                          Chess                 src/Chess.hs:270:7-55              2545         13    0.0    0.0    29.2   30.9
-          isInCheck                                       Chess                 src/Chess.hs:(568,1)-(571,20)      2546        294    0.0    0.0    29.2   30.9
-           isInCheck.anyPWithoutKing                      Chess                 src/Chess.hs:570:7-68              2584        294    0.0    0.0     6.6    6.9
-            anyPosWithoutKing                             Chess                 src/Chess.hs:604:1-52              2585        294    0.0    0.0     6.6    6.9
-             allHasKing                                   Chess                 src/Chess.hs:(607,1)-(610,60)      2586        294    2.9    0.0     6.6    6.9
-              allHasKing.\                                Chess                 src/Chess.hs:608:24-38             2607      54237    0.7    0.0     0.7    0.0
+         positionTree.notInCheck                          Chess                 src/Chess.hs:270:7-55              2545         13    0.0    0.0    30.9   30.9
+          isInCheck                                       Chess                 src/Chess.hs:(568,1)-(571,20)      2546        294    0.0    0.0    30.9   30.9
+           isInCheck.anyPWithoutKing                      Chess                 src/Chess.hs:570:7-68              2584        294    0.0    0.0     7.2    6.9
+            anyPosWithoutKing                             Chess                 src/Chess.hs:604:1-52              2585        294    0.0    0.0     7.2    6.9
+             allHasKing                                   Chess                 src/Chess.hs:(607,1)-(610,60)      2586        294    0.0    0.0     7.2    6.9
+              allHasKing.\                                Chess                 src/Chess.hs:608:24-38             2607      54237    0.0    0.0     0.0    0.0
                ==                                         Chess                 src/Chess.hs:72:13-14              2608      54237    0.0    0.0     0.0    0.0
                 ==                                        Chess                 src/Chess.hs:63:13-14              2609       6072    0.0    0.0     0.0    0.0
-              allHasKing.\                                Chess                 src/Chess.hs:610:24-38             3461      14206    0.0    0.0     0.0    0.0
+              allHasKing.\                                Chess                 src/Chess.hs:610:24-38             3461      14206    0.7    0.0     0.7    0.0
                ==                                         Chess                 src/Chess.hs:72:13-14              3462      14206    0.0    0.0     0.0    0.0
                 ==                                        Chess                 src/Chess.hs:63:13-14              3463       1421    0.0    0.0     0.0    0.0
-              whitePieces                                 Chess                 src/Chess.hs:(242,1)-(246,26)      2587       6072    2.2    4.5     2.2    5.6
-               whitePieces.f                              Chess                 src/Chess.hs:(244,9)-(246,26)      2604     102282    0.0    1.1     0.0    1.1
+              whitePieces                                 Chess                 src/Chess.hs:(242,1)-(246,26)      2587       6072    4.3    4.5     5.0    5.6
+               whitePieces.f                              Chess                 src/Chess.hs:(244,9)-(246,26)      2604     102282    0.7    1.1     0.7    1.1
                 ==                                        Chess                 src/Chess.hs:63:13-14              2605     102282    0.0    0.0     0.0    0.0
                 colr                                      Chess                 src/Chess.hs:(97,1)-(102,19)       2606     102282    0.0    0.0     0.0    0.0
-              blackPieces                                 Chess                 src/Chess.hs:(249,1)-(253,26)      3457       1421    0.7    1.1     0.7    1.4
-               blackPieces.f                              Chess                 src/Chess.hs:(251,9)-(253,26)      3458      28357    0.0    0.3     0.0    0.3
+              blackPieces                                 Chess                 src/Chess.hs:(249,1)-(253,26)      3457       1421    0.7    1.1     1.4    1.4
+               blackPieces.f                              Chess                 src/Chess.hs:(251,9)-(253,26)      3458      28357    0.7    0.3     0.7    0.3
                 ==                                        Chess                 src/Chess.hs:63:13-14              3459      28357    0.0    0.0     0.0    0.0
                 colr                                      Chess                 src/Chess.hs:(97,1)-(102,19)       3460      28357    0.0    0.0     0.0    0.0
-           isInCheck.potentialNextPositions               Chess                 src/Chess.hs:569:7-85              2547        294    0.0    0.0    22.6   24.0
-            positionTreeIgnoreCheckPromotionsCastle       Chess                 src/Chess.hs:(284,1)-(287,47)      2552        294    0.0    0.2    22.6   24.0
-             positionsPrPiece                             Chess                 src/Chess.hs:(290,1)-(309,17)      2557       4702    0.0    0.5    22.6   23.3
-              canGoThere                                  Chess                 src/Chess.hs:(207,1)-(209,47)      2629      19992    0.0    0.0     5.1   10.0
-               points                                     Chess                 src/Chess.hs:(185,1)-(187,43)      2630      19992    0.7    0.9     0.7    9.8
-                points'                                   Chess                 src/Chess.hs:(190,1)-(195,37)      2631      19992    0.0    4.4     0.0    8.7
-                 to'                                      Chess                 src/Chess.hs:(201,1)-(204,33)      2632     104870    0.0    1.7     0.0    1.7
+           isInCheck.potentialNextPositions               Chess                 src/Chess.hs:569:7-85              2547        294    0.0    0.0    23.7   24.0
+            positionTreeIgnoreCheckPromotionsCastle       Chess                 src/Chess.hs:(284,1)-(287,47)      2552        294    0.0    0.2    23.7   24.0
+             positionsPrPiece                             Chess                 src/Chess.hs:(290,1)-(309,17)      2557       4702    0.7    0.5    23.7   23.3
+              canGoThere                                  Chess                 src/Chess.hs:(207,1)-(209,47)      2629      19992    0.0    0.0     5.8   10.0
+               points                                     Chess                 src/Chess.hs:(185,1)-(187,43)      2630      19992    0.0    0.9     4.3    9.8
+                points'                                   Chess                 src/Chess.hs:(190,1)-(195,37)      2631      19992    2.2    4.4     4.3    8.7
+                 to'                                      Chess                 src/Chess.hs:(201,1)-(204,33)      2632     104870    2.2    1.7     2.2    1.7
                  points'.\                                Chess                 src/Chess.hs:194:26-65             2672      15832    0.0    0.0     0.0    0.0
                  middle                                   Chess                 src/Chess.hs:198:1-75              2633      13230    0.0    2.6     0.0    2.6
                 points.toSquare                           Chess                 src/Chess.hs:186:7-33              2636      17021    0.0    0.2     0.0    0.2
-               pieceAt                                    Chess                 src/Chess.hs:239:1-32              2634      17021    2.2    0.1     2.2    0.1
+               pieceAt                                    Chess                 src/Chess.hs:239:1-32              2634      17021    0.0    0.1     0.0    0.1
                 compare                                   Chess                 src/Chess.hs:74:46-48              2637      78729    0.0    0.0     0.0    0.0
                 m                                         Chess                 src/Chess.hs:77:5                  2635      17021    0.0    0.0     0.0    0.0
-               finalDestinationNotOccupiedBySelf          Chess                 src/Chess.hs:(212,1)-(213,56)      2638       6538    0.0    0.1     2.2    0.2
-                pieceAt                                   Chess                 src/Chess.hs:239:1-32              2639      13076    2.2    0.1     2.2    0.1
+               finalDestinationNotOccupiedBySelf          Chess                 src/Chess.hs:(212,1)-(213,56)      2638       6538    0.0    0.1     1.4    0.2
+                pieceAt                                   Chess                 src/Chess.hs:239:1-32              2639      13076    1.4    0.1     1.4    0.1
                  compare                                  Chess                 src/Chess.hs:74:46-48              2641      60109    0.0    0.0     0.0    0.0
                  m                                        Chess                 src/Chess.hs:77:5                  2640      13076    0.0    0.0     0.0    0.0
                 colr                                      Chess                 src/Chess.hs:(97,1)-(102,19)       2643       9650    0.0    0.0     0.0    0.0
                 ==                                        Chess                 src/Chess.hs:63:13-14              2642       4825    0.0    0.0     0.0    0.0
               positionsPrPiece.pos                        Chess                 src/Chess.hs:309:5-17              2578       4672    0.0    0.0     0.0    0.0
-              positionsPrPiece.\                          Chess                 src/Chess.hs:295:24-47             2569       4450    0.0    0.0     2.2    1.4
-               canGoThere                                 Chess                 src/Chess.hs:(207,1)-(209,47)      2570       4450    0.7    0.0     2.2    1.4
+              positionsPrPiece.\                          Chess                 src/Chess.hs:295:24-47             2569       4450    0.0    0.0     1.4    1.4
+               canGoThere                                 Chess                 src/Chess.hs:(207,1)-(209,47)      2570       4450    0.0    0.0     1.4    1.4
                 points                                    Chess                 src/Chess.hs:(185,1)-(187,43)      2571       4450    0.0    0.1     0.0    1.3
                  points'                                  Chess                 src/Chess.hs:(190,1)-(195,37)      2572       4450    0.0    0.7     0.0    1.2
                   to'                                     Chess                 src/Chess.hs:(201,1)-(204,33)      2573      15487    0.0    0.1     0.0    0.1
                   middle                                  Chess                 src/Chess.hs:198:1-75              2574       4383    0.0    0.3     0.0    0.3
                   points'.\                               Chess                 src/Chess.hs:194:26-65             3472        134    0.0    0.0     0.0    0.0
                  points.toSquare                          Chess                 src/Chess.hs:186:7-33              2577       2070    0.0    0.0     0.0    0.0
-                finalDestinationNotOccupiedBySelf         Chess                 src/Chess.hs:(212,1)-(213,56)      2580       4447    0.7    0.1     1.5    0.1
-                 pieceAt                                  Chess                 src/Chess.hs:239:1-32              2581       8894    0.7    0.0     0.7    0.0
+                finalDestinationNotOccupiedBySelf         Chess                 src/Chess.hs:(212,1)-(213,56)      2580       4447    0.0    0.1     1.4    0.1
+                 pieceAt                                  Chess                 src/Chess.hs:239:1-32              2581       8894    1.4    0.0     1.4    0.0
                   compare                                 Chess                 src/Chess.hs:74:46-48              2583      42427    0.0    0.0     0.0    0.0
                   m                                       Chess                 src/Chess.hs:77:5                  2582       8894    0.0    0.0     0.0    0.0
                  colr                                     Chess                 src/Chess.hs:(97,1)-(102,19)       3474        134    0.0    0.0     0.0    0.0
@@ -1328,40 +1324,40 @@ MAIN                                                      MAIN                  
                 pieceAt                                   Chess                 src/Chess.hs:239:1-32              2575       2070    0.0    0.0     0.0    0.0
                  compare                                  Chess                 src/Chess.hs:74:46-48              2579      10670    0.0    0.0     0.0    0.0
                  m                                        Chess                 src/Chess.hs:77:5                  2576       2070    0.0    0.0     0.0    0.0
-              positionsPrPiece.\                          Chess                 src/Chess.hs:294:16-67             2588       4447    0.0    0.0     2.2    1.2
+              positionsPrPiece.\                          Chess                 src/Chess.hs:294:16-67             2588       4447    0.0    0.0     3.6    1.2
                eliminateEnPassantSquare                   Chess                 src/Chess.hs:(312,1)-(313,64)      2589       4447    0.0    0.0     0.0    0.0
-               movePiece                                  Chess                 src/Chess.hs:(169,1)-(176,38)      2590       4447    0.0    0.0     2.2    1.2
+               movePiece                                  Chess                 src/Chess.hs:(169,1)-(176,38)      2590       4447    0.7    0.0     3.6    1.2
                 ==                                        Chess                 src/Chess.hs:72:13-14              2594       8894    0.0    0.0     0.0    0.0
                  ==                                       Chess                 src/Chess.hs:63:13-14              2595       8894    0.0    0.0     0.0    0.0
-                pieceAt                                   Chess                 src/Chess.hs:239:1-32              2591       8894    0.0    0.1     0.0    0.1
+                pieceAt                                   Chess                 src/Chess.hs:239:1-32              2591       8894    1.4    0.1     1.4    0.1
                  compare                                  Chess                 src/Chess.hs:74:46-48              2593      39160    0.0    0.0     0.0    0.0
                  m                                        Chess                 src/Chess.hs:77:5                  2592       8894    0.0    0.0     0.0    0.0
-                movePiece'                                Chess                 src/Chess.hs:(179,1)-(182,23)      2596       4447    0.7    0.0     2.2    1.1
-                 pieceAt                                  Chess                 src/Chess.hs:239:1-32              2597       4447    0.0    0.0     0.0    0.0
+                movePiece'                                Chess                 src/Chess.hs:(179,1)-(182,23)      2596       4447    0.0    0.0     1.4    1.1
+                 pieceAt                                  Chess                 src/Chess.hs:239:1-32              2597       4447    0.7    0.0     0.7    0.0
                   compare                                 Chess                 src/Chess.hs:74:46-48              2599      19580    0.0    0.0     0.0    0.0
                   m                                       Chess                 src/Chess.hs:77:5                  2598       4447    0.0    0.0     0.0    0.0
-                 removePieceAt                            Chess                 src/Chess.hs:(227,1)-(228,34)      2600       4447    1.5    0.4     1.5    0.4
+                 removePieceAt                            Chess                 src/Chess.hs:(227,1)-(228,34)      2600       4447    0.0    0.4     0.0    0.4
                   compare                                 Chess                 src/Chess.hs:74:46-48              2601      19580    0.0    0.0     0.0    0.0
-                 replacePieceAt                           Chess                 src/Chess.hs:(231,1)-(232,40)      2602       4447    0.0    0.7     0.0    0.7
+                 replacePieceAt                           Chess                 src/Chess.hs:(231,1)-(232,40)      2602       4447    0.7    0.7     0.7    0.7
                   compare                                 Chess                 src/Chess.hs:74:46-48              2603      22546    0.0    0.0     0.0    0.0
                 vacantAt                                  Chess                 src/Chess.hs:224:1-42              3475         67    0.0    0.0     0.0    0.0
                  pieceAt                                  Chess                 src/Chess.hs:239:1-32              3476         67    0.0    0.0     0.0    0.0
                   compare                                 Chess                 src/Chess.hs:74:46-48              3478        331    0.0    0.0     0.0    0.0
                   m                                       Chess                 src/Chess.hs:77:5                  3477         67    0.0    0.0     0.0    0.0
-              movePiece                                   Chess                 src/Chess.hs:(169,1)-(176,38)      2651       3046    0.7    0.0     0.7    0.8
+              movePiece                                   Chess                 src/Chess.hs:(169,1)-(176,38)      2651       3046    0.0    0.0     1.4    0.8
                ==                                         Chess                 src/Chess.hs:72:13-14              2655       6092    0.0    0.0     0.0    0.0
-               pieceAt                                    Chess                 src/Chess.hs:239:1-32              2652       6092    0.0    0.0     0.0    0.0
+               pieceAt                                    Chess                 src/Chess.hs:239:1-32              2652       6092    0.7    0.0     0.7    0.0
                 compare                                   Chess                 src/Chess.hs:74:46-48              2654      28590    0.0    0.0     0.0    0.0
                 m                                         Chess                 src/Chess.hs:77:5                  2653       6092    0.0    0.0     0.0    0.0
-               movePiece'                                 Chess                 src/Chess.hs:(179,1)-(182,23)      2656       3046    0.0    0.0     0.0    0.7
+               movePiece'                                 Chess                 src/Chess.hs:(179,1)-(182,23)      2656       3046    0.0    0.0     0.7    0.7
                 pieceAt                                   Chess                 src/Chess.hs:239:1-32              2657       3046    0.0    0.0     0.0    0.0
                  compare                                  Chess                 src/Chess.hs:74:46-48              2659      14295    0.0    0.0     0.0    0.0
                  m                                        Chess                 src/Chess.hs:77:5                  2658       3046    0.0    0.0     0.0    0.0
-                removePieceAt                             Chess                 src/Chess.hs:(227,1)-(228,34)      2660       3046    0.0    0.3     0.0    0.3
+                removePieceAt                             Chess                 src/Chess.hs:(227,1)-(228,34)      2660       3046    0.7    0.3     0.7    0.3
                  compare                                  Chess                 src/Chess.hs:74:46-48              2661      14295    0.0    0.0     0.0    0.0
                 replacePieceAt                            Chess                 src/Chess.hs:(231,1)-(232,40)      2662       3046    0.0    0.4     0.0    0.4
                  compare                                  Chess                 src/Chess.hs:74:46-48              2663      15282    0.0    0.0     0.0    0.0
-              toSquaresPawn                               Chess                 src/Chess.hs:(317,1)-(342,17)      2558       2350    0.0    0.5     1.5    0.7
+              toSquaresPawn                               Chess                 src/Chess.hs:(317,1)-(342,17)      2558       2350    1.4    0.5     3.6    0.7
                squareTo                                   Chess                 src/Chess.hs:122:1-62              2561      18278    0.0    0.0     0.0    0.0
                enPassant                                  Chess                 src/Chess.hs:(346,1)-(360,58)      2614       4700    0.0    0.1     0.0    0.1
                 ==                                        Chess                 src/Chess.hs:63:13-14              2615       4700    0.0    0.0     0.0    0.0
@@ -1371,8 +1367,8 @@ MAIN                                                      MAIN                  
                  m                                        Chess                 src/Chess.hs:77:5                  2619       3316    0.0    0.0     0.0    0.0
                 ==                                        Chess                 src/Chess.hs:72:13-14              2621       2420    0.0    0.0     0.0    0.0
                  ==                                       Chess                 src/Chess.hs:63:13-14              2622       2420    0.0    0.0     0.0    0.0
-               enemyAt                                    Chess                 src/Chess.hs:(216,1)-(217,66)      2610       4700    0.7    0.1     1.5    0.1
-                pieceAt                                   Chess                 src/Chess.hs:239:1-32              2611       9400    0.7    0.0     0.7    0.0
+               enemyAt                                    Chess                 src/Chess.hs:(216,1)-(217,66)      2610       4700    0.0    0.1     1.4    0.1
+                pieceAt                                   Chess                 src/Chess.hs:239:1-32              2611       9400    1.4    0.0     1.4    0.0
                  compare                                  Chess                 src/Chess.hs:74:46-48              2613      44597    0.0    0.0     0.0    0.0
                  m                                        Chess                 src/Chess.hs:77:5                  2612       9400    0.0    0.0     0.0    0.0
                 colr                                      Chess                 src/Chess.hs:(97,1)-(102,19)       3469        498    0.0    0.0     0.0    0.0
@@ -1380,49 +1376,49 @@ MAIN                                                      MAIN                  
                 succ'                                     Chess                 src/Chess.hs:(220,1)-(221,19)      3470        249    0.0    0.0     0.0    0.0
                insideBoard'                               Chess                 src/Chess.hs:(564,1)-(565,59)      2567       4450    0.0    0.0     0.0    0.0
                 insideBoard                               Chess                 src/Chess.hs:561:1-63              2568       4450    0.0    0.0     0.0    0.0
-               vacantAt                                   Chess                 src/Chess.hs:224:1-42              2562       4428    0.0    0.0     0.0    0.0
-                pieceAt                                   Chess                 src/Chess.hs:239:1-32              2563       4428    0.0    0.0     0.0    0.0
+               vacantAt                                   Chess                 src/Chess.hs:224:1-42              2562       4428    0.0    0.0     0.7    0.0
+                pieceAt                                   Chess                 src/Chess.hs:239:1-32              2563       4428    0.7    0.0     0.7    0.0
                  compare                                  Chess                 src/Chess.hs:74:46-48              2566      22764    0.0    0.0     0.0    0.0
                  m                                        Chess                 src/Chess.hs:77:5                  2564       4428    0.0    0.0     0.0    0.0
                ==                                         Chess                 src/Chess.hs:63:13-14              2559       2350    0.0    0.0     0.0    0.0
                colr                                       Chess                 src/Chess.hs:(97,1)-(102,19)       2560       2350    0.0    0.0     0.0    0.0
                toSquaresPawn.pos                          Chess                 src/Chess.hs:342:5-17              2565       2350    0.0    0.0     0.0    0.0
-              finalDestinationNotOccupiedBySelf           Chess                 src/Chess.hs:(212,1)-(213,56)      2647       1764    0.0    0.0     0.7    0.0
-               pieceAt                                    Chess                 src/Chess.hs:239:1-32              2648       3528    0.7    0.0     0.7    0.0
-                compare                                   Chess                 src/Chess.hs:74:46-48              2650      17195    0.0    0.0     0.0    0.0
+              finalDestinationNotOccupiedBySelf           Chess                 src/Chess.hs:(212,1)-(213,56)      2647       1764    0.0    0.0     2.2    0.0
+               pieceAt                                    Chess                 src/Chess.hs:239:1-32              2648       3528    1.4    0.0     2.2    0.0
+                compare                                   Chess                 src/Chess.hs:74:46-48              2650      17195    0.7    0.0     0.7    0.0
                 m                                         Chess                 src/Chess.hs:77:5                  2649       3528    0.0    0.0     0.0    0.0
                colr                                       Chess                 src/Chess.hs:(97,1)-(102,19)       2665        924    0.0    0.0     0.0    0.0
                ==                                         Chess                 src/Chess.hs:63:13-14              2664        462    0.0    0.0     0.0    0.0
-              toSquaresBishop                             Chess                 src/Chess.hs:(422,1)-(430,5)       2666        588    2.9    2.6     3.6    2.7
+              toSquaresBishop                             Chess                 src/Chess.hs:(422,1)-(430,5)       2666        588    0.7    2.6     0.7    2.7
                squareTo                                   Chess                 src/Chess.hs:122:1-62              2669      20580    0.0    0.0     0.0    0.0
                insideBoard                                Chess                 src/Chess.hs:561:1-63              2668      16464    0.0    0.0     0.0    0.0
-               unique                                     Chess                 src/Chess.hs:(113,1)-(119,6)       2667        588    0.0    0.1     0.7    0.1
-                unique.\                                  Chess                 src/Chess.hs:(116,8)-(118,19)      2670       4116    0.7    0.0     0.7    0.0
+               unique                                     Chess                 src/Chess.hs:(113,1)-(119,6)       2667        588    0.0    0.1     0.0    0.1
+                unique.\                                  Chess                 src/Chess.hs:(116,8)-(118,19)      2670       4116    0.0    0.0     0.0    0.0
                  ==                                       Chess                 src/Chess.hs:74:42-43              2671      12348    0.0    0.0     0.0    0.0
-              toSquaresKnight                             Chess                 src/Chess.hs:(407,1)-(418,5)       2644        588    0.7    0.1     0.7    0.1
+              toSquaresKnight                             Chess                 src/Chess.hs:(407,1)-(418,5)       2644        588    0.0    0.1     0.0    0.1
                insideBoard                                Chess                 src/Chess.hs:561:1-63              2645       4704    0.0    0.0     0.0    0.0
                squareTo                                   Chess                 src/Chess.hs:122:1-62              2646       4704    0.0    0.0     0.0    0.0
-              toSquaresRook                               Chess                 src/Chess.hs:(434,1)-(442,5)       2623        588    4.4    2.7     5.8    3.0
+              toSquaresRook                               Chess                 src/Chess.hs:(434,1)-(442,5)       2623        588    0.0    2.7     0.7    3.0
                squareTo                                   Chess                 src/Chess.hs:122:1-62              2625     140532    0.0    0.0     0.0    0.0
                insideBoard                                Chess                 src/Chess.hs:561:1-63              2626     132300    0.0    0.0     0.0    0.0
-               unique                                     Chess                 src/Chess.hs:(113,1)-(119,6)       2624        588    0.7    0.1     1.5    0.2
+               unique                                     Chess                 src/Chess.hs:(113,1)-(119,6)       2624        588    0.0    0.1     0.7    0.2
                 unique.\                                  Chess                 src/Chess.hs:(116,8)-(118,19)      2627       8232    0.7    0.1     0.7    0.1
                  ==                                       Chess                 src/Chess.hs:74:42-43              2628      53508    0.0    0.0     0.0    0.0
               toSquaresKing                               Chess                 src/Chess.hs:(450,1)-(456,3)       2686        294    0.0    0.1     0.0    0.1
                squareTo                                   Chess                 src/Chess.hs:122:1-62              2688       3822    0.0    0.0     0.0    0.0
                insideBoard                                Chess                 src/Chess.hs:561:1-63              2687       2352    0.0    0.0     0.0    0.0
-              toSquaresQueen                              Chess                 src/Chess.hs:446:1-62              2673        294    0.0    0.1     0.0    2.9
+              toSquaresQueen                              Chess                 src/Chess.hs:446:1-62              2673        294    0.0    0.1     3.6    2.9
                toSquaresBishop                            Chess                 src/Chess.hs:(422,1)-(430,5)       2674        294    0.0    1.3     0.0    1.3
                 squareTo                                  Chess                 src/Chess.hs:122:1-62              2677      10290    0.0    0.0     0.0    0.0
                 insideBoard                               Chess                 src/Chess.hs:561:1-63              2676       8232    0.0    0.0     0.0    0.0
                 unique                                    Chess                 src/Chess.hs:(113,1)-(119,6)       2675        294    0.0    0.0     0.0    0.1
                  unique.\                                 Chess                 src/Chess.hs:(116,8)-(118,19)      2678       2058    0.0    0.0     0.0    0.0
                   ==                                      Chess                 src/Chess.hs:74:42-43              2679       6174    0.0    0.0     0.0    0.0
-               toSquaresRook                              Chess                 src/Chess.hs:(434,1)-(442,5)       2680        294    0.0    1.4     0.0    1.5
+               toSquaresRook                              Chess                 src/Chess.hs:(434,1)-(442,5)       2680        294    2.2    1.4     3.6    1.5
                 squareTo                                  Chess                 src/Chess.hs:122:1-62              2682      70266    0.0    0.0     0.0    0.0
-                insideBoard                               Chess                 src/Chess.hs:561:1-63              2683      66150    0.0    0.0     0.0    0.0
-                unique                                    Chess                 src/Chess.hs:(113,1)-(119,6)       2681        294    0.0    0.1     0.0    0.1
-                 unique.\                                 Chess                 src/Chess.hs:(116,8)-(118,19)      2684       4116    0.0    0.0     0.0    0.0
+                insideBoard                               Chess                 src/Chess.hs:561:1-63              2683      66150    0.7    0.0     0.7    0.0
+                unique                                    Chess                 src/Chess.hs:(113,1)-(119,6)       2681        294    0.0    0.1     0.7    0.1
+                 unique.\                                 Chess                 src/Chess.hs:(116,8)-(118,19)      2684       4116    0.7    0.0     0.7    0.0
                   ==                                      Chess                 src/Chess.hs:74:42-43              2685      26754    0.0    0.0     0.0    0.0
              blackPieces                                  Chess                 src/Chess.hs:(249,1)-(253,26)      2553        234    0.0    0.3     0.0    0.3
               blackPieces.f                               Chess                 src/Chess.hs:(251,9)-(253,26)      2554       7486    0.0    0.1     0.0    0.1
@@ -1444,18 +1440,18 @@ MAIN                                                      MAIN                  
           replaceHighest                                  AI                    src/AI.hs:(67,1)-(68,92)           3480         57    0.0    0.0     0.0    0.0
            getScore                                       AI                    src/AI.hs:71:1-30                  3481        102    0.0    0.0     0.0    0.0
        ==                                                 Chess                 src/Chess.hs:63:13-14              1943          1    0.0    0.0     0.0    0.0
-       evaluate'                                          Evaluation            src/Evaluation.hs:28:1-64          1948          1    0.0    0.0     0.7    0.4
-        determineStatus                                   Chess                 src/Chess.hs:(613,1)-(618,27)      1950          1    0.0    0.0     0.7    0.4
+       evaluate'                                          Evaluation            src/Evaluation.hs:28:1-64          1948          1    0.0    0.0     1.4    0.4
+        determineStatus                                   Chess                 src/Chess.hs:(613,1)-(618,27)      1950          1    0.0    0.0     1.4    0.4
          ==                                               Chess                 src/Chess.hs:63:13-14              1951          2    0.0    0.0     0.0    0.0
-         isCheckMate                                      Chess                 src/Chess.hs:574:1-67              1954          2    0.0    0.0     0.0    0.2
-          isInCheck                                       Chess                 src/Chess.hs:(568,1)-(571,20)      1957          2    0.0    0.0     0.0    0.2
-           isInCheck.anyPWithoutKing                      Chess                 src/Chess.hs:570:7-68              1996          2    0.0    0.0     0.0    0.0
-            anyPosWithoutKing                             Chess                 src/Chess.hs:604:1-52              1997          2    0.0    0.0     0.0    0.0
-             allHasKing                                   Chess                 src/Chess.hs:(607,1)-(610,60)      1998          2    0.0    0.0     0.0    0.0
+         isCheckMate                                      Chess                 src/Chess.hs:574:1-67              1954          2    0.0    0.0     0.7    0.2
+          isInCheck                                       Chess                 src/Chess.hs:(568,1)-(571,20)      1957          2    0.0    0.0     0.7    0.2
+           isInCheck.anyPWithoutKing                      Chess                 src/Chess.hs:570:7-68              1996          2    0.0    0.0     0.7    0.0
+            anyPosWithoutKing                             Chess                 src/Chess.hs:604:1-52              1997          2    0.0    0.0     0.7    0.0
+             allHasKing                                   Chess                 src/Chess.hs:(607,1)-(610,60)      1998          2    0.0    0.0     0.7    0.0
               allHasKing.\                                Chess                 src/Chess.hs:608:24-38             2019        360    0.0    0.0     0.0    0.0
                ==                                         Chess                 src/Chess.hs:72:13-14              2020        360    0.0    0.0     0.0    0.0
                 ==                                        Chess                 src/Chess.hs:63:13-14              2021         40    0.0    0.0     0.0    0.0
-              whitePieces                                 Chess                 src/Chess.hs:(242,1)-(246,26)      1999         40    0.0    0.0     0.0    0.0
+              whitePieces                                 Chess                 src/Chess.hs:(242,1)-(246,26)      1999         40    0.7    0.0     0.7    0.0
                whitePieces.f                              Chess                 src/Chess.hs:(244,9)-(246,26)      2016        680    0.0    0.0     0.0    0.0
                 ==                                        Chess                 src/Chess.hs:63:13-14              2017        680    0.0    0.0     0.0    0.0
                 colr                                      Chess                 src/Chess.hs:(97,1)-(102,19)       2018        680    0.0    0.0     0.0    0.0
@@ -1587,19 +1583,19 @@ MAIN                                                      MAIN                  
          isDraw                                           Chess                 src/Chess.hs:577:1-47              2096          1    0.0    0.0     0.7    0.2
           isPatt                                          Chess                 src/Chess.hs:601:1-68              2097          1    0.0    0.0     0.7    0.2
            isInCheck                                      Chess                 src/Chess.hs:(568,1)-(571,20)      2100          1    0.0    0.0     0.7    0.1
-            isInCheck.anyPWithoutKing                     Chess                 src/Chess.hs:570:7-68              2135          1    0.0    0.0     0.7    0.0
-             anyPosWithoutKing                            Chess                 src/Chess.hs:604:1-52              2136          1    0.0    0.0     0.7    0.0
-              allHasKing                                  Chess                 src/Chess.hs:(607,1)-(610,60)      2137          1    0.0    0.0     0.7    0.0
+            isInCheck.anyPWithoutKing                     Chess                 src/Chess.hs:570:7-68              2135          1    0.0    0.0     0.0    0.0
+             anyPosWithoutKing                            Chess                 src/Chess.hs:604:1-52              2136          1    0.0    0.0     0.0    0.0
+              allHasKing                                  Chess                 src/Chess.hs:(607,1)-(610,60)      2137          1    0.0    0.0     0.0    0.0
                allHasKing.\                               Chess                 src/Chess.hs:608:24-38             2158        180    0.0    0.0     0.0    0.0
                 ==                                        Chess                 src/Chess.hs:72:13-14              2159        180    0.0    0.0     0.0    0.0
                  ==                                       Chess                 src/Chess.hs:63:13-14              2160         20    0.0    0.0     0.0    0.0
-               whitePieces                                Chess                 src/Chess.hs:(242,1)-(246,26)      2138         20    0.0    0.0     0.7    0.0
-                whitePieces.f                             Chess                 src/Chess.hs:(244,9)-(246,26)      2155        340    0.7    0.0     0.7    0.0
+               whitePieces                                Chess                 src/Chess.hs:(242,1)-(246,26)      2138         20    0.0    0.0     0.0    0.0
+                whitePieces.f                             Chess                 src/Chess.hs:(244,9)-(246,26)      2155        340    0.0    0.0     0.0    0.0
                  ==                                       Chess                 src/Chess.hs:63:13-14              2156        340    0.0    0.0     0.0    0.0
                  colr                                     Chess                 src/Chess.hs:(97,1)-(102,19)       2157        340    0.0    0.0     0.0    0.0
-            isInCheck.potentialNextPositions              Chess                 src/Chess.hs:569:7-85              2101          1    0.0    0.0     0.0    0.1
-             positionTreeIgnoreCheckPromotionsCastle      Chess                 src/Chess.hs:(284,1)-(287,47)      2103          1    0.0    0.0     0.0    0.1
-              positionsPrPiece                            Chess                 src/Chess.hs:(290,1)-(309,17)      2108         16    0.0    0.0     0.0    0.1
+            isInCheck.potentialNextPositions              Chess                 src/Chess.hs:569:7-85              2101          1    0.0    0.0     0.7    0.1
+             positionTreeIgnoreCheckPromotionsCastle      Chess                 src/Chess.hs:(284,1)-(287,47)      2103          1    0.0    0.0     0.7    0.1
+              positionsPrPiece                            Chess                 src/Chess.hs:(290,1)-(309,17)      2108         16    0.0    0.0     0.7    0.1
                canGoThere                                 Chess                 src/Chess.hs:(207,1)-(209,47)      2175         68    0.0    0.0     0.0    0.0
                 points                                    Chess                 src/Chess.hs:(185,1)-(187,43)      2176         68    0.0    0.0     0.0    0.0
                  points'                                  Chess                 src/Chess.hs:(190,1)-(195,37)      2177         68    0.0    0.0     0.0    0.0
@@ -1647,7 +1643,7 @@ MAIN                                                      MAIN                  
                   compare                                 Chess                 src/Chess.hs:74:46-48              2130         41    0.0    0.0     0.0    0.0
                   m                                       Chess                 src/Chess.hs:77:5                  2127          8    0.0    0.0     0.0    0.0
                positionsPrPiece.pos                       Chess                 src/Chess.hs:309:5-17              2129         16    0.0    0.0     0.0    0.0
-               toSquaresPawn                              Chess                 src/Chess.hs:(317,1)-(342,17)      2109          8    0.0    0.0     0.0    0.0
+               toSquaresPawn                              Chess                 src/Chess.hs:(317,1)-(342,17)      2109          8    0.0    0.0     0.7    0.0
                 squareTo                                  Chess                 src/Chess.hs:122:1-62              2112         64    0.0    0.0     0.0    0.0
                 enPassant                                 Chess                 src/Chess.hs:(346,1)-(360,58)      2165         16    0.0    0.0     0.0    0.0
                  ==                                       Chess                 src/Chess.hs:63:13-14              2166         16    0.0    0.0     0.0    0.0
@@ -1658,7 +1654,7 @@ MAIN                                                      MAIN                  
                   m                                       Chess                 src/Chess.hs:77:5                  2163         32    0.0    0.0     0.0    0.0
                 insideBoard'                              Chess                 src/Chess.hs:(564,1)-(565,59)      2118         16    0.0    0.0     0.0    0.0
                  insideBoard                              Chess                 src/Chess.hs:561:1-63              2119         16    0.0    0.0     0.0    0.0
-                vacantAt                                  Chess                 src/Chess.hs:224:1-42              2113         16    0.0    0.0     0.0    0.0
+                vacantAt                                  Chess                 src/Chess.hs:224:1-42              2113         16    0.7    0.0     0.7    0.0
                  pieceAt                                  Chess                 src/Chess.hs:239:1-32              2114         16    0.0    0.0     0.0    0.0
                   compare                                 Chess                 src/Chess.hs:74:46-48              2117         82    0.0    0.0     0.0    0.0
                   m                                       Chess                 src/Chess.hs:77:5                  2115         16    0.0    0.0     0.0    0.0
