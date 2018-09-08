@@ -111,8 +111,8 @@ rook Black = Rook Black
 
 unique :: Eq a => [a] -> [a]
 unique =
-  foldl
-    (\a c ->
+  foldr
+    (\c a ->
        if c `elem` a
          then a
          else c : a)

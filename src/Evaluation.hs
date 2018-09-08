@@ -114,7 +114,7 @@ blackPieces' :: Position -> Float
 blackPieces' pos = count pos Chess.blackPieces
 
 count :: Position -> (Position -> [(Square, Piece)]) -> Float
-count pos f = foldl (\a (_, p) -> a + valueOf p) 0.0 (f pos)
+count pos f = foldr (\(_, p) a -> a + valueOf p) 0.0 (f pos)
 
 valueOf :: Piece -> Float
 valueOf (Pawn White)   = 1.0
