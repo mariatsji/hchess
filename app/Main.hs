@@ -5,8 +5,8 @@ import           Chess
 import           Move
 import           Printer
 
-main :: IO ()
-main = do
+main' :: IO ()
+main' = do
   let fb = edgeGreed [Chess.startPosition] 3
   case fb of Left (gh, status) -> do
                prettyGH gh
@@ -14,8 +14,8 @@ main = do
              Right gh -> prettyGH gh
   
 
-main' :: IO ()
-main' = do
+main :: IO ()
+main = do
     print "1 Human vs Human"
     print "2 Human vs Machine"
     print "3 Machine vs Machine"

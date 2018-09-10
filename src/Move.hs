@@ -122,7 +122,7 @@ parseMove s gh
   | otherwise = gh
 
 parseMoves :: [String] -> GameHistory
-parseMoves = foldr parseMove [Chess.startPosition]
+parseMoves = foldl (flip parseMove) [Chess.startPosition]
 
 parseFrom :: String -> Square
 parseFrom x = 
