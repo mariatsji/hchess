@@ -267,12 +267,10 @@ positionTree' gh = (: gh) <$> positionTree gh
 
 positionTree :: GameHistory -> [Position]
 positionTree gh =
-  foldr
-    (\c a ->
-       case isInCheck gh (toPlay gh) of
-         True  -> a
-         False -> c : a)
-    [] $!
+  filter
+    (\c ->
+       not $ isInCheck (c : gh) (toPlay gh))
+    $!
   positionTreeIgnoreCheck gh
   {--
 positionTree :: GameHistory -> [Position]

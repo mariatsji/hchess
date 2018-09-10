@@ -16,10 +16,10 @@ import           Evaluation
 
 edgeGreed :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
 edgeGreed gh depth =
-  let startEvaluation :: Evaluated
-      startEvaluation = Evaluated gh (-10000) (determineStatus gh)
+  let -- startEvaluation :: Evaluated
+      -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh 
       bestWithinHorizon :: Evaluated
-      bestWithinHorizon = foldr (swapForBetter (toPlay gh)) startEvaluation $! evaluate' <$> expandHorizon depth gh
+      bestWithinHorizon = foldr1 (swapForBetter (toPlay gh)) $! evaluate' <$> expandHorizon depth gh
       bestAsGH :: GameHistory
       bestAsGH = getGH bestWithinHorizon
       ghOneStep' :: GameHistory
@@ -36,6 +36,7 @@ swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluat
 
 expandHorizon :: Int -> GameHistory -> [GameHistory]
 expandHorizon 0 gh = []
+expandHorizon 1 gh = positionTree' gh
 expandHorizon n gh = -- positionTree' gh >>= expandHorizon (n - 1)
   -- best so far : foldl (\a c -> expandHorizon (n - 1) c) [] (positionTree' gh)
   foldl (\a c -> expandHorizon (n - 1) c) [] (positionTree' gh)

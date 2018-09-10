@@ -1,4 +1,4 @@
 .idea
 .stack-work
-.hp
-.prof
+*.hp
+*.prof

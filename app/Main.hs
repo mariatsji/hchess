@@ -8,7 +8,11 @@ import           Printer
 main :: IO ()
 main = do
   let fb = edgeGreed [Chess.startPosition] 3
-  print fb
+  case fb of Left (gh, status) -> do
+               prettyGH gh
+               print status
+             Right gh -> prettyGH gh
+  
 
 main' :: IO ()
 main' = do
