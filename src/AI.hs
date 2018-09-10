@@ -15,31 +15,30 @@ import           Data.Ord
 import           Evaluation
 
 edgeGreed :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
-edgeGreed gh 0 =
-  let status = determineStatus gh
-   in case status of
-        WhiteToPlay -> Right gh
-        BlackToPlay -> Right gh
-        _           -> Left (gh, status)
 edgeGreed gh depth =
-  let depths = reverse [1 .. depth]
-      horizonPositions = expandHorizon depth gh -- cannot hold this reference!
-      horizonsEvaluated = evaluate' <$> horizonPositions
-      best =
-        case toPlay gh of
-          White -> highest' 1 horizonsEvaluated
-          Black -> lowest' 1 horizonsEvaluated
-      bestGH = (\(Evaluated a _ _) -> a) $ head best
-      nextGH = ghOneStep gh bestGH
-      status = determineStatus nextGH
-   in case status of
-        WhiteToPlay -> Right nextGH
-        BlackToPlay -> Right nextGH
-        _           -> Left (nextGH, status)
+  let startEvaluation :: Evaluated
+      startEvaluation = Evaluated gh (-10000) (determineStatus gh)
+      bestWithinHorizon :: Evaluated
+      bestWithinHorizon = foldr (swapForBetter (toPlay gh)) startEvaluation $! evaluate' <$> expandHorizon depth gh
+      bestAsGH :: GameHistory
+      bestAsGH = getGH bestWithinHorizon
+      ghOneStep' :: GameHistory
+      ghOneStep' = ghOneStep gh bestAsGH
+  in if length bestAsGH > length gh + 1
+    then Right bestAsGH
+    else Left (bestAsGH, getStatus bestWithinHorizon)
+
+
+-- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
+swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
+swapForBetter White ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluated ghBSF scoreBSF statusBSC) = if scorePot > scoreBSF then ePot else bestSoFar
+swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluated ghBSF scoreBSF statusBSC) = if scorePot < scoreBSF then ePot else bestSoFar
 
 expandHorizon :: Int -> GameHistory -> [GameHistory]
 expandHorizon 0 gh = []
-expandHorizon n gh = positionTree' gh >>= expandHorizon (n - 1)
+expandHorizon n gh = -- positionTree' gh >>= expandHorizon (n - 1)
+  -- best so far : foldl (\a c -> expandHorizon (n - 1) c) [] (positionTree' gh)
+  foldl (\a c -> expandHorizon (n - 1) c) [] (positionTree' gh)
 
 -- best give you Either Status or a gh ++ Position (gh with next position in it)
 focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
@@ -104,6 +103,12 @@ replaceHighest e (e':ex) =
 
 getScore :: Evaluated -> Float
 getScore (Evaluated _ x _) = x
+
+getGH :: Evaluated -> GameHistory
+getGH (Evaluated x _ _ ) = x
+
+getStatus :: Evaluated -> Status
+getStatus (Evaluated _ _ x) = x
 
 ghOneStep :: GameHistory -> GameHistory -> GameHistory
 ghOneStep [] _ = []

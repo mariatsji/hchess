@@ -46,7 +46,7 @@ start _ = main
 gameLoopMM :: GameHistory -> Int -> Int -> IO ()
 gameLoopMM gh whiteDepth blackDepth = do
   let depth = if toPlay gh == White then whiteDepth else blackDepth
-  let e = AI.focusedBest gh depth
+  let e = AI.edgeGreed gh depth
   case e of Right gameHistory -> do
               let newPos = head gameHistory
               Printer.pretty newPos
@@ -63,7 +63,7 @@ gameLoopHM gh depth = do
   putStrLn $ moveOkStatus gh gameHistory
   Printer.pretty (head gameHistory)
   if determineStatus gameHistory == BlackToPlay then do
-    let e = AI.focusedBest gameHistory depth
+    let e = AI.edgeGreed gameHistory depth
     case e of Right newGameHistory -> do
                 Printer.pretty (head newGameHistory)
                 gameLoopHM newGameHistory depth

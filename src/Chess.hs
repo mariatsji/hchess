@@ -55,7 +55,7 @@ import           Control.DeepSeq
 import           Data.List
 import qualified Data.Map.Strict as Map
 import           Data.Maybe
-import           GHC.Generics (Generic)
+import           GHC.Generics    (Generic)
 
 data Color
   = White
@@ -71,7 +71,10 @@ data Piece
   | King Color
   deriving (Eq, Ord, Show, Generic, NFData)
 
-data Square = Square !Int !Int deriving (Eq, Ord, Show, Generic, NFData)
+data Square =
+  Square !Int
+         !Int
+  deriving (Eq, Ord, Show, Generic, NFData)
 
 newtype Position = Position
   { m :: Map.Map Square Piece
@@ -91,7 +94,7 @@ board :: [Square]
 board = Square <$> [1 .. 8] <*> [1 .. 8]
 
 onlyPiecesBoard :: [Square]
-onlyPiecesBoard = Square <$> [1 .. 8] <*> [1,2,7,8]
+onlyPiecesBoard = Square <$> [1 .. 8] <*> [1, 2, 7, 8]
 
 colr :: Piece -> Color
 colr (Pawn c)   = c
@@ -133,7 +136,6 @@ startPosition =
   , (Square 6 1, Bishop White)
   , (Square 7 1, Knight White)
   , (Square 8 1, Rook White)
-
   , (Square 1 2, Pawn White)
   , (Square 2 2, Pawn White)
   , (Square 3 2, Pawn White)
@@ -142,7 +144,6 @@ startPosition =
   , (Square 6 2, Pawn White)
   , (Square 7 2, Pawn White)
   , (Square 8 2, Pawn White)
-
   , (Square 1 7, Pawn Black)
   , (Square 2 7, Pawn Black)
   , (Square 3 7, Pawn Black)
@@ -151,7 +152,6 @@ startPosition =
   , (Square 6 7, Pawn Black)
   , (Square 7 7, Pawn Black)
   , (Square 8 7, Pawn Black)
-
   , (Square 1 8, Rook Black)
   , (Square 2 8, Knight Black)
   , (Square 3 8, Bishop Black)
@@ -167,11 +167,9 @@ emptyBoard = Position $ Map.empty
 
 movePiece :: Position -> Square -> Square -> Position
 movePiece pos from@(Square fc _) to@(Square tc tr)
-  | pieceAt pos from == Just (Pawn White) &&
-      (fc /= tc) && vacantAt pos to =
+  | pieceAt pos from == Just (Pawn White) && (fc /= tc) && vacantAt pos to =
     movePiece' (removePieceAt pos (Square tc (tr - 1))) from to
-  | pieceAt pos from == Just (Pawn Black) &&
-      (fc /= tc) && vacantAt pos to =
+  | pieceAt pos from == Just (Pawn Black) && (fc /= tc) && vacantAt pos to =
     movePiece' (removePieceAt pos (Square tc (tr + 1))) from to
   | otherwise = movePiece' pos from to
 
@@ -183,19 +181,21 @@ movePiece' pos from to =
 
 points :: Square -> Square -> [Square]
 points (Square c1 r1) (Square c2 r2) =
-  let toSquare (c,r) = Square c r
-  in toSquare <$> points' (c1, r1) (c2, r2)
+  let toSquare (c, r) = Square c r
+   in toSquare <$> points' (c1, r1) (c2, r2)
 
 points' :: (Int, Int) -> (Int, Int) -> [(Int, Int)] -- all visited squares
 points' (c1, r1) (c2, r2)
-  | c1 == c2 || r1 == r2 =
-      middle $ (,) <$> to' c1 c2 <*> to' r1 r2
+  | c1 == c2 || r1 == r2 = middle $ (,) <$> to' c1 c2 <*> to' r1 r2
   | otherwise =
-      filter (\(a, b) -> (a, b) /= (c1, r1) && (a, b) /= (c2, r2)) $
-      zip (c1 `to'` c2) (r1 `to'` r2)
+    filter (\(a, b) -> (a, b) /= (c1, r1) && (a, b) /= (c2, r2)) $
+    zip (c1 `to'` c2) (r1 `to'` r2)
 
 middle :: [a] -> [a]
-middle l = if length l > 1 then (reverse . init . reverse . init) l else []
+middle l =
+  if length l > 1
+    then (reverse . init . reverse . init) l
+    else []
 
 to' :: Int -> Int -> [Int]
 to' a b
@@ -224,8 +224,7 @@ vacantAt :: Position -> Square -> Bool
 vacantAt pos t = isNothing $ pieceAt pos t
 
 removePieceAt :: Position -> Square -> Position
-removePieceAt (Position pos) square =
-  Position $ Map.delete square pos
+removePieceAt (Position pos) square = Position $ Map.delete square pos
 
 replacePieceAt :: Position -> Square -> Piece -> Position
 replacePieceAt (Position pos) square piece =
@@ -240,17 +239,19 @@ pieceAt pos s = (m pos) Map.!? s
 
 whitePieces :: Position -> [(Square, Piece)]
 whitePieces (Position pos) = Map.foldMapWithKey f pos
-  where f :: Square -> Piece -> [(Square, Piece)]
-        f s p
-          | colr p == White = [(s, p)]
-          | otherwise = []
+  where
+    f :: Square -> Piece -> [(Square, Piece)]
+    f s p
+      | colr p == White = [(s, p)]
+      | otherwise = []
 
 blackPieces :: Position -> [(Square, Piece)]
 blackPieces (Position pos) = Map.foldMapWithKey f pos
-  where f :: Square -> Piece -> [(Square, Piece)]
-        f s p
-          | colr p == Black = [(s, p)]
-          | otherwise = []
+  where
+    f :: Square -> Piece -> [(Square, Piece)]
+    f s p
+      | colr p == Black = [(s, p)]
+      | otherwise = []
 
 whiteToPlay :: GameHistory -> Bool
 whiteToPlay = odd . length
@@ -266,10 +267,21 @@ positionTree' gh = (: gh) <$> positionTree gh
 
 positionTree :: GameHistory -> [Position]
 positionTree gh =
+  foldr
+    (\c a ->
+       case isInCheck gh (toPlay gh) of
+         True  -> a
+         False -> c : a)
+    [] $!
+  positionTreeIgnoreCheck gh
+  {--
+positionTree :: GameHistory -> [Position]
+positionTree gh =
   let player = toPlay gh
       notInCheck = not . flip isInCheck player . (: gh)
       completePT = positionTreeIgnoreCheck gh
   in filter notInCheck completePT
+--}
 
 positionTreeIgnoreCheck :: GameHistory -> [Position]
 positionTreeIgnoreCheck gh
@@ -327,10 +339,7 @@ toSquaresPawn gh (s@(Square _ r), p)
     [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant gh (squareTo s 1 0)]
   | otherwise =
     filter insideBoard' $
-    [ (squareTo s 0 (-2), Nothing)
-    | r == 7
-    , vacantAt pos $ squareTo s 0 (-2)
-    ] ++
+    [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)] ++
     [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)] ++
     [(squareTo s (-1) (-1), Nothing) | enemyAt pos s $ squareTo s (-1) (-1)] ++
     [ (squareTo s (-1) (-1), Just (squareTo s (-1) 0))
@@ -360,8 +369,14 @@ enPassant gh s@(Square c r)
       movePiece (head gh) s' toSquare == (head . tail) gh'
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
-prom White p1 (s@(Square _ r), p2) = if r == 8 && p2 == Pawn White then (s, p1) else (s, p2)
-prom Black p1 (s@(Square _ r), p2) = if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
+prom White p1 (s@(Square _ r), p2) =
+  if r == 8 && p2 == Pawn White
+    then (s, p1)
+    else (s, p2)
+prom Black p1 (s@(Square _ r), p2) =
+  if r == 1 && p2 == Pawn Black
+    then (s, p1)
+    else (s, p2)
 
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
@@ -387,7 +402,7 @@ promote c@Black pos =
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> [Position]
 promoteBindFriendly White pos =
-  if elem (Just (Pawn White)) [pieceAt pos (Square col 8)  | col <- [1 .. 8]]
+  if elem (Just (Pawn White)) [pieceAt pos (Square col 8) | col <- [1 .. 8]]
     then promoteBindFriendly' White pos
     else [pos]
 promoteBindFriendly Black pos =
@@ -541,17 +556,25 @@ haveNotMoved gh p s = all (\pos -> pieceAt pos s == Just p) gh
 
 willNotPassCheck :: GameHistory -> Square -> Square -> Bool
 willNotPassCheck gh (Square 5 1) (Square 8 1) =
-  not (isInCheck (movePiece (head gh) (Square 5 1) (Square 6 1) : gh) (toPlay gh)) &&
-  not (isInCheck (movePiece (head gh) (Square 5 1) (Square 7 1) : gh) (toPlay gh))
+  not
+    (isInCheck (movePiece (head gh) (Square 5 1) (Square 6 1) : gh) (toPlay gh)) &&
+  not
+    (isInCheck (movePiece (head gh) (Square 5 1) (Square 7 1) : gh) (toPlay gh))
 willNotPassCheck gh (Square 5 1) (Square 1 1) =
-  not (isInCheck (movePiece (head gh) (Square 5 1) (Square 4 1) : gh) (toPlay gh)) &&
-  not (isInCheck (movePiece (head gh) (Square 5 1) (Square 3 1) : gh) (toPlay gh))
+  not
+    (isInCheck (movePiece (head gh) (Square 5 1) (Square 4 1) : gh) (toPlay gh)) &&
+  not
+    (isInCheck (movePiece (head gh) (Square 5 1) (Square 3 1) : gh) (toPlay gh))
 willNotPassCheck gh (Square 5 8) (Square 8 8) =
-  not (isInCheck (movePiece (head gh) (Square 5 8) (Square 6 8) : gh) (toPlay gh)) &&
-  not (isInCheck (movePiece (head gh) (Square 5 8) (Square 7 8) : gh) (toPlay gh))
+  not
+    (isInCheck (movePiece (head gh) (Square 5 8) (Square 6 8) : gh) (toPlay gh)) &&
+  not
+    (isInCheck (movePiece (head gh) (Square 5 8) (Square 7 8) : gh) (toPlay gh))
 willNotPassCheck gh (Square 5 8) (Square 1 8) =
-  not (isInCheck (movePiece (head gh) (Square 5 8) (Square 4 8) : gh) (toPlay gh)) &&
-  not (isInCheck (movePiece (head gh) (Square 5 8) (Square 3 8) : gh) (toPlay gh))
+  not
+    (isInCheck (movePiece (head gh) (Square 5 8) (Square 4 8) : gh) (toPlay gh)) &&
+  not
+    (isInCheck (movePiece (head gh) (Square 5 8) (Square 3 8) : gh) (toPlay gh))
 willNotPassCheck _ s1 s2 =
   error $
   "cannot use squares " ++
@@ -566,9 +589,10 @@ insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
 
 isInCheck :: GameHistory -> Color -> Bool
 isInCheck gh clr =
-  let potentialNextPositions = positionTreeIgnoreCheckPromotionsCastle gh (succ' clr)
+  let potentialNextPositions =
+        positionTreeIgnoreCheckPromotionsCastle gh (succ' clr)
       anyPWithoutKing = anyPosWithoutKing clr potentialNextPositions
-  in anyPWithoutKing
+   in anyPWithoutKing
 
 isCheckMate :: GameHistory -> Bool
 isCheckMate gh = isInCheck gh (toPlay gh) && null (positionTree gh)
