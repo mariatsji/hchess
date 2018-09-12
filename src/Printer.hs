@@ -1,6 +1,7 @@
 module Printer
   ( pretty
   , prettyGH
+  , prettyGH'
   , prettyE
   ) where
 
@@ -25,6 +26,9 @@ prettyE (Evaluated gh score status) = do
 
 prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)
+
+prettyGH' :: GameHistory -> IO ()
+prettyGH' = pretty . head
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
 rowify (Position p) = reverse $ groupWith (\((Square _ r), _) -> r) (listWithEmpties p)

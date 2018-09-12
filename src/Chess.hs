@@ -51,6 +51,7 @@ module Chess
   , determineStatus
   ) where
 
+import Prelude hiding (foldr, foldl, foldl')
 import           Control.DeepSeq
 import           Data.List
 import qualified Data.Map.Strict as Map
@@ -263,7 +264,7 @@ toPlay pos =
     else Black
 
 positionTree' :: GameHistory -> [GameHistory]
-positionTree' gh = (: gh) <$> positionTree gh
+positionTree' gh = map (: gh) $! positionTree gh
 
 positionTree :: GameHistory -> [Position]
 positionTree gh =

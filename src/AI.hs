@@ -9,6 +9,7 @@ module AI
   , highestSoFar
   ) where
 
+import           Prelude hiding (foldr, foldl, foldl')
 import           Chess
 import           Data.List
 import           Data.Ord
@@ -19,7 +20,7 @@ edgeGreed gh depth =
   let -- startEvaluation :: Evaluated
       -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh 
       bestWithinHorizon :: Evaluated
-      bestWithinHorizon = foldr1 (swapForBetter (toPlay gh)) $! evaluate' <$> expandHorizon depth gh
+      bestWithinHorizon = foldr1 (swapForBetter (toPlay gh)) $! map evaluate' $ expandHorizon depth gh
       bestAsGH :: GameHistory
       bestAsGH = getGH bestWithinHorizon
       ghOneStep' :: GameHistory
@@ -39,7 +40,7 @@ expandHorizon 0 gh = []
 expandHorizon 1 gh = positionTree' gh
 expandHorizon n gh = -- positionTree' gh >>= expandHorizon (n - 1)
   -- best so far : foldl (\a c -> expandHorizon (n - 1) c) [] (positionTree' gh)
-  foldl (\a c -> expandHorizon (n - 1) c) [] (positionTree' gh)
+  foldl (\a c -> expandHorizon (n - 1) c) [] $! positionTree' gh
 
 -- best give you Either Status or a gh ++ Position (gh with next position in it)
 focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory

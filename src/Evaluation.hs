@@ -7,13 +7,14 @@ module Evaluation
   , evaluate
   , evaluate'
   , evaluate''
-  , first
   , pawnAdvancement
   , toGH
   ) where
 
+import Prelude hiding (foldr, foldl, foldl')
 import           Control.DeepSeq
 import qualified Data.Map.Strict as Map
+import Data.List
 import           GHC.Generics    (Generic)
 
 import           Chess
@@ -28,7 +29,7 @@ evaluate' :: GameHistory -> Evaluated
 evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)
 
 evaluate'' :: [Position] -> GameHistory -> [Evaluated]
-evaluate'' poses gh = fmap (\p -> evaluate' (p : gh)) poses
+evaluate'' poses gh = map (\p -> evaluate' (p : gh)) poses
 
 toGH :: Evaluated -> (Status, GameHistory)
 toGH e =
@@ -37,13 +38,14 @@ toGH e =
 
 evaluate :: Position -> Float
 evaluate p =
-  whitePieces' p - blackPieces' p + pawnAdvancement p + development p +
-  safeKing p
+  let (whiteCount, blackCount) = countPieces p
+  in whiteCount - blackCount + pawnAdvancement p + development p +
+    safeKing p
 
 evaluateGH :: GameHistory -> Float
 evaluateGH gh
-  | isCheckMate gh && (toPlay gh == White) = -10000.0
-  | isCheckMate gh && (toPlay gh == Black) = 10000.0
+  -- | isCheckMate gh && (toPlay gh == White) = -10000.0
+  -- | isCheckMate gh && (toPlay gh == Black) = 10000.0
   | otherwise = evaluate (head gh)
 
 safeKing :: Position -> Float
@@ -107,14 +109,12 @@ pawnPosValue _                        = 0.00
 r' :: Int -> Float
 r' n = fromIntegral n :: Float
 
-whitePieces' :: Position -> Float
-whitePieces' pos = count pos Chess.whitePieces
-
-blackPieces' :: Position -> Float
-blackPieces' pos = count pos Chess.blackPieces
-
-count :: Position -> (Position -> [(Square, Piece)]) -> Float
-count pos f = foldr (\(_, p) a -> a + valueOf p) 0.0 (f pos)
+-- (whitepieces, blackpieces)
+countPieces :: Position -> (Float, Float)
+countPieces (Position pos) =
+  let pieces = Map.elems pos
+      (whiteList, blackList) = partition (\p -> colr p == White) pieces
+  in (sum $ map valueOf whiteList, sum $ map valueOf blackList)
 
 valueOf :: Piece -> Float
 valueOf (Pawn White)   = 1.0
@@ -130,5 +130,3 @@ valueOf (Queen Black)  = 9.0
 valueOf (King White)   = 100.0
 valueOf (King Black)   = 100.0
 
-first :: GameHistory -> GameHistory
-first gh = head (Chess.positionTree gh) : gh
