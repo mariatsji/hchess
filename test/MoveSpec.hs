@@ -17,7 +17,6 @@ main = hspec $ do
             length Chess.board `shouldBe` (64 :: Int)
         it "moves E2-E4 from start pos" $ do
             let newPos = Chess.movePiece Chess.startPosition (Square 5 2) (Square 5 4)
-            print newPos
             Chess.pieceAt newPos (Square 5 4) `shouldBe` (Just $ Pawn White :: Maybe Piece)
         it "finds 16 white pieces in startpos" $
             length (Chess.whitePieces Chess.startPosition) `shouldBe` (16 :: Int)
@@ -116,7 +115,6 @@ main = hspec $ do
             let gh = Move.parseMoves moves
             let legals = Chess.positionTree gh
             let kingMoves = filter (\p -> pieceAt p (Square 5  1) == Nothing) legals
-            mapM_ Printer.pretty kingMoves
             length kingMoves `shouldBe` (2 :: Int)
         it "parses a long castle for white" $ do
             let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]

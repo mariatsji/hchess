@@ -5,11 +5,20 @@ import           Chess
 import           Move
 import           Printer
 
+main'' :: IO ()
+main'' = do
+  prettyGH skolematt
+  print "**"
+  let hor = expandHorizon 3 skolematt
+  -- mapM_ prettyGH' hor
+  print $ length hor
+
+skolematt =
+  parseMoves ["e2-e4", "e7-e5", "f1-c4", "f8-c5", "d1-h5", "g8-f6"]
+
 main :: IO ()
 main = do
-  let skolematt =
-        parseMoves ["e2-e4", "e7-e5", "f1-c4", "f8-c5", "d1-h5", "g8-f6"]
-      foundBestForWhite = edgeGreed skolematt 3 -- bugs here
+  let foundBestForWhite = edgeGreed skolematt 3
   prettyGH' skolematt
   case foundBestForWhite of
     Left (gh, status) -> do

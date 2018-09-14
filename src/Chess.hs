@@ -113,15 +113,6 @@ rook :: Color -> Piece
 rook White = Rook White
 rook Black = Rook Black
 
-unique :: Eq a => [a] -> [a]
-unique =
-  foldr
-    (\c a ->
-       if c `elem` a
-         then a
-         else c : a)
-    []
-
 squareTo :: Square -> Int -> Int -> Square
 squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
@@ -434,7 +425,7 @@ toSquaresKnight s =
 -- bishops
 toSquaresBishop :: Square -> [Square]
 toSquaresBishop s =
-  unique
+  nub
     [ squareTo s a b
     | a <- [-7 .. 7]
     , b <- [-7 .. 7]
@@ -446,7 +437,7 @@ toSquaresBishop s =
 -- rooks
 toSquaresRook :: Square -> [Square]
 toSquaresRook s =
-  unique
+  nub
     [ squareTo s a b
     | a <- [-7 .. 7]
     , b <- [-7 .. 7]

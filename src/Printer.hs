@@ -3,6 +3,7 @@ module Printer
   , prettyGH
   , prettyGH'
   , prettyE
+  , prettyEs
   ) where
 
 import           Chess
@@ -20,9 +21,12 @@ pretty pos = do
 
 prettyE :: Evaluated -> IO ()
 prettyE (Evaluated gh score status) = do
-  prettyGH gh
+  prettyGH' gh
   putStrLn $ "score : " ++ show score
   putStrLn $ "status : " ++ show status
+
+prettyEs :: [Evaluated] -> IO ()
+prettyEs = mapM_ prettyE
 
 prettyGH :: GameHistory -> IO ()
 prettyGH gh = mapM_ pretty (reverse gh)

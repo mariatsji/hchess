@@ -7,40 +7,50 @@ module AI
   , focusedBest
   , edgeGreed
   , highestSoFar
+  , expandHorizon
   ) where
 
-import           Prelude hiding (foldr, foldl, foldl')
 import           Chess
+import           Control.Monad
 import           Data.List
 import           Data.Ord
 import           Evaluation
+import           Prelude       hiding (foldl, foldl', foldr)
+import           Printer
 
 edgeGreed :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
-edgeGreed gh depth =
-  let -- startEvaluation :: Evaluated
-      -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh 
-      bestWithinHorizon :: Evaluated
-      bestWithinHorizon = foldr1 (swapForBetter (toPlay gh)) $! map evaluate' $ expandHorizon depth gh
+edgeGreed gh depth
+      -- startEvaluation :: Evaluated
+      -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh
+ =
+  let bestWithinHorizon :: Evaluated
+      -- print =  unsafePerformIO $ prettyEs $ map evaluate' $ expandHorizon depth gh
+      bestWithinHorizon =
+        foldr1 (swapForBetter (toPlay gh)) $!
+        map evaluate' $ expandHorizon depth gh
       bestAsGH :: GameHistory
       bestAsGH = getGH bestWithinHorizon
       ghOneStep' :: GameHistory
       ghOneStep' = ghOneStep gh bestAsGH
-  in if length bestAsGH > length gh + 1
-    then Right bestAsGH
-    else Left (bestAsGH, getStatus bestWithinHorizon)
-
+   in if (length bestAsGH > length gh + 1)
+        then Right bestAsGH
+        else Left (bestAsGH, getStatus bestWithinHorizon)
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
-swapForBetter White ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluated ghBSF scoreBSF statusBSC) = if scorePot > scoreBSF then ePot else bestSoFar
-swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluated ghBSF scoreBSF statusBSC) = if scorePot < scoreBSF then ePot else bestSoFar
+swapForBetter White ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluated ghBSF scoreBSF statusBSC) =
+  if scorePot > scoreBSF
+    then ePot
+    else bestSoFar
+swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluated ghBSF scoreBSF statusBSC) =
+  if scorePot < scoreBSF
+    then ePot
+    else bestSoFar
 
 expandHorizon :: Int -> GameHistory -> [GameHistory]
 expandHorizon 0 gh = []
 expandHorizon 1 gh = positionTree' gh
-expandHorizon n gh = -- positionTree' gh >>= expandHorizon (n - 1)
-  -- best so far : foldl (\a c -> expandHorizon (n - 1) c) [] (positionTree' gh)
-  foldl (\a c -> expandHorizon (n - 1) c) [] $! positionTree' gh
+expandHorizon n gh = expandHorizon 1 gh >>= (expandHorizon (n - 1))
 
 -- best give you Either Status or a gh ++ Position (gh with next position in it)
 focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
@@ -107,7 +117,7 @@ getScore :: Evaluated -> Float
 getScore (Evaluated _ x _) = x
 
 getGH :: Evaluated -> GameHistory
-getGH (Evaluated x _ _ ) = x
+getGH (Evaluated x _ _) = x
 
 getStatus :: Evaluated -> Status
 getStatus (Evaluated _ _ x) = x
