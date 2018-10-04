@@ -8,6 +8,8 @@ module AI
   , edgeGreed
   , highestSoFar
   , expandHorizon
+  , swapForBetter
+  , ghOneStep
   ) where
 
 import           Chess
@@ -15,7 +17,7 @@ import           Control.Monad
 import           Data.List
 import           Data.Ord
 import           Evaluation
-import           Prelude       hiding (foldl, foldl', foldr)
+import           Prelude          hiding (foldl, foldl', foldr)
 import           Printer
 
 edgeGreed :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
@@ -33,8 +35,8 @@ edgeGreed gh depth
       ghOneStep' :: GameHistory
       ghOneStep' = ghOneStep gh bestAsGH
    in if (length bestAsGH > length gh + 1)
-        then Right bestAsGH
-        else Left (bestAsGH, getStatus bestWithinHorizon)
+        then Right ghOneStep'
+        else Left (ghOneStep', getStatus bestWithinHorizon)
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
@@ -48,7 +50,7 @@ swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluat
     else bestSoFar
 
 expandHorizon :: Int -> GameHistory -> [GameHistory]
-expandHorizon 0 gh = []
+expandHorizon 0 gh = undefined
 expandHorizon 1 gh = positionTree' gh
 expandHorizon n gh = expandHorizon 1 gh >>= (expandHorizon (n - 1))
 
