@@ -53,10 +53,12 @@ module Chess
   ) where
 
 import           Control.DeepSeq
+import           Control.Monad.ST
 import           Control.Parallel
 import           Data.List
 import qualified Data.Map.Strict  as Map
 import           Data.Maybe
+import           Data.STRef
 import           GHC.Generics     (Generic)
 import           Prelude          hiding (foldl, foldl', foldr)
 
@@ -167,11 +169,16 @@ movePiece pos from@(Square fc _) to@(Square tc tr)
     movePiece' (removePieceAt pos (Square tc (tr + 1))) from to
   | otherwise = movePiece' pos from to
 
-movePiece' :: Position -> Square -> Square -> Position
+movePiece' :: Position -> Square -> Square -> Position --- xxxpensive?! looks so from profiling. Mutable madness?
 movePiece' pos from to =
   case pieceAt pos from of
-    (Just piece) -> replacePieceAt (removePieceAt pos from) to piece
     Nothing      -> pos
+    (Just piece) ->
+      runST $ do
+        pRef <- newSTRef (removePieceAt pos from)
+        p <- readSTRef pRef
+        writeSTRef pRef (replacePieceAt p to piece)
+        readSTRef pRef
 
 points :: Square -> Square -> [Square]
 points (Square c1 r1) (Square c2 r2) =
@@ -275,13 +282,23 @@ positionTree gh =
 positionTreeIgnoreCheck :: GameHistory -> [Position]
 positionTreeIgnoreCheck gh
   | whiteToPlay gh =
-    let forceRegularMoves = force $ whitePieces (head gh) >>= positionsPrPiece gh >>= promoteBindFriendly White
+    let forceRegularMoves =
+          force $
+          whitePieces (head gh) >>= positionsPrPiece gh >>=
+          promoteBindFriendly White
         forceCastle = force $ castle gh
-    in par forceRegularMoves (pseq forceCastle (forceRegularMoves ++ forceCastle))
+     in par
+          forceRegularMoves
+          (pseq forceCastle (forceRegularMoves ++ forceCastle))
   | otherwise =
-    let forceRegularMoves = force $ (blackPieces (head gh) >>= positionsPrPiece gh >>= promoteBindFriendly Black)
+    let forceRegularMoves =
+          force $
+          (blackPieces (head gh) >>= positionsPrPiece gh >>=
+           promoteBindFriendly Black)
         forceCastle = force $ castle gh
-    in par forceRegularMoves (pseq forceCastle (forceRegularMoves ++ forceCastle))
+     in par
+          forceRegularMoves
+          (pseq forceCastle (forceRegularMoves ++ forceCastle))
 
 positionTreeIgnoreCheckPromotionsCastle :: GameHistory -> Color -> [Position]
 positionTreeIgnoreCheckPromotionsCastle gh White =
@@ -386,13 +403,25 @@ promote c@White pos =
       mpRForced = force (maybePromote c pos (Rook White))
       mpBForced = force (maybePromote c pos (Bishop White))
       mpKForced = force (maybePromote c pos (Knight White))
-  in par mpQForced (par mpRForced (par mpBForced (pseq mpKForced (mpQForced ++ mpRForced ++ mpBForced ++ mpKForced))))
+   in par
+        mpQForced
+        (par
+           mpRForced
+           (par
+              mpBForced
+              (pseq mpKForced (mpQForced ++ mpRForced ++ mpBForced ++ mpKForced))))
 promote c@Black pos =
   let mpQForced = force (maybePromote c pos (Queen Black))
       mpRForced = force (maybePromote c pos (Rook Black))
       mpBForced = force (maybePromote c pos (Bishop Black))
       mpKForced = force (maybePromote c pos (Knight Black))
-  in par mpQForced (par mpRForced (par mpBForced (pseq mpKForced (mpQForced ++ mpRForced ++ mpBForced ++ mpKForced))))
+   in par
+        mpQForced
+        (par
+           mpRForced
+           (par
+              mpBForced
+              (pseq mpKForced (mpQForced ++ mpRForced ++ mpBForced ++ mpKForced))))
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> [Position]
@@ -431,28 +460,27 @@ toSquaresKnight s =
 toSquaresBishop :: Square -> [Square]
 toSquaresBishop s@(Square c r) =
   let maxDown = r - 1
-      maxUp   = 8 - r
+      maxUp = 8 - r
       maxLeft = c - 1
       maxRight = 8 - c
       a' = force $ fmap (\x -> squareTo s x x) [1 .. min maxUp maxRight]
       b' = force $ fmap (\x -> squareTo s x (-x)) [1 .. min maxDown maxRight]
       c' = force $ fmap (\x -> squareTo s (-x) (-x)) [1 .. min maxDown maxLeft]
       d' = force $ fmap (\x -> squareTo s (-x) x) [1 .. min maxLeft maxUp]
-  in par a' (par b' (par c' (pseq d' (a' ++ b' ++ c' ++ d'))))
-    
+   in par a' (par b' (par c' (pseq d' (a' ++ b' ++ c' ++ d'))))
 
 -- rooks
 toSquaresRook :: Square -> [Square]
 toSquaresRook s@(Square c r) =
   let maxDown = 1 - r
-      maxUp   = 8 - r
+      maxUp = 8 - r
       maxLeft = 1 - c
       maxRight = 8 - c
       lane = fmap (\r' -> squareTo s 0 r') [maxDown .. maxUp]
       row = fmap (\c' -> squareTo s c' 0) [maxLeft .. maxRight]
       laneF = force lane
       rowF = force row
-  in par laneF (pseq rowF (laneF ++ rowF))
+   in par laneF (pseq rowF (laneF ++ rowF))
 
 -- queens
 toSquaresQueen :: Square -> [Square]

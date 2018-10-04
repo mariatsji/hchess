@@ -3,3 +3,7 @@
 .stackprofile
 *.hp
 *.prof
+*.ps
+*.eventlog
+*.aux
+
