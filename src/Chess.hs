@@ -30,6 +30,7 @@ module Chess
   , positionsPrPiece
   , to'
   , toSquaresPawn
+  , toSquaresBishop
   , pieceAt
   , toPlay
   , whiteToPlay
@@ -428,15 +429,17 @@ toSquaresKnight s =
 
 -- bishops
 toSquaresBishop :: Square -> [Square]
-toSquaresBishop s =
-  nub
-    [ squareTo s a b
-    | a <- [-7 .. 7]
-    , b <- [-7 .. 7]
-    , abs a == abs b
-    , (a, b) /= (0, 0)
-    , insideBoard $ squareTo s a b
-    ]
+toSquaresBishop s@(Square c r) =
+  let maxDown = r - 1
+      maxUp   = 8 - r
+      maxLeft = c - 1
+      maxRight = 8 - c
+      a' = force $ fmap (\x -> squareTo s x x) [1 .. min maxUp maxRight]
+      b' = force $ fmap (\x -> squareTo s x (-x)) [1 .. min maxDown maxRight]
+      c' = force $ fmap (\x -> squareTo s (-x) (-x)) [1 .. min maxDown maxLeft]
+      d' = force $ fmap (\x -> squareTo s (-x) x) [1 .. min maxLeft maxUp]
+  in par a' (par b' (par c' (pseq d' (a' ++ b' ++ c' ++ d'))))
+    
 
 -- rooks
 toSquaresRook :: Square -> [Square]
