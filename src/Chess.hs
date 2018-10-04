@@ -381,13 +381,17 @@ maybePromote c pos p = [promoteTo c pos p | canPromote c pos p]
 
 promote :: Color -> Position -> [Position]
 promote c@White pos =
-  maybePromote c pos (Queen White) ++
-  maybePromote c pos (Rook White) ++
-  maybePromote c pos (Bishop White) ++ maybePromote c pos (Knight White)
+  let mpQForced = force (maybePromote c pos (Queen White))
+      mpRForced = force (maybePromote c pos (Rook White))
+      mpBForced = force (maybePromote c pos (Bishop White))
+      mpKForced = force (maybePromote c pos (Knight White))
+  in par mpQForced (par mpRForced (par mpBForced (pseq mpKForced (mpQForced ++ mpRForced ++ mpBForced ++ mpKForced))))
 promote c@Black pos =
-  maybePromote c pos (Queen Black) ++
-  maybePromote c pos (Rook Black) ++
-  maybePromote c pos (Bishop Black) ++ maybePromote c pos (Knight Black)
+  let mpQForced = force (maybePromote c pos (Queen Black))
+      mpRForced = force (maybePromote c pos (Rook Black))
+      mpBForced = force (maybePromote c pos (Bishop Black))
+      mpKForced = force (maybePromote c pos (Knight Black))
+  in par mpQForced (par mpRForced (par mpBForced (pseq mpKForced (mpQForced ++ mpRForced ++ mpBForced ++ mpKForced))))
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> [Position]
@@ -436,15 +440,16 @@ toSquaresBishop s =
 
 -- rooks
 toSquaresRook :: Square -> [Square]
-toSquaresRook s =
-  nub
-    [ squareTo s a b
-    | a <- [-7 .. 7]
-    , b <- [-7 .. 7]
-    , insideBoard $ squareTo s a b
-    , a == 0 || b == 0
-    , (a, b) /= (0, 0)
-    ]
+toSquaresRook s@(Square c r) =
+  let maxDown = 1 - r
+      maxUp   = 8 - r
+      maxLeft = 1 - c
+      maxRight = 8 - c
+      lane = fmap (\r' -> squareTo s 0 r') [maxDown .. maxUp]
+      row = fmap (\c' -> squareTo s c' 0) [maxLeft .. maxRight]
+      laneF = force lane
+      rowF = force row
+  in par laneF (pseq rowF (laneF ++ rowF))
 
 -- queens
 toSquaresQueen :: Square -> [Square]

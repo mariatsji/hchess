@@ -11,11 +11,12 @@ module Evaluation
   , toGH
   ) where
 
-import Prelude hiding (foldr, foldl, foldl')
 import           Control.DeepSeq
-import qualified Data.Map.Strict as Map
-import Data.List
-import           GHC.Generics    (Generic)
+import           Control.Parallel
+import           Data.List
+import qualified Data.Map.Strict  as Map
+import           GHC.Generics     (Generic)
+import           Prelude          hiding (foldl, foldl', foldr)
 
 import           Chess
 
@@ -38,9 +39,12 @@ toGH e =
 
 evaluate :: Position -> Float
 evaluate p =
-  let (whiteCount, blackCount) = countPieces p
-  in whiteCount - blackCount + pawnAdvancement p + development p +
-    safeKing p
+  let (whiteCount, blackCount) = force $ countPieces p
+      pawnAdv = force $ pawnAdvancement p
+      develp = force $ development p
+      safeK = force $ safeKing p
+  in -- whiteCount - blackCount + pawnAdvancement p + development p + safeKing p
+    par whiteCount (par blackCount (par pawnAdv (par develp (pseq safeK (whiteCount - blackCount + pawnAdv + develp + safeK)))))
 
 evaluateGH :: GameHistory -> Float
 evaluateGH gh
@@ -114,7 +118,7 @@ countPieces :: Position -> (Float, Float)
 countPieces (Position pos) =
   let pieces = Map.elems pos
       (whiteList, blackList) = partition (\p -> colr p == White) pieces
-  in (sum $ map valueOf whiteList, sum $ map valueOf blackList)
+   in (sum $ map valueOf whiteList, sum $ map valueOf blackList)
 
 valueOf :: Piece -> Float
 valueOf (Pawn White)   = 1.0
@@ -129,4 +133,3 @@ valueOf (Queen White)  = 9.0
 valueOf (Queen Black)  = 9.0
 valueOf (King White)   = 100.0
 valueOf (King Black)   = 100.0
-
