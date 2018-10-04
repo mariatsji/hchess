@@ -51,12 +51,13 @@ module Chess
   , determineStatus
   ) where
 
-import Prelude hiding (foldr, foldl, foldl')
 import           Control.DeepSeq
+import           Control.Parallel
 import           Data.List
-import qualified Data.Map.Strict as Map
+import qualified Data.Map.Strict  as Map
 import           Data.Maybe
-import           GHC.Generics    (Generic)
+import           GHC.Generics     (Generic)
+import           Prelude          hiding (foldl, foldl', foldr)
 
 data Color
   = White
@@ -259,10 +260,7 @@ positionTree' gh = map (: gh) $! positionTree gh
 
 positionTree :: GameHistory -> [Position]
 positionTree gh =
-  filter
-    (\c ->
-       not $ isInCheck (c : gh) (toPlay gh))
-    $!
+  filter (\c -> not $ isInCheck (c : gh) (toPlay gh)) $!
   positionTreeIgnoreCheck gh
   {--
 positionTree :: GameHistory -> [Position]
@@ -276,11 +274,13 @@ positionTree gh =
 positionTreeIgnoreCheck :: GameHistory -> [Position]
 positionTreeIgnoreCheck gh
   | whiteToPlay gh =
-    (whitePieces (head gh) >>= positionsPrPiece gh >>= promoteBindFriendly White) ++
-    castle gh
+    let forceRegularMoves = force $ whitePieces (head gh) >>= positionsPrPiece gh >>= promoteBindFriendly White
+        forceCastle = force $ castle gh
+    in par forceRegularMoves (pseq forceCastle (forceRegularMoves ++ forceCastle))
   | otherwise =
-    (blackPieces (head gh) >>= positionsPrPiece gh >>= promoteBindFriendly Black) ++
-    castle gh
+    let forceRegularMoves = force $ (blackPieces (head gh) >>= positionsPrPiece gh >>= promoteBindFriendly Black)
+        forceCastle = force $ castle gh
+    in par forceRegularMoves (pseq forceCastle (forceRegularMoves ++ forceCastle))
 
 positionTreeIgnoreCheckPromotionsCastle :: GameHistory -> Color -> [Position]
 positionTreeIgnoreCheckPromotionsCastle gh White =

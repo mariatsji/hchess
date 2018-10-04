@@ -11,8 +11,8 @@
     
 # profile performance
 
-    stack build --profile && \
-    time stack exec -- hchess +RTS -hc -p -s -K100M
+    stack build --profile --work-dir=.stackprofile && \
+    time stack exec --work-dir=.stackprofile -- hchess +RTS -N8 -hc -p -s -K100M
 
     less hchess.prof
     hp2ps -e8in -c hchess.hp

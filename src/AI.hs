@@ -17,7 +17,7 @@ import           Control.Monad
 import           Data.List
 import           Data.Ord
 import           Evaluation
-import           Prelude          hiding (foldl, foldl', foldr)
+import           Prelude           hiding (foldl, foldl', foldr)
 import           Printer
 
 edgeGreed :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
