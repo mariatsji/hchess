@@ -56,7 +56,7 @@ import           Control.DeepSeq
 import           Control.Monad.ST
 import           Control.Parallel
 import           Data.List
-import qualified Data.Map.Strict  as Map
+import qualified Data.Map.Lazy  as Map
 import           Data.Maybe
 import           Data.STRef
 import           GHC.Generics     (Generic)
@@ -77,8 +77,8 @@ data Piece
   deriving (Eq, Ord, Show, Generic, NFData)
 
 data Square =
-  Square !Int
-         !Int
+  Square Int
+         Int
   deriving (Eq, Ord, Show, Generic, NFData)
 
 newtype Position = Position
