@@ -1,20 +1,33 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 import           Control.Exception (evaluate)
 import           Test.Hspec
-import           Test.QuickCheck
+import           Hedgehog
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
+import HaskellWorks.Hspec.Hedgehog
 
-import qualified Data.Map.Lazy    as Map
+import qualified Data.Vector.Unboxed    as V
 
 import           Chess
 import           Move
 import           Printer
+
+idxInverse :: Property
+idxInverse =
+  property $ do
+    xs <- forAll $ Gen.int (Range.linear 0 63)
+    idx (idxToSquare xs) === xs
 
 main :: IO ()
 main = hspec $ do
     describe "Chess.board" $ do
         it "prints the start position" $
             Printer.pretty Chess.startPosition
+        it "indexes a vector to square and vice versa with hedgehog" $
+            require idxInverse
         it "creates a board with 64 squares" $
-            length Chess.board `shouldBe` (64 :: Int)
+            V.length (board Chess.startPosition) `shouldBe` (64 :: Int)
         it "moves E2-E4 from start pos" $ do
             let newPos = Chess.movePiece Chess.startPosition (Square 5 2) (Square 5 4)
             Chess.pieceAt newPos (Square 5 4) `shouldBe` (Just $ Pawn White :: Maybe Piece)

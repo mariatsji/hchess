@@ -14,7 +14,6 @@ module Evaluation
 import           Control.DeepSeq
 import           Control.Parallel
 import           Data.List
-import qualified Data.Map.Strict  as Map
 import           GHC.Generics     (Generic)
 import           Prelude          hiding (foldl, foldl', foldr)
 
@@ -65,7 +64,7 @@ safeKing p
   | otherwise = 0.0
 
 development :: Position -> Float
-development (Position p) = sum $ fmap scoreOfficerDevelopment (Map.toList p)
+development p = sum $ fmap scoreOfficerDevelopment (whitePieces p ++ blackPieces p)
 
 scoreOfficerDevelopment :: (Square, Piece) -> Float
 scoreOfficerDevelopment ((Square _ row), Knight White) =
@@ -95,7 +94,7 @@ scoreOfficerDevelopment ((Square _ row), Rook Black) =
 scoreOfficerDevelopment _ = 0.0
 
 pawnAdvancement :: Position -> Float
-pawnAdvancement (Position pos) = sum $ fmap pawnPosValue (Map.toList pos)
+pawnAdvancement pos = sum $ fmap pawnPosValue (whitePieces pos ++ blackPieces pos)
 
 pawnPosValue :: (Square, Piece) -> Float
 pawnPosValue (Square 3 r, Pawn White) = r' r * 0.06
@@ -115,9 +114,8 @@ r' n = fromIntegral n :: Float
 
 -- (whitepieces, blackpieces)
 countPieces :: Position -> (Float, Float)
-countPieces (Position pos) =
-  let pieces = Map.elems pos
-      (whiteList, blackList) = partition (\p -> colr p == White) pieces
+countPieces pos =
+  let (whiteList, blackList) = (snd <$> whitePieces pos, snd <$> blackPieces pos)
    in (sum $ map valueOf whiteList, sum $ map valueOf blackList)
 
 valueOf :: Piece -> Float

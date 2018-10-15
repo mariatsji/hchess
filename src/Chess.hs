@@ -2,8 +2,8 @@
 {-# LANGUAGE DeriveGeneric  #-}
 
 module Chess
-  ( board
-  , onlyPiecesBoard
+  ( idx
+  , idxToSquare
   , Color(..)
   , Piece(..)
   , Square(..)
@@ -55,12 +55,14 @@ module Chess
 import           Control.DeepSeq
 import           Control.Monad.ST
 import           Control.Parallel
+import           Data.Int            (Int8)
 import           Data.List
-import qualified Data.Map.Lazy  as Map
 import           Data.Maybe
 import           Data.STRef
-import           GHC.Generics     (Generic)
-import           Prelude          hiding (foldl, foldl', foldr)
+import qualified Data.Vector         as V
+import qualified Data.Vector.Unboxed as VU
+import           GHC.Generics        (Generic)
+import           Prelude             hiding (foldl, foldl', foldr)
 
 data Color
   = White
@@ -76,13 +78,51 @@ data Piece
   | King Color
   deriving (Eq, Ord, Show, Generic, NFData)
 
+pieceNum :: Piece -> Int8
+pieceNum (Pawn White)   = 1
+pieceNum (Pawn Black)   = 2
+pieceNum (Knight White) = 3
+pieceNum (Knight Black) = 4
+pieceNum (Bishop White) = 5
+pieceNum (Bishop Black) = 6
+pieceNum (Rook White)   = 7
+pieceNum (Rook Black)   = 8
+pieceNum (Queen White)  = 9
+pieceNum (Queen Black)  = 10
+pieceNum (King White)   = 11
+pieceNum (King Black)   = 12
+
+numPiece :: Int8 -> Maybe Piece
+numPiece 1  = Just (Pawn White)
+numPiece 2  = Just (Pawn Black)
+numPiece 3  = Just (Knight White)
+numPiece 4  = Just (Knight Black)
+numPiece 5  = Just (Bishop White)
+numPiece 6  = Just (Bishop Black)
+numPiece 7  = Just (Rook White)
+numPiece 8  = Just (Rook Black)
+numPiece 9  = Just (Queen White)
+numPiece 10 = Just (Queen Black)
+numPiece 11 = Just (King White)
+numPiece 12 = Just (King Black)
+numPiece _  = Nothing
+
 data Square =
-  Square Int
-         Int
+  Square Col
+         Row
   deriving (Eq, Ord, Show, Generic, NFData)
 
+type Col = Int
+
+type Row = Int
+
+type Board = VU.Vector Int8
+
+emptyBoard :: Position
+emptyBoard = Position $ VU.generate 64 (const 0)
+
 newtype Position = Position
-  { m :: Map.Map Square Piece
+  { board :: Board
   } deriving (Eq, Show, Generic, NFData)
 
 type GameHistory = [Position]
@@ -95,19 +135,20 @@ data Status
   | BlackIsMate
   deriving (Eq, Ord, Show, Generic, NFData)
 
-board :: [Square]
-board = Square <$> [1 .. 8] <*> [1 .. 8]
-
-onlyPiecesBoard :: [Square]
-onlyPiecesBoard = Square <$> [1 .. 8] <*> [1, 2, 7, 8]
-
 colr :: Piece -> Color
-colr (Pawn c)   = c
-colr (Knight c) = c
-colr (Bishop c) = c
-colr (Rook c)   = c
-colr (Queen c)  = c
-colr (King c)   = c
+colr p =
+  if odd (pieceNum p)
+    then White
+    else Black
+
+idx :: Square -> Int
+idx (Square c r) = (c - 1) + (r - 1) * 8
+
+idxToSquare :: Int -> Square
+idxToSquare i =
+  let c = (i `mod` 8) + 1 -- 0..8
+      r = (i `div` 8) + 1
+   in Square c r
 
 king :: Color -> Piece
 king White = King White
@@ -123,43 +164,28 @@ squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 startPosition :: Position
 startPosition =
   Position $
-  Map.fromList $
-  [ (Square 1 1, Rook White)
-  , (Square 2 1, Knight White)
-  , (Square 3 1, Bishop White)
-  , (Square 4 1, Queen White)
-  , (Square 5 1, King White)
-  , (Square 6 1, Bishop White)
-  , (Square 7 1, Knight White)
-  , (Square 8 1, Rook White)
-  , (Square 1 2, Pawn White)
-  , (Square 2 2, Pawn White)
-  , (Square 3 2, Pawn White)
-  , (Square 4 2, Pawn White)
-  , (Square 5 2, Pawn White)
-  , (Square 6 2, Pawn White)
-  , (Square 7 2, Pawn White)
-  , (Square 8 2, Pawn White)
-  , (Square 1 7, Pawn Black)
-  , (Square 2 7, Pawn Black)
-  , (Square 3 7, Pawn Black)
-  , (Square 4 7, Pawn Black)
-  , (Square 5 7, Pawn Black)
-  , (Square 6 7, Pawn Black)
-  , (Square 7 7, Pawn Black)
-  , (Square 8 7, Pawn Black)
-  , (Square 1 8, Rook Black)
-  , (Square 2 8, Knight Black)
-  , (Square 3 8, Bishop Black)
-  , (Square 4 8, Queen Black)
-  , (Square 5 8, King Black)
-  , (Square 6 8, Bishop Black)
-  , (Square 7 8, Knight Black)
-  , (Square 8 8, Rook Black)
+  VU.fromList $
+  [ pieceNum (Rook White)
+  , pieceNum (Knight White)
+  , pieceNum (Bishop White)
+  , pieceNum (Queen White)
+  , pieceNum (King White)
+  , pieceNum (Bishop White)
+  , pieceNum (Knight White)
+  , pieceNum (Rook White)
+  ] ++
+  replicate 8 (pieceNum (Pawn White)) ++
+  replicate 32 0 ++
+  replicate 8 (pieceNum (Pawn Black)) ++
+  [ pieceNum (Rook Black)
+  , pieceNum (Knight Black)
+  , pieceNum (Bishop Black)
+  , pieceNum (Queen Black)
+  , pieceNum (King Black)
+  , pieceNum (Bishop Black)
+  , pieceNum (Knight Black)
+  , pieceNum (Rook Black)
   ]
-
-emptyBoard :: Position
-emptyBoard = Position $ Map.empty
 
 movePiece :: Position -> Square -> Square -> Position
 movePiece pos from@(Square fc _) to@(Square tc tr)
@@ -172,7 +198,7 @@ movePiece pos from@(Square fc _) to@(Square tc tr)
 movePiece' :: Position -> Square -> Square -> Position --- xxxpensive?! looks so from profiling. Mutable madness?
 movePiece' pos from to =
   case pieceAt pos from of
-    Nothing      -> pos
+    Nothing -> pos
     (Just piece) ->
       runST $ do
         pRef <- newSTRef (removePieceAt pos from)
@@ -225,34 +251,56 @@ vacantAt :: Position -> Square -> Bool
 vacantAt pos t = isNothing $ pieceAt pos t
 
 removePieceAt :: Position -> Square -> Position
-removePieceAt (Position pos) square = Position $ Map.delete square pos
+removePieceAt (Position pos) square =
+  let before = VU.take (idx square) pos
+      after = VU.drop (succ $ idx square) pos
+      beforei = VU.snoc before 0
+   in Position $ VU.concat [beforei, after]
 
 replacePieceAt :: Position -> Square -> Piece -> Position
 replacePieceAt (Position pos) square piece =
-  Position $ Map.insert square piece pos
+  let before = VU.take (idx square) pos
+      after = VU.drop (succ $ idx square) pos
+      newpiece = pieceNum piece
+      beforei = VU.snoc before newpiece
+   in Position $ VU.concat [beforei, after]
 
 makeMoves :: GameHistory -> [(Square, Square)] -> GameHistory
 makeMoves gh []     = gh
 makeMoves gh (x:xs) = makeMoves (movePiece (head gh) (fst x) (snd x) : gh) xs
 
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt pos s = (m pos) Map.!? s
+pieceAt (Position pos) square = numPiece $ pos VU.! idx square
 
 whitePieces :: Position -> [(Square, Piece)]
-whitePieces (Position pos) = Map.foldMapWithKey f pos
-  where
-    f :: Square -> Piece -> [(Square, Piece)]
-    f s p
-      | colr p == White = [(s, p)]
-      | otherwise = []
+whitePieces p@(Position pos) =
+  let squares = map idxToSquare [0 .. 63]
+      zipped = zip squares (VU.toList pos)
+   in (foldl'
+         (\a (s, p) ->
+            case numPiece p of
+              Nothing -> a
+              Just p ->
+                if odd (pieceNum p)
+                  then (s, p) : a
+                  else a)
+         []
+         zipped)
 
 blackPieces :: Position -> [(Square, Piece)]
-blackPieces (Position pos) = Map.foldMapWithKey f pos
-  where
-    f :: Square -> Piece -> [(Square, Piece)]
-    f s p
-      | colr p == Black = [(s, p)]
-      | otherwise = []
+blackPieces (Position pos) =
+  let squares = map idxToSquare [0 .. 63]
+      zipped = zip squares (VU.toList pos)
+   in (foldl'
+         (\a (s, p) ->
+            case numPiece p of
+              Nothing -> a
+              Just p ->
+                if even (pieceNum p)
+                  then (s, p) : a
+                  else a)
+         []
+         zipped)
 
 whiteToPlay :: GameHistory -> Bool
 whiteToPlay = odd . length
@@ -270,14 +318,6 @@ positionTree :: GameHistory -> [Position]
 positionTree gh =
   filter (\c -> not $ isInCheck (c : gh) (toPlay gh)) $!
   positionTreeIgnoreCheck gh
-  {--
-positionTree :: GameHistory -> [Position]
-positionTree gh =
-  let player = toPlay gh
-      notInCheck = not . flip isInCheck player . (: gh)
-      completePT = positionTreeIgnoreCheck gh
-  in filter notInCheck completePT
---}
 
 positionTreeIgnoreCheck :: GameHistory -> [Position]
 positionTreeIgnoreCheck gh
@@ -376,20 +416,30 @@ enPassant gh s@(Square c r)
     wasLastPieceToMove gh' s' =
       movePiece (head gh) s' toSquare == (head . tail) gh'
 
-prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
-prom White p1 (s@(Square _ r), p2) =
-  if r == 8 && p2 == Pawn White
-    then (s, p1)
-    else (s, p2)
-prom Black p1 (s@(Square _ r), p2) =
-  if r == 1 && p2 == Pawn Black
-    then (s, p1)
-    else (s, p2)
-
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
-promoteTo c (Position pos) p =
-  Position $ Map.fromList $ fmap (prom c p) (Map.toList pos)
+promoteTo White (Position pos) piece =
+  let (unalteredRows, promotionRow) = VU.splitAt (7 * 8) pos
+      finalPromotionRow =
+        VU.map
+          (\n ->
+             case numPiece n of
+               Just (Pawn White) -> pieceNum piece
+               Just x            -> pieceNum x
+               Nothing           -> 0)
+          promotionRow
+   in Position (unalteredRows VU.++ finalPromotionRow)
+promoteTo Black (Position pos) piece =
+  let (promotionRow, unalteredRows) = VU.splitAt (1 * 8) pos
+      finalPromotionRow =
+        VU.map
+          (\n ->
+             case numPiece n of
+               Just (Pawn Black) -> pieceNum piece
+               Just x            -> pieceNum x
+               Nothing           -> 0)
+          promotionRow
+   in Position (finalPromotionRow VU.++ unalteredRows)
 
 -- promote one position to [] or all four positions
 maybePromote :: Color -> Position -> Piece -> [Position]

@@ -9,13 +9,12 @@ module Printer
 import           Chess
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8  as UF
-import qualified Data.Map.Strict       as Map
 import           Evaluation
 import           GHC.Exts
 
 pretty :: Position -> IO ()
 pretty pos = do
-  mapM_ UP.putStrLn $ fmap prettyRow $ rowify pos
+  UP.putStrLn (prettify pos)
   putStrLn "-"
   return ()
 
@@ -34,15 +33,19 @@ prettyGH gh = mapM_ pretty (reverse gh)
 prettyGH' :: GameHistory -> IO ()
 prettyGH' = pretty . head
 
-rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify (Position p) = reverse $ groupWith (\((Square _ r), _) -> r) (listWithEmpties p)
+boardProjection :: [Square]
+boardProjection = Square <$> reverse [1 .. 8] <*> [1 ..8] 
 
-listWithEmpties :: Map.Map Square Piece -> [(Square, Maybe Piece)]
-listWithEmpties m' = fmap (\s -> (s, m' Map.!? s)) board
+rowRepresentation :: [a] -> [[a]]
+rowRepresentation []   = []
+rowRepresentation rows = take 8 rows : rowRepresentation (drop 8 rows)
 
-prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
-prettyRow row =
-  UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row
+prettify :: Position -> UF.ByteString
+prettify pos =
+  let squares = fmap (\s -> prettyPiece (s, pieceAt pos s)) boardProjection
+      rows = rowRepresentation squares
+      board = unlines $ fmap unwords rows
+  in UF.fromString board
 
 prettyPiece :: (Square, Maybe Piece) -> String
 prettyPiece (Square c r, Nothing) =
