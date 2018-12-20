@@ -288,10 +288,9 @@ positionTreeIgnoreCheck pos
   | otherwise
   = let forceRegularMoves =
           force
-            $ (   blackPieces pos
+            $     blackPieces pos
               >>= positionsPrPiece pos
               >>= promoteBindFriendly Black
-              )
         forceCastle = force $ castle pos
     in  par forceRegularMoves
             (pseq forceCastle (forceRegularMoves ++ forceCastle))
@@ -364,13 +363,19 @@ enPassant :: Position -> Square -> Bool
 enPassant (Position _ []) _ = False
 enPassant pos s@(Square c r)
   | toPlay pos == White
-  = (r == 5) && pieceAt pos s == Just (Pawn Black) && wasLastPieceToMove pos s
+  = (r == 5) && pieceAt pos s == Just (Pawn Black) && jumpedHereJustNow pos s
   | otherwise
-  = (r == 7) && pieceAt pos s == Just (Pawn White) && wasLastPieceToMove pos s
+  = (r == 7) && pieceAt pos s == Just (Pawn White) && jumpedHereJustNow pos s
  where
-  toSquare = if toPlay pos == White then Square c 7 else Square c 2
-  wasLastPieceToMove pos' s' =
-    movePiece pos s' toSquare == Position { m = (head . tail) (gamehistory pos'), gamehistory = tail $ gamehistory pos' }
+  piece = if toPlay pos == White then Just (Pawn Black) else Just (Pawn White)
+  fromSquare = if toPlay pos == White then Square c 7 else Square c 2
+  jumpedHereJustNow :: Position -> Square -> Bool
+  jumpedHereJustNow pos' s' =
+    if length (gamehistory pos) < 3 then False
+    else
+      let prevSnapshot = gamehistory pos !! 1
+      in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece
+    
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
@@ -523,7 +528,9 @@ castle' pos color kingPosF rookPosF doCastleF =
           && -- must not be in check
              willNotPassCheck pos (kingPosF color) (rookPosF color) -- must not move through check
           )
-    then [pos { m = doCastleF (m pos) color }]
+    then 
+      let newSnapshot = doCastleF (m pos) color
+      in [Position { m = newSnapshot, gamehistory = (m pos) : (gamehistory pos) }]
     else []
 
 doCastleShort :: Snapshot -> Color -> Snapshot

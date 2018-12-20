@@ -146,7 +146,7 @@ main = hspec $ do
             let t = Chess.positionTree p
             let kingMoves = filter (\p -> pieceAt p (Square 5  1) == Nothing) t
             length kingMoves `shouldBe` (3 :: Int)
-        it "finds two en passant moves for black" $ do
+        it "finds two en passant moves for white" $ do
             let p = Chess.makeMoves Chess.startPosition [ ((Square 5  2), (Square 5  4))
                   , ((Square 2  8), (Square 1  6))
                   , ((Square 5  4), (Square 5  5))
@@ -156,9 +156,9 @@ main = hspec $ do
                   , ((Square 3  4), (Square 3  5))
                   , ((Square 4  7), (Square 4  5))]
             let t = Chess.positionTree p
-            let cPawnMoves = filter (\p -> pieceAt p (Square 3  5) == Nothing) t
+            let cPawnMoves = filter (\p -> pieceAt p (Square 3 5) == Nothing) t
             length cPawnMoves `shouldBe` (2 :: Int)
-            let ePawnMoves = filter (\p -> pieceAt p (Square 5  5) == Nothing) t
+            let ePawnMoves = filter (\p -> pieceAt p (Square 5 5) == Nothing) t
             length ePawnMoves `shouldBe` (2 :: Int)
         it "counts occurrences of a position in a game history" $ do
             let p = Chess.makeMoves Chess.startPosition [ ((Square 2  1), (Square 3  3))
