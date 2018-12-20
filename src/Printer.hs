@@ -1,7 +1,5 @@
 module Printer
   ( pretty
-  , prettyGH
-  , prettyGH'
   , prettyE
   , prettyEs
   ) where
@@ -21,21 +19,15 @@ pretty pos = do
 
 prettyE :: Evaluated -> IO ()
 prettyE (Evaluated gh score status) = do
-  prettyGH' gh
+  pretty gh
   putStrLn $ "score : " ++ show score
   putStrLn $ "status : " ++ show status
 
 prettyEs :: [Evaluated] -> IO ()
 prettyEs = mapM_ prettyE
 
-prettyGH :: GameHistory -> IO ()
-prettyGH gh = mapM_ pretty (reverse gh)
-
-prettyGH' :: GameHistory -> IO ()
-prettyGH' = pretty . head
-
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify (Position p) = reverse $ groupWith (\((Square _ r), _) -> r) (listWithEmpties p)
+rowify (Position m' gh') = reverse $ groupWith (\((Square _ r), _) -> r) (listWithEmpties m')
 
 listWithEmpties :: Map.Map Square Piece -> [(Square, Maybe Piece)]
 listWithEmpties m' = fmap (\s -> (s, m' Map.!? s)) board

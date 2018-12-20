@@ -30,12 +30,3 @@ legacyBench =
       whnf (AI.focusedBest [Chess.startPosition]) 5
       --}
     ]
-
-someCounting = do
-  let depths = take 6 [0 ..]
-  forM_
-    depths
-    (\i -> do
-       let d = FastAI.mkStrategy i [Chess.startPosition]
-           count = FastAI.countEvals d
-       putStrLn $! "Depth " ++ (show i) ++ ": #" ++ (show count))

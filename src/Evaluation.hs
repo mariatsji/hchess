@@ -21,18 +21,18 @@ import           Prelude          hiding (foldl, foldl', foldr)
 import           Chess
 
 data Evaluated =
-  Evaluated !GameHistory
+  Evaluated !Position
             Float
             Status
   deriving (Eq, Show, Generic, NFData)
 
-evaluate' :: GameHistory -> Evaluated
+evaluate' :: Position -> Evaluated
 evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)
 
-evaluate'' :: [Position] -> GameHistory -> [Evaluated]
-evaluate'' poses gh = map (\p -> evaluate' (p : gh)) poses
+evaluate'' :: [Position] -> [Evaluated]
+evaluate'' poses = map evaluate' poses
 
-toGH :: Evaluated -> (Status, GameHistory)
+toGH :: Evaluated -> (Status, Position)
 toGH e =
   let gh = (\(Evaluated x _ _) -> x) e
    in (determineStatus gh, gh)
@@ -46,11 +46,11 @@ evaluate p =
   in -- whiteCount - blackCount + pawnAdvancement p + development p + safeKing p
     par whiteCount (par blackCount (par pawnAdv (par develp (pseq safeK (whiteCount - blackCount + pawnAdv + develp + safeK)))))
 
-evaluateGH :: GameHistory -> Float
+evaluateGH :: Position -> Float
 evaluateGH gh
-  -- | isCheckMate gh && (toPlay gh == White) = -10000.0
-  -- | isCheckMate gh && (toPlay gh == Black) = 10000.0
-  | otherwise = evaluate (head gh)
+  | isCheckMate gh && (toPlay gh == White) = -10000.0
+  | isCheckMate gh && (toPlay gh == Black) = 10000.0
+  | otherwise = evaluate gh
 
 safeKing :: Position -> Float
 safeKing p
@@ -65,7 +65,7 @@ safeKing p
   | otherwise = 0.0
 
 development :: Position -> Float
-development (Position p) = sum $ fmap scoreOfficerDevelopment (Map.toList p)
+development (Position m' gh') = sum $ fmap scoreOfficerDevelopment (Map.toList m')
 
 scoreOfficerDevelopment :: (Square, Piece) -> Float
 scoreOfficerDevelopment ((Square _ row), Knight White) =
@@ -95,7 +95,7 @@ scoreOfficerDevelopment ((Square _ row), Rook Black) =
 scoreOfficerDevelopment _ = 0.0
 
 pawnAdvancement :: Position -> Float
-pawnAdvancement (Position pos) = sum $ fmap pawnPosValue (Map.toList pos)
+pawnAdvancement (Position m' gh') = sum $ fmap pawnPosValue (Map.toList m')
 
 pawnPosValue :: (Square, Piece) -> Float
 pawnPosValue (Square 3 r, Pawn White) = r' r * 0.06
@@ -115,8 +115,8 @@ r' n = fromIntegral n :: Float
 
 -- (whitepieces, blackpieces)
 countPieces :: Position -> (Float, Float)
-countPieces (Position pos) =
-  let pieces = Map.elems pos
+countPieces (Position m' gh') =
+  let pieces = Map.elems m'
       (whiteList, blackList) = partition (\p -> colr p == White) pieces
    in (sum $ map valueOf whiteList, sum $ map valueOf blackList)
 

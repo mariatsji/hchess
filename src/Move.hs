@@ -9,120 +9,120 @@ import           Chess
 import           Data.Char
 import           Text.Regex.TDFA
 
-parseMove :: String -> GameHistory -> GameHistory
-parseMove s gh
+parseMove :: String -> Position -> Position
+parseMove s pos
   | s =~ "[a-h][1-8].[a-h][1-8]Q" =
     let moveAttempt =
           promoteTo
-            (toPlay gh)
-            (Chess.movePiece (head gh) (parseFrom s) (parseTo s))
+            (toPlay pos)
+            (Chess.movePiece pos (parseFrom s) (parseTo s))
             (Queen White)
-        legalMoves = Chess.positionTree gh
+        legalMoves = Chess.positionTree pos
         colorToPlay =
-          if whiteToPlay gh
+          if whiteToPlay pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
      in if moveAttempt `elem` legalMoves &&
-           colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
-          then moveAttempt : gh
-          else gh
+           colorToPlay == fmap colr (pieceAt pos fromSquare)
+          then moveAttempt
+          else pos
   | s =~ "[a-h][1-8].[a-h][1-8]R" =
     let moveAttempt =
           promoteTo
-            (toPlay gh)
-            (Chess.movePiece (head gh) (parseFrom s) (parseTo s))
+            (toPlay pos)
+            (Chess.movePiece pos (parseFrom s) (parseTo s))
             (Rook White)
-        legalMoves = Chess.positionTree gh
+        legalMoves = Chess.positionTree pos
         colorToPlay =
-          if whiteToPlay gh
+          if whiteToPlay pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
      in if moveAttempt `elem` legalMoves &&
-           colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
-          then moveAttempt : gh
-          else gh
+           colorToPlay == fmap colr (pieceAt pos fromSquare)
+          then moveAttempt
+          else pos
   | s =~ "[a-h][1-8].[a-h][1-8]B" =
     let moveAttempt =
           promoteTo
-            (toPlay gh)
-            (Chess.movePiece (head gh) (parseFrom s) (parseTo s))
+            (toPlay pos)
+            (Chess.movePiece pos (parseFrom s) (parseTo s))
             (Bishop White)
-        legalMoves = Chess.positionTree gh
+        legalMoves = Chess.positionTree pos
         colorToPlay =
-          if whiteToPlay gh
+          if whiteToPlay pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
      in if moveAttempt `elem` legalMoves &&
-           colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
-          then moveAttempt : gh
-          else gh
+           colorToPlay == fmap colr (pieceAt pos fromSquare)
+          then moveAttempt
+          else pos
   | s =~ "[a-h][1-8].[a-h][1-8]K" =
     let moveAttempt =
           promoteTo
-            (toPlay gh)
-            (Chess.movePiece (head gh) (parseFrom s) (parseTo s))
+            (toPlay pos)
+            (Chess.movePiece pos (parseFrom s) (parseTo s))
             (Knight White)
-        legalMoves = Chess.positionTree gh
+        legalMoves = Chess.positionTree pos
         colorToPlay =
-          if whiteToPlay gh
+          if whiteToPlay pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
      in if moveAttempt `elem` legalMoves &&
-           colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
-          then moveAttempt : gh
-          else gh
+           colorToPlay == fmap colr (pieceAt pos fromSquare)
+          then moveAttempt
+          else pos
   | s =~ "[a-h][1-8].[a-h][1-8]" =
-    let moveAttempt = Chess.movePiece (head gh) (parseFrom s) (parseTo s)
-        legalMoves = Chess.positionTree gh
+    let moveAttempt = Chess.movePiece pos (parseFrom s) (parseTo s)
+        legalMoves = Chess.positionTree pos
         colorToPlay =
-          if whiteToPlay gh
+          if whiteToPlay pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
      in if any (eqPosition moveAttempt) legalMoves &&
-           colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
-          then moveAttempt : gh
-          else gh
+           colorToPlay == fmap colr (pieceAt pos fromSquare)
+          then moveAttempt
+          else pos
   | s =~ "O-O-O" =
-    let castleAttempt = Chess.castleLong gh (toPlay gh)
-        legalMoves = Chess.positionTree gh
+    let castleAttempt = Chess.castleLong pos (toPlay pos)
+        legalMoves = Chess.positionTree pos
         colorToPlay =
-          if whiteToPlay gh
+          if whiteToPlay pos
             then Just White
             else Just Black
         fromSquare =
-          if toPlay gh == White
+          if toPlay pos == White
             then (Square 5 1)
             else (Square 5 8)
      in if [] /= castleAttempt &&
            head castleAttempt `elem` legalMoves &&
-           colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
-          then (head castleAttempt) : gh
-          else gh
+           colorToPlay == fmap colr (pieceAt pos fromSquare)
+          then head castleAttempt
+          else pos
   | s =~ "O-O" =
-    let castleAttempt = Chess.castleShort gh (toPlay gh)
-        legalMoves = Chess.positionTree gh
+    let castleAttempt = Chess.castleShort pos (toPlay pos)
+        legalMoves = Chess.positionTree pos
         colorToPlay =
-          if whiteToPlay gh
+          if whiteToPlay pos
             then Just White
             else Just Black
         fromSquare =
-          if toPlay gh == White
+          if toPlay pos == White
             then (Square 5 1)
             else (Square 5 8)
      in if [] /= castleAttempt &&
            head castleAttempt `elem` legalMoves &&
-           colorToPlay == fmap colr (pieceAt (head gh) fromSquare)
-          then (head castleAttempt) : gh
-          else gh
-  | otherwise = gh
+           colorToPlay == fmap colr (pieceAt pos fromSquare)
+          then head castleAttempt
+          else pos
+  | otherwise = pos
 
-parseMoves :: [String] -> GameHistory
-parseMoves = foldl (flip parseMove) [Chess.startPosition]
+parseMoves :: [String] -> Position
+parseMoves = foldl (flip parseMove) Chess.startPosition
 
 parseFrom :: String -> Square
 parseFrom x = 

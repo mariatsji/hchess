@@ -9,7 +9,7 @@ module AI
   , highestSoFar
   , expandHorizon
   , swapForBetter
-  , ghOneStep
+  , oneStep
   ) where
 
 import           Chess
@@ -20,23 +20,21 @@ import           Evaluation
 import           Prelude           hiding (foldl, foldl', foldr)
 import           Printer
 
-edgeGreed :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
-edgeGreed gh depth
+edgeGreed :: Position -> Int -> Either (Position, Status) Position
+edgeGreed pos depth
       -- startEvaluation :: Evaluated
       -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh
  =
   let bestWithinHorizon :: Evaluated
       -- print =  unsafePerformIO $ prettyEs $ map evaluate' $ expandHorizon depth gh
       bestWithinHorizon =
-        foldr1 (swapForBetter (toPlay gh)) $!
-        map evaluate' $ expandHorizon depth gh
-      bestAsGH :: GameHistory
-      bestAsGH = getGH bestWithinHorizon
-      ghOneStep' :: GameHistory
-      ghOneStep' = ghOneStep gh bestAsGH
-   in if (length bestAsGH > length gh + 1)
-        then Right ghOneStep'
-        else Left (ghOneStep', getStatus bestWithinHorizon)
+        foldr1 (swapForBetter (toPlay pos)) $!
+        map evaluate' $ expandHorizon depth pos
+      best = getPos bestWithinHorizon
+      oneStep' = oneStep pos best
+   in if (length (gamehistory best) > length (gamehistory pos) + 1)
+        then Right oneStep'
+        else Left (oneStep', getStatus bestWithinHorizon)
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
@@ -49,40 +47,40 @@ swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluat
     then ePot
     else bestSoFar
 
-expandHorizon :: Int -> GameHistory -> [GameHistory]
-expandHorizon 0 gh = undefined
-expandHorizon 1 gh = positionTree' gh
-expandHorizon n gh = expandHorizon 1 gh >>= (expandHorizon (n - 1))
+expandHorizon :: Int -> Position -> [Position]
+expandHorizon 0 pos = undefined
+expandHorizon 1 pos = positionTree pos
+expandHorizon n pos = expandHorizon 1 pos >>= (expandHorizon (n - 1))
 
 -- best give you Either Status or a gh ++ Position (gh with next position in it)
-focusedBest :: GameHistory -> Int -> Either (GameHistory, Status) GameHistory
-focusedBest gh depth =
-  let ghPotential = ghFromE $ focused gh depth
-      ghFromE (Evaluated a _ _) = a
-      ghOneStep' = ghOneStep gh ghPotential
-      status = determineStatus ghPotential
-   in if length ghPotential > length gh + 1
-        then Right ghOneStep'
-        else Left (ghOneStep', status)
+focusedBest :: Position -> Int -> Either (Position, Status) Position
+focusedBest pos depth =
+  let posPotential = posFromE $ focused pos depth
+      posFromE (Evaluated a _ _) = a
+      posOneStep' = oneStep pos posPotential
+      status = determineStatus posPotential
+   in if length (gamehistory posPotential) > length (gamehistory pos) + 1
+        then Right posOneStep'
+        else Left (posOneStep', status)
 
 -- only evaluate the n most promising replies (which is to say every reply..)
 searchWidth :: Int
 searchWidth = 1000
 
 --give you a full gh (i.e. not only next position)
-focused :: GameHistory -> Int -> Evaluated -- this is maybe grap
-focused gh depth
-  | toPlay gh == White =
-    head $ highest' searchWidth (focused' (evaluate' gh) (depth, 3))
-  | otherwise = head $ lowest' searchWidth (focused' (evaluate' gh) (depth, 3))
+focused :: Position -> Int -> Evaluated -- this is maybe grap
+focused pos depth
+  | toPlay pos == White =
+    head $ highest' searchWidth (focused' (evaluate' pos) (depth, 3))
+  | otherwise = head $ lowest' searchWidth (focused' (evaluate' pos) (depth, 3))
 
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
 focused' :: Evaluated -> (Int, Int) -> [Evaluated]
 focused' !e (0, _) = [e]
-focused' (Evaluated !gh _ WhiteToPlay) (d, w) =
-  highest' w (evaluate'' (positionTree gh) gh) >>= flip focused' (d - 1, w)
-focused' (Evaluated !gh _ BlackToPlay) (d, w) =
-  lowest' w (evaluate'' (positionTree gh) gh) >>= flip focused' (d - 1, w)
+focused' (Evaluated !pos _ WhiteToPlay) (d, w) =
+  highest' w (evaluate'' (positionTree pos)) >>= flip focused' (d - 1, w)
+focused' (Evaluated !pos _ BlackToPlay) (d, w) =
+  lowest' w (evaluate'' (positionTree pos)) >>= flip focused' (d - 1, w)
 focused' !e _ = [e]
 
 highest' :: Int -> [Evaluated] -> [Evaluated]
@@ -118,16 +116,19 @@ replaceHighest e (e':ex) =
 getScore :: Evaluated -> Float
 getScore (Evaluated _ x _) = x
 
-getGH :: Evaluated -> GameHistory
-getGH (Evaluated x _ _) = x
+getPos :: Evaluated -> Position
+getPos (Evaluated x _ _) = x
 
 getStatus :: Evaluated -> Status
 getStatus (Evaluated _ _ x) = x
 
-ghOneStep :: GameHistory -> GameHistory -> GameHistory
-ghOneStep [] _ = []
-ghOneStep _ [] = []
-ghOneStep (x:xsshort) (y:yslong) =
-  if yslong == (x : xsshort)
-    then y : yslong
-    else ghOneStep (x : xsshort) yslong
+oneStep :: Position -> Position -> Position
+oneStep a@(Position ma gha) b@(Position mb ghb) =
+  if null ghb then
+    error "null ghb"
+  else if (length gha) <= (length ghb)
+    then
+      error "cant step when b shorter than a"
+    else
+      let nextSnp = ghb !! (length gha)
+      in Position { m = nextSnp, gamehistory = ma : gha }
