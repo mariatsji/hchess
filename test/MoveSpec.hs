@@ -64,7 +64,7 @@ main = hspec $ do
             let p1 = Chess.replacePieceAt (m Chess.emptyBoard) (Square 8  8) (King Black)
             let p2 = Chess.replacePieceAt p1 (Square 5  1) (King White)
             let p3 = Chess.replacePieceAt p2 (Square 8  7) (Pawn White)
-            let t = Chess.positionTreeIgnoreCheck Position { m = p3, gamehistory = [] }
+            let t = Chess.positionTreeIgnoreCheck Position { m = p3, gamehistory = [m Chess.emptyBoard] }
             length t `shouldBe` (3 :: Int)
         it "knows that white is in check" $ do
             let p1 = Move.parseMove "e2-e4" Chess.startPosition
