@@ -302,13 +302,14 @@ positionTreeIgnoreCheckPromotionsCastle pos Black =
   blackPieces pos >>= positionsPrPiece pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
-positionsPrPiece pos (s, p) = case p of
-  (Pawn _) -> fmap
-    (\t ->
-      let enPassantSquareElim = (eliminateEnPassantSquare (m pos) t)
-      in  movePiece (pos { m = enPassantSquareElim }) s (fst t)
-    )
-    (filter (\t -> canGoThere pos s (fst t)) $ toSquaresPawn pos (s, p))
+positionsPrPiece pos@(Position snp gh) (s, p) = case p of
+  (Pawn _) ->
+    let potentials = filter (\t -> canGoThere pos s (fst t)) $ toSquaresPawn pos (s, p)
+    in  map
+        (\t -> case snd t of
+                    Nothing -> movePiece pos s (fst t)
+                    Just s' -> movePiece pos { m = removePieceAt snp s'} s (fst t))
+        potentials
   (Knight _) -> fmap
     (movePiece pos s)
     (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
@@ -321,10 +322,6 @@ positionsPrPiece pos (s, p) = case p of
   (King _) ->
     fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
-eliminateEnPassantSquare :: Snapshot -> (Square, Maybe Square) -> Snapshot
-eliminateEnPassantSquare snp (_, Nothing) = snp
-eliminateEnPassantSquare snp (_, Just s2) = removePieceAt snp s2
-
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> (Square, Piece) -> [(Square, Maybe Square)]
 toSquaresPawn pos (s@(Square _ r), p)
@@ -333,30 +330,17 @@ toSquaresPawn pos (s@(Square _ r), p)
     $  [ (squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2 ]
     ++ [ (squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1 ]
     ++ [ (squareTo s (-1) 1, Nothing) | enemyAt pos s $ squareTo s (-1) 1 ]
-    ++ [ (squareTo s (-1) 1, Just (squareTo s (-1) 0))
-       | enPassant pos (squareTo s (-1) 0)
-       ]
+    ++ [ (squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0) ]
     ++ [ (squareTo s 1 1, Nothing) | enemyAt pos s $ squareTo s 1 1 ]
-    ++ [ (squareTo s 1 1, Just (squareTo s 1 0))
-       | enPassant pos (squareTo s 1 0)
-       ]
+    ++ [ (squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0) ]
   | otherwise
   = filter insideBoard'
-    $  [ (squareTo s 0 (-2), Nothing)
-       | r == 7
-       , vacantAt pos $ squareTo s 0 (-2)
-       ]
+    $  [ (squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2) ]
     ++ [ (squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1) ]
-    ++ [ (squareTo s (-1) (-1), Nothing)
-       | enemyAt pos s $ squareTo s (-1) (-1)
-       ]
-    ++ [ (squareTo s (-1) (-1), Just (squareTo s (-1) 0))
-       | enPassant pos (squareTo s (-1) 0)
-       ]
+    ++ [ (squareTo s (-1) (-1), Nothing) | enemyAt pos s $ squareTo s (-1) (-1) ]
+    ++ [ (squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0) ]
     ++ [ (squareTo s 1 (-1), Nothing) | enemyAt pos s $ squareTo s 1 (-1) ]
-    ++ [ (squareTo s 1 (-1), Just (squareTo s 1 0))
-       | enPassant pos (squareTo s 1 0)
-       ]
+    ++ [ (squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0) ]
 
 -- en passant
 enPassant :: Position -> Square -> Bool
@@ -365,7 +349,7 @@ enPassant pos s@(Square c r)
   | toPlay pos == White
   = (r == 5) && pieceAt pos s == Just (Pawn Black) && jumpedHereJustNow pos s
   | otherwise
-  = (r == 7) && pieceAt pos s == Just (Pawn White) && jumpedHereJustNow pos s
+  = (r == 4) && pieceAt pos s == Just (Pawn White) && jumpedHereJustNow pos s
  where
   piece = if toPlay pos == White then Just (Pawn Black) else Just (Pawn White)
   fromSquare = if toPlay pos == White then Square c 7 else Square c 2
@@ -374,7 +358,7 @@ enPassant pos s@(Square c r)
     if length (gamehistory pos) < 3 then False
     else
       let prevSnapshot = gamehistory pos !! 1
-      in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece
+      in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece && pieceAt' prevSnapshot s == Nothing
     
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
@@ -630,7 +614,7 @@ isDraw :: Position -> Bool
 isDraw pos = isPatt pos || threefoldrepetition pos
 
 threefoldrepetition :: Position -> Bool
-threefoldrepetition _ = False -- TODO
+threefoldrepetition (Position m' gh) = length (filter (\p' -> p' == m') gh) > 1
 
 max' :: Ord a => [a] -> a
 max' []       = error "no max element in empty list"
@@ -638,7 +622,7 @@ max' [x     ] = x
 max' (x : xs) = if x > max' xs then x else max' xs
 
 eqPosition :: Position -> Position -> Bool
-eqPosition p1 p2 = p1 == p2
+eqPosition (Position m1 _) (Position m2 _) = m1 == m2
 
 isPatt :: Position -> Bool
 isPatt pos = not (isInCheck pos (toPlay pos)) && null (positionTree pos)

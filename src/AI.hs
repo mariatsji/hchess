@@ -126,7 +126,7 @@ oneStep :: Position -> Position -> Position
 oneStep a@(Position ma gha) b@(Position mb ghb) =
   if null ghb then
     error "null ghb"
-  else if (length gha) <= (length ghb)
+  else if (length ghb) <= (length gha)
     then
       error "cant step when b shorter than a"
     else
