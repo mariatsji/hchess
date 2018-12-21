@@ -9,7 +9,7 @@ import           Chess
 import           Data.Char
 import           Text.Regex.TDFA
 
-parseMove :: String -> Position -> Position
+parseMove :: String -> Position -> Either String Position
 parseMove s pos
   | s =~ "[a-h][1-8].[a-h][1-8]Q" =
     let moveAttempt =
@@ -25,8 +25,8 @@ parseMove s pos
         fromSquare = parseFrom s
      in if moveAttempt `elem` legalMoves &&
            colorToPlay == fmap colr (pieceAt pos fromSquare)
-          then moveAttempt
-          else pos
+          then Right moveAttempt
+          else Left "Could not do queen promotion"
   | s =~ "[a-h][1-8].[a-h][1-8]R" =
     let moveAttempt =
           promoteTo
@@ -41,8 +41,8 @@ parseMove s pos
         fromSquare = parseFrom s
      in if moveAttempt `elem` legalMoves &&
            colorToPlay == fmap colr (pieceAt pos fromSquare)
-          then moveAttempt
-          else pos
+          then Right moveAttempt
+          else Left "Could not do rook promotion"
   | s =~ "[a-h][1-8].[a-h][1-8]B" =
     let moveAttempt =
           promoteTo
@@ -57,8 +57,8 @@ parseMove s pos
         fromSquare = parseFrom s
      in if moveAttempt `elem` legalMoves &&
            colorToPlay == fmap colr (pieceAt pos fromSquare)
-          then moveAttempt
-          else pos
+          then Right moveAttempt
+          else Left "Could not do Bishop promotion"
   | s =~ "[a-h][1-8].[a-h][1-8]K" =
     let moveAttempt =
           promoteTo
@@ -73,8 +73,8 @@ parseMove s pos
         fromSquare = parseFrom s
      in if moveAttempt `elem` legalMoves &&
            colorToPlay == fmap colr (pieceAt pos fromSquare)
-          then moveAttempt
-          else pos
+          then Right moveAttempt
+          else Left "Could not do Knight promotion"
   | s =~ "[a-h][1-8].[a-h][1-8]" =
     let moveAttempt = Chess.movePiece pos (parseFrom s) (parseTo s)
         legalMoves = Chess.positionTree pos
@@ -85,8 +85,8 @@ parseMove s pos
         fromSquare = parseFrom s
      in if any (eqPosition moveAttempt) legalMoves &&
            colorToPlay == fmap colr (pieceAt pos fromSquare)
-          then moveAttempt
-          else pos
+          then Right moveAttempt
+          else Left "Could not find move to be OK"
   | s =~ "O-O-O" =
     let castleAttempt = Chess.castleLong pos (toPlay pos)
         legalMoves = Chess.positionTree pos
@@ -101,8 +101,8 @@ parseMove s pos
      in if [] /= castleAttempt &&
            head castleAttempt `elem` legalMoves &&
            colorToPlay == fmap colr (pieceAt pos fromSquare)
-          then head castleAttempt
-          else pos
+          then Right $ head castleAttempt
+          else Left "Could not do O-O-O"
   | s =~ "O-O" =
     let castleAttempt = Chess.castleShort pos (toPlay pos)
         legalMoves = Chess.positionTree pos
@@ -117,12 +117,16 @@ parseMove s pos
      in if [] /= castleAttempt &&
            head castleAttempt `elem` legalMoves &&
            colorToPlay == fmap colr (pieceAt pos fromSquare)
-          then head castleAttempt
-          else pos
-  | otherwise = pos
+          then Right $ head castleAttempt
+          else Left "Could not do O-O"
+  | otherwise = Left $ "Unable to parse move with string " ++ s
 
-parseMoves :: [String] -> Position
-parseMoves = foldl (flip parseMove) Chess.startPosition
+parseMoves :: [String] -> Either String Position
+parseMoves moves =
+  foldr
+    (\s a -> a >>= parseMove s)
+  (Right Chess.startPosition :: Either String Position)
+  (reverse moves)
 
 parseFrom :: String -> Square
 parseFrom x = 

@@ -48,9 +48,9 @@ swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluat
     else bestSoFar
 
 expandHorizon :: Int -> Position -> [Position]
-expandHorizon 0 pos = undefined
-expandHorizon 1 pos = positionTree pos
-expandHorizon n pos = expandHorizon 1 pos >>= (expandHorizon (n - 1))
+expandHorizon 0 !pos = undefined
+expandHorizon 1 !pos = positionTree pos
+expandHorizon n !pos = expandHorizon 1 pos >>= (expandHorizon (n - 1))
 
 -- best give you Either Status or a gh ++ Position (gh with next position in it)
 focusedBest :: Position -> Int -> Either (Position, Status) Position

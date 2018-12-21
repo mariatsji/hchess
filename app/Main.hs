@@ -40,69 +40,58 @@ start "q" = return ()
 start _ = main
 
 gameLoopMM :: Position -> Int -> Int -> IO ()
-gameLoopMM gh whiteDepth blackDepth = do
+gameLoopMM pos whiteDepth blackDepth = do
   let depth =
-        if toPlay gh == White
+        if toPlay pos == White
           then whiteDepth
           else blackDepth
-  let e = AI.edgeGreed gh depth
-  case e of
-    Right gameHistory -> do
-      let newPos = gameHistory
-      Printer.pretty newPos
-      gameLoopMM gameHistory whiteDepth blackDepth
-    Left (gh'', status) -> do
-      Printer.pretty gh''
+  case AI.edgeGreed pos depth of
+    Right pos' -> do
+      Printer.pretty pos'
+      gameLoopMM pos' whiteDepth blackDepth
+    Left (pos'', status) -> do
+      Printer.pretty pos''
       print status
-      return ()
-
-gameLoopHM :: Position -> Int -> IO ()
-gameLoopHM gh depth = do
-  l <- getLine
-  let gameHistory = parseMove l gh
-  putStrLn $ moveOkStatus gh gameHistory
-  Printer.pretty gameHistory
-  if determineStatus gameHistory == BlackToPlay
-    then do
-      let e = AI.edgeGreed gameHistory depth
-      case e of
-        Right newGameHistory -> do
-          Printer.pretty newGameHistory
-          gameLoopHM newGameHistory depth
-        Left (gh'', status) -> do
-          Printer.pretty gh''
-          print status
-          main
-    else do
-      print $ determineStatus gameHistory
-      gameLoopHM gh depth
-
-gameLoopHH :: Position -> IO ()
-gameLoopHH gh = do
-  Printer.pretty gh
-  putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
-  l <- getLine
-  let gameHistory = parseMove l gh
-  putStrLn $ moveOkStatus gh gameHistory
-  let newStatus = determineStatus gameHistory
-  print newStatus
-  if newStatus == WhiteToPlay || newStatus == BlackToPlay
-    then if null l
-           then return ()
-           else gameLoopHH gameHistory
-    else do
-      print newStatus
       main
 
-moveOkStatus :: Position -> Position -> String
-moveOkStatus gh1 gh2 =
-  if validMove gh1 gh2
-    then "(Ok, a legal move)"
-    else "Illegal move"
+gameLoopHM :: Position -> Int -> IO ()
+gameLoopHM pos depth = do
+  l <- getLine
+  case parseMove l pos of
+    Left s -> do
+      putStrLn "Could not parse move"
+      gameLoopHM pos depth
+    Right newPos ->
+      let status = determineStatus newPos
+      in if status == BlackToPlay
+        then do
+          case AI.edgeGreed newPos depth of
+            Right newPos2 -> do
+              Printer.pretty newPos2
+              gameLoopHM newPos2 depth
+            Left (pos'', status) -> do
+              Printer.pretty pos''
+              print status
+              main
+      else do
+        print status
+        gameLoopHM pos depth
 
-validMove :: Position -> Position -> Bool
-validMove gh1 gh2 = gh1 /= gh2
-
-toStatus :: Either Status Position -> String
-toStatus (Left s)   = show s
-toStatus (Right gh) = show $ determineStatus gh
+gameLoopHH :: Position -> IO ()
+gameLoopHH pos = do
+  Printer.pretty pos
+  putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q or newline to quit to menu"
+  l <- getLine
+  case parseMove l pos of
+    Left s -> do
+      print $ "could not parse " ++ s
+      gameLoopHH pos
+    Right pos' ->
+      let newStatus = determineStatus pos'
+      in if newStatus == WhiteToPlay || newStatus == BlackToPlay
+        then if null l
+               then main
+               else gameLoopHH pos'
+        else do
+          print newStatus
+          main

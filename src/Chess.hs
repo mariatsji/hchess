@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE BangPatterns  #-}
 
 module Chess
   ( board
@@ -54,7 +55,7 @@ import           Control.DeepSeq
 import           Control.Monad.ST
 import           Control.Parallel
 import           Data.List
-import qualified Data.Map.Lazy                 as Map
+import qualified Data.Map.Strict                 as Map
 import           Data.Maybe
 import           Data.STRef
 import           GHC.Generics                             ( Generic )
@@ -85,8 +86,8 @@ data Square =
 type Snapshot = Map.Map Square Piece
 
 data Position = Position
-  { m :: Snapshot
-  , gamehistory :: [Snapshot]
+  { m :: !Snapshot
+  , gamehistory :: ![Snapshot]
   } deriving (Eq, Show, Generic, NFData)
 
 data Status
