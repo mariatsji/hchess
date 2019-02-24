@@ -1,4 +1,8 @@
+{-# LANGUAGE BangPatterns #-}
+
 module Main where
+
+import           Control.DeepSeq
 
 import           AI
 import           Chess
@@ -40,22 +44,22 @@ start "q" = return ()
 start _ = main
 
 gameLoopMM :: Position -> Int -> Int -> IO ()
-gameLoopMM pos whiteDepth blackDepth = do
+gameLoopMM !pos whiteDepth blackDepth = do
   let depth =
         if toPlay pos == White
           then whiteDepth
           else blackDepth
-  case AI.edgeGreed pos depth of
+  case force $ AI.streamBest pos depth of
     Right pos' -> do
       Printer.pretty pos'
       gameLoopMM pos' whiteDepth blackDepth
-    Left (pos'', status) -> do
-      Printer.pretty pos''
+    Left (pos', status) -> do
       print status
+      Printer.pretty pos'
       main
 
 gameLoopHM :: Position -> Int -> IO ()
-gameLoopHM pos depth = do
+gameLoopHM !pos depth = do
   l <- getLine
   case parseMove l pos of
     Left s -> do
@@ -64,8 +68,8 @@ gameLoopHM pos depth = do
     Right newPos ->
       let status = determineStatus newPos
       in if status == BlackToPlay
-        then do
-          case AI.edgeGreed newPos depth of
+        then
+          case force $ AI.streamBest newPos depth of
             Right newPos2 -> do
               Printer.pretty newPos2
               gameLoopHM newPos2 depth
@@ -78,7 +82,7 @@ gameLoopHM pos depth = do
         gameLoopHM pos depth
 
 gameLoopHH :: Position -> IO ()
-gameLoopHH pos = do
+gameLoopHH !pos = do
   Printer.pretty pos
   putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q or newline to quit to menu"
   l <- getLine

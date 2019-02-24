@@ -1,3 +1,5 @@
+module MoveSpec where
+
 import           Control.Exception (evaluate)
 import           Test.Hspec
 import           Test.QuickCheck
@@ -9,8 +11,8 @@ import           Chess
 import           Move
 import           Printer
 
-main :: IO ()
-main = hspec $ do
+spec :: Spec
+spec = do
     describe "Chess.board" $ do
         it "prints the start position" $
             Printer.pretty Chess.startPosition
@@ -198,3 +200,7 @@ main = hspec $ do
             let t = Chess.positionTree (fromRight Chess.startPosition p)
             let bPawnMoves = filter (\p -> pieceAt p (Square 1  3) == Nothing) t
             length (bPawnMoves) `shouldBe` (0 :: Int)
+        it "records gamehistory correctly" $ do
+            let p1 = startPosition
+            let p2 = head $ positionTree startPosition
+            head (gamehistory p2) `shouldBe` m p1

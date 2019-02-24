@@ -6,6 +6,7 @@ module AI
   , focused
   , focusedBest
   , edgeGreed
+  , streamBest
   , highestSoFar
   , expandHorizon
   , swapForBetter
@@ -20,8 +21,23 @@ import           Evaluation
 import           Prelude           hiding (foldl, foldl', foldr)
 import           Printer
 
+import Conduit
+
+streamBest :: Position -> Int -> Either (Position, Status) Position
+streamBest pos depth =
+  let bestWithinHorizon = 
+        runConduitPure
+        $ yieldMany (expandHorizon depth pos)
+        .| mapC evaluate'
+        .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
+      best = getPos bestWithinHorizon
+      oneStep' = oneStep pos best
+  in if (length (gamehistory best) > length (gamehistory pos) + 1)
+        then Right oneStep'
+        else Left (oneStep', getStatus bestWithinHorizon)
+
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
-edgeGreed pos depth
+edgeGreed !pos depth
       -- startEvaluation :: Evaluated
       -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh
  =
@@ -123,12 +139,6 @@ getStatus :: Evaluated -> Status
 getStatus (Evaluated _ _ x) = x
 
 oneStep :: Position -> Position -> Position
-oneStep a@(Position ma gha) b@(Position mb ghb) =
-  if null ghb then
-    error "null ghb"
-  else if (length ghb) <= (length gha)
-    then
-      error "cant step when b shorter than a"
-    else
-      let nextSnp = ghb !! (length gha)
-      in Position { m = nextSnp, gamehistory = ma : gha }
+oneStep short@(Position ma gha) long@(Position mb ghb) =
+  let nextPos = (mb : ghb) !! (length (mb : ghb) - length (ma : gha)  - 1)
+  in long { m = nextPos , gamehistory = ma : gha }

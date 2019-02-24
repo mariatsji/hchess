@@ -1,3 +1,5 @@
+module AISpec where
+
 import           Control.Exception (evaluate)
 import           Test.Hspec
 import           Test.QuickCheck
@@ -10,10 +12,8 @@ import           Evaluation
 import           Move
 import           Printer
 
-main :: IO ()
-main =
-  hspec $
-    describe "AI" $ do
+spec :: Spec
+spec = describe "AI" $ do
   it "evaluates the start position as reasonably balanced" $ do
     let e = Evaluation.evaluate Chess.startPosition
     e `shouldSatisfy` (> (-1.1))
@@ -28,3 +28,12 @@ main =
         three = expandHorizon 3 Chess.startPosition
     length two `shouldBe` 400
     length three > length two `shouldBe` True
+  it "successfully steps one point in a direction with oneStep with 1 look a head" $ do
+    let p1 = Chess.startPosition
+    let p2 = head $ positionTree p1
+    oneStep p1 p2 `shouldBe` p2
+  it "successfully steps one point in a direction with oneStep based on 2 looks ahead" $ do
+    let p1 = Chess.startPosition
+    let p2 = head $ positionTree p1
+    let p3 = head $ positionTree p2
+    oneStep p1 p3 `shouldBe` p2
