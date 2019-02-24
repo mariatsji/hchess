@@ -11,8 +11,8 @@
     
 # profile performance
 
-    stack build --profile --work-dir=.stackprofile && \
-    time stack exec --work-dir=.stackprofile -- hchess +RTS -N8 -hc -p -s -K100M
+    stack install --profile --work-dir=.stackprofile && \
+    time stack exec --work-dir=.stackprofile -- hchess-bench-exe +RTS -N8 -hc -p -s -K100M
 
     less hchess.prof
     hp2ps -e8in -c hchess.hp
@@ -21,7 +21,7 @@
 # profile with threadscope
 
     stack build --profile && \
-    stack exec -- hchess +RTS -ls -N2
+    stack bench +RTS -ls -N2
 
 # run benchmarks
 

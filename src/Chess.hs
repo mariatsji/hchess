@@ -70,24 +70,24 @@ data Color
   deriving (Eq, Ord, Enum, Show, Generic, NFData)
 
 data Piece
-  = Pawn Color
-  | Knight Color
-  | Bishop Color
-  | Rook Color
-  | Queen Color
-  | King Color
+  = Pawn !Color
+  | Knight !Color
+  | Bishop !Color
+  | Rook !Color
+  | Queen !Color
+  | King !Color
   deriving (Eq, Ord, Show, Generic, NFData)
 
 data Square =
-  Square Int
-         Int
+  Square {-# UNPACK #-} !Int
+         {-# UNPACK #-} !Int
   deriving (Eq, Ord, Show, Generic, NFData)
 
 type Snapshot = Map.Map Square Piece
 
 data Position = Position
   { m :: !Snapshot
-  , gamehistory :: ![Snapshot]
+  , gamehistory :: [Snapshot]
   } deriving (Eq, Show, Generic, NFData)
 
 data Status

@@ -1,32 +1,25 @@
-import qualified AI             as AI
-import qualified Chess          as Chess
+import qualified AI                            as AI
+import qualified Chess                         as Chess
 import           Criterion.Main
-import qualified Evaluation     as Evaluation
-import qualified Printer        as Printer
+import qualified Evaluation                    as Evaluation
+import qualified Printer                       as Printer
 
 import           Control.Monad
 import           Data.Maybe
 
 main = do
-  defaultMain
-    [ 
-    legacyBench
-    ]
+  defaultMain [moveBench, aiBench]
 
+moveBench = bgroup
+  "moves"
+  [ bench "positionTree startPosition"
+      $ nf Chess.positionTree Chess.startPosition
+  ]
 
-legacyBench =
-  bgroup
-    "chess"
-    [ bench "positionTree' startposition" $
-      nf Chess.positionTree' [Chess.startPosition]
-    , bench "evaluation' startposition" $
-      nf Evaluation.evaluate' [Chess.startPosition]
-      {--
-    , bench "focusedBest startposition depth 1" $
-      whnf (AI.focusedBest [Chess.startPosition]) 1
-    , bench "focusedBest startposition depth 3" $
-      whnf (AI.focusedBest [Chess.startPosition]) 3
-    , bench "focusedBest startposition depth 5" $
-      whnf (AI.focusedBest [Chess.startPosition]) 5
-      --}
-    ]
+aiBench = bgroup
+  "chess"
+  [ bench "expandHorizon 2 from startPosition"
+    $ nf (AI.expandHorizon 2) Chess.startPosition
+  , bench "streamBest depth 2 from startPosition"
+    $ nf (AI.streamBest Chess.startPosition) 2
+  ]
