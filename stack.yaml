@@ -13,5 +13,5 @@ extra-package-dbs: []
 
 ghc-options:
     # All packages
-    "$locals": -rtsopts -eventlog
+    "$locals": -eventlog -O2
     "$targets": -Werror

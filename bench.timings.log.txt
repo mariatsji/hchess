@@ -1,0 +1,94 @@
+Baseline
+
+09:49 (-O2)
+
+Benchmark hchess-bench: RUNNING...
+benchmarking moves/positionTree startPosition
+time                 1.412 ms   (1.395 ms .. 1.441 ms)
+                     0.997 R²   (0.995 R² .. 1.000 R²)
+mean                 1.422 ms   (1.411 ms .. 1.438 ms)
+std dev              45.09 μs   (29.43 μs .. 62.46 μs)
+variance introduced by outliers: 19% (moderately inflated)
+
+benchmarking chess/expandHorizon 2 from startPosition
+time                 31.83 ms   (31.27 ms .. 32.68 ms)
+                     0.997 R²   (0.994 R² .. 1.000 R²)
+mean                 32.12 ms   (31.73 ms .. 32.58 ms)
+std dev              864.5 μs   (542.1 μs .. 1.066 ms)
+
+benchmarking chess/streamBest depth 2 from startPosition
+time                 94.08 ms   (92.02 ms .. 97.68 ms)
+                     0.998 R²   (0.995 R² .. 1.000 R²)
+mean                 93.72 ms   (92.88 ms .. 94.82 ms)
+std dev              1.631 ms   (879.9 μs .. 2.451 ms)
+
+Benchmark hchess-bench: FINISH
+Completed 2 action(s).
+
+10:35 (some UNBOX and ! )
+
+hchess-0.1.0.0: benchmarks
+Running 1 benchmarks...
+Benchmark hchess-bench: RUNNING...
+benchmarking moves/positionTree startPosition
+time                 1.020 ms   (981.4 μs .. 1.053 ms)
+                     0.993 R²   (0.985 R² .. 0.999 R²)
+mean                 1.043 ms   (1.028 ms .. 1.054 ms)
+std dev              46.22 μs   (28.54 μs .. 76.20 μs)
+variance introduced by outliers: 34% (moderately inflated)
+
+benchmarking chess/expandHorizon 2 from startPosition
+time                 23.85 ms   (23.17 ms .. 24.26 ms)
+                     0.997 R²   (0.991 R² .. 1.000 R²)
+mean                 23.82 ms   (23.30 ms .. 24.01 ms)
+std dev              619.3 μs   (195.1 μs .. 992.2 μs)
+
+benchmarking chess/streamBest depth 2 from startPosition
+time                 71.24 ms   (70.60 ms .. 71.91 ms)
+                     1.000 R²   (1.000 R² .. 1.000 R²)
+mean                 70.72 ms   (68.96 ms .. 71.42 ms)
+std dev              2.064 ms   (261.5 μs .. 3.509 ms)
+
+16:30 after removing all para :
+
+benchmarking moves/positionTree startPosition
+time                 799.7 μs   (794.9 μs .. 804.9 μs)
+                     0.999 R²   (0.998 R² .. 1.000 R²)
+mean                 813.2 μs   (806.9 μs .. 824.7 μs)
+std dev              29.20 μs   (20.05 μs .. 42.49 μs)
+variance introduced by outliers: 27% (moderately inflated)
+
+benchmarking chess/expandHorizon 2 from startPosition
+time                 18.01 ms   (17.51 ms .. 18.38 ms)
+                     0.998 R²   (0.996 R² .. 1.000 R²)
+mean                 19.25 ms   (18.74 ms .. 20.69 ms)
+std dev              1.840 ms   (749.9 μs .. 3.332 ms)
+variance introduced by outliers: 44% (moderately inflated)
+
+benchmarking chess/streamBest depth 2 from startPosition
+time                 55.91 ms   (55.39 ms .. 56.34 ms)
+                     1.000 R²   (0.999 R² .. 1.000 R²)
+mean                 56.32 ms   (56.00 ms .. 56.81 ms)
+std dev              722.8 μs   (425.2 μs .. 1.099 ms)
+
+16.35 -O2
+
+benchmarking moves/positionTree startPosition
+time                 786.2 μs   (780.5 μs .. 792.2 μs)
+                     0.999 R²   (0.999 R² .. 1.000 R²)
+mean                 785.9 μs   (781.3 μs .. 791.4 μs)
+std dev              16.36 μs   (12.93 μs .. 21.25 μs)
+variance introduced by outliers: 11% (moderately inflated)
+
+benchmarking chess/expandHorizon 2 from startPosition
+time                 17.95 ms   (17.49 ms .. 18.20 ms)
+                     0.997 R²   (0.991 R² .. 1.000 R²)
+mean                 18.52 ms   (18.26 ms .. 19.15 ms)
+std dev              933.8 μs   (278.6 μs .. 1.597 ms)
+variance introduced by outliers: 17% (moderately inflated)
+
+benchmarking chess/streamBest depth 2 from startPosition
+time                 54.38 ms   (52.31 ms .. 55.07 ms)
+                     0.997 R²   (0.988 R² .. 1.000 R²)
+mean                 55.67 ms   (54.97 ms .. 58.88 ms)
+std dev              2.242 ms   (234.8 μs .. 4.040 ms)
