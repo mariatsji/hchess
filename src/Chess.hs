@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric  #-}
-{-# LANGUAGE BangPatterns  #-}
 
 module Chess
   ( board
@@ -53,7 +52,6 @@ where
 
 import           Control.DeepSeq
 import           Control.Monad.ST
-import           Control.Parallel
 import           Data.List
 import qualified Data.Map.Strict                 as Map
 import           Data.Maybe
@@ -266,35 +264,17 @@ toPlay pos = if whiteToPlay pos then White else Black
 positionTree :: Position -> [Position]
 positionTree pos =
   filter (\p -> not $ isInCheck p (toPlay pos)) $! positionTreeIgnoreCheck pos
-  {--
-positionTree :: GameHistory -> [Position]
-positionTree gh =
-  let player = toPlay gh
-      notInCheck = not . flip isInCheck player . (: gh)
-      completePT = positionTreeIgnoreCheck gh
-  in filter notInCheck completePT
---}
 
 positionTreeIgnoreCheck :: Position -> [Position]
 positionTreeIgnoreCheck pos
-  | whiteToPlay pos
-  = let forceRegularMoves =
-          force
-            $   whitePieces pos
-            >>= positionsPrPiece pos
-            >>= promoteBindFriendly White
-        forceCastle = force $ castle pos
-    in  par forceRegularMoves
-            (pseq forceCastle (forceRegularMoves ++ forceCastle))
-  | otherwise
-  = let forceRegularMoves =
-          force
-            $     blackPieces pos
-              >>= positionsPrPiece pos
-              >>= promoteBindFriendly Black
-        forceCastle = force $ castle pos
-    in  par forceRegularMoves
-            (pseq forceCastle (forceRegularMoves ++ forceCastle))
+  | whiteToPlay pos =
+      let forceRegularMoves = whitePieces pos >>= positionsPrPiece pos >>= promoteBindFriendly White
+          forceCastle = castle pos
+      in forceRegularMoves ++ forceCastle
+  | otherwise =
+      let forceRegularMoves = blackPieces pos >>= positionsPrPiece pos >>= promoteBindFriendly Black
+          forceCastle = castle pos
+      in forceRegularMoves ++ forceCastle
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> [Position]
 positionTreeIgnoreCheckPromotionsCastle pos White =
@@ -384,29 +364,13 @@ promote c@White pos =
       mpRForced = force (maybePromote c pos (Rook White))
       mpBForced = force (maybePromote c pos (Bishop White))
       mpKForced = force (maybePromote c pos (Knight White))
-  in  par
-        mpQForced
-        (par
-          mpRForced
-          (par
-            mpBForced
-            (pseq mpKForced (mpQForced ++ mpRForced ++ mpBForced ++ mpKForced))
-          )
-        )
+  in  mpQForced ++ mpRForced ++ mpBForced ++ mpKForced
 promote c@Black pos =
   let mpQForced = force (maybePromote c pos (Queen Black))
       mpRForced = force (maybePromote c pos (Rook Black))
       mpBForced = force (maybePromote c pos (Bishop Black))
       mpKForced = force (maybePromote c pos (Knight Black))
-  in  par
-        mpQForced
-        (par
-          mpRForced
-          (par
-            mpBForced
-            (pseq mpKForced (mpQForced ++ mpRForced ++ mpBForced ++ mpKForced))
-          )
-        )
+  in  mpQForced ++ mpRForced ++ mpBForced ++ mpKForced
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> [Position]
@@ -449,7 +413,7 @@ toSquaresBishop s@(Square c r) =
       b' = force $ fmap (\x -> squareTo s x (-x)) [1 .. min maxDown maxRight]
       c' = force $ fmap (\x -> squareTo s (-x) (-x)) [1 .. min maxDown maxLeft]
       d'       = force $ fmap (\x -> squareTo s (-x) x) [1 .. min maxLeft maxUp]
-  in  par a' (par b' (par c' (pseq d' (a' ++ b' ++ c' ++ d'))))
+  in  a' ++ b' ++ c' ++ d'
 
 -- rooks
 toSquaresRook :: Square -> [Square]
@@ -462,7 +426,7 @@ toSquaresRook s@(Square c r) =
       row      = fmap (\c' -> squareTo s c' 0) [maxLeft .. maxRight]
       laneF    = force lane
       rowF     = force row
-  in  par laneF (pseq rowF (laneF ++ rowF))
+  in  laneF ++ rowF
 
 -- queens
 toSquaresQueen :: Square -> [Square]

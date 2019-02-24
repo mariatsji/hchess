@@ -12,7 +12,6 @@ module Evaluation
   ) where
 
 import           Control.DeepSeq
-import           Control.Parallel
 import           Data.List
 import qualified Data.Map.Strict  as Map
 import           GHC.Generics     (Generic)
@@ -43,8 +42,7 @@ evaluate p =
       pawnAdv = force $ pawnAdvancement p
       develp = force $ development p
       safeK = force $ safeKing p
-  in -- whiteCount - blackCount + pawnAdvancement p + development p + safeKing p
-    par whiteCount (par blackCount (par pawnAdv (par develp (pseq safeK (whiteCount - blackCount + pawnAdv + develp + safeK)))))
+  in whiteCount - blackCount + pawnAdv + develp + safeK
 
 evaluateGH :: Position -> Float
 evaluateGH gh

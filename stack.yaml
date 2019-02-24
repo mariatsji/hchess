@@ -13,5 +13,5 @@ extra-package-dbs: []
 
 ghc-options:
     # All packages
-    "$locals": -threaded -rtsopts -with-rtsopts=-maxN2-qg -eventlog
+    "$locals": -rtsopts -eventlog
     "$targets": -Werror
