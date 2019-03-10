@@ -21,7 +21,7 @@
 # profile with threadscope
 
     stack build --profile && \
-    stack bench +RTS -ls -N2
+    stack bench --profile +RTS -h -s
 
 # run benchmarks
 

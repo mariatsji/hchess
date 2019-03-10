@@ -1,4 +1,4 @@
-resolver: lts-13.1
+resolver: lts-13.11
 
 packages:
 - .
@@ -6,12 +6,9 @@ packages:
 extra-deps:
 - gtk-0.14.10
 - gtk-mac-integration-0.3.4.0
+- regex-tdfa-1.2.3.1
 
 flags: {}
 
 extra-package-dbs: []
 
-ghc-options:
-    # All packages
-    "$locals": -eventlog -O2
-    "$targets": -Werror
