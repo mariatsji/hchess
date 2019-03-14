@@ -23,10 +23,8 @@ module Chess
   , canGoThere
   , finalDestinationNotOccupiedBySelf
   , points
-  , points'
   , eqPosition
   , positionsPrPiece
-  , to'
   , toSquaresPawn
   , toSquaresBishop
   , pieceAt
@@ -189,21 +187,22 @@ movePiece' snp from to = case Map.lookup from snp of
 
 points :: Square -> Square -> [Square]
 points (Square c1 r1) (Square c2 r2) =
-  let toSquare (c, r) = Square c r in toSquare <$> points' (c1, r1) (c2, r2)
+  let cline = line c1 c2
+      rline = line r1 r2
+  in if length cline > (length rline)
+    then uncurry Square <$> zip cline (cycle [r1])
+  else if length rline > length cline
+    then uncurry Square <$> zip (cycle [c1]) rline
+  else uncurry Square <$> zip cline rline
+    where
+      line :: Int -> Int -> [Int]
+      line a b =
+        let step = if b > a then 1 else (-1)
+        in [a + step, (a + step) + step .. b - step]
 
-points' :: (Int, Int) -> (Int, Int) -> [(Int, Int)] -- all visited squares
-points' (c1, r1) (c2, r2)
-  | c1 == c2 || r1 == r2 = middle $ (,) <$> to' c1 c2 <*> to' r1 r2
-  | otherwise = filter (\(a, b) -> (a, b) /= (c1, r1) && (a, b) /= (c2, r2))
-  $ zip (c1 `to'` c2) (r1 `to'` r2)
-
-middle :: [a] -> [a]
-middle l = if length l > 1 then (reverse . init . reverse . init) l else []
-
-to' :: Int -> Int -> [Int]
-to' a b | a == b    = [a]
-        | a > b     = a : to' (a - 1) b
-        | otherwise = a : to' (a + 1) b
+-- points :: Square -> Square -> [Square]
+-- points (Square c1 r1) (Square c2 r2) =
+--  let toSquare (c, r) = Square c r in toSquare <$> points' (c1, r1) (c2, r2)
 
 canGoThere :: Position -> Square -> Square -> Bool
 canGoThere pos from to =
