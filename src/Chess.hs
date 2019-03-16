@@ -256,7 +256,7 @@ blackPieces  = Map.foldMapWithKey f . m
         | otherwise       = []
 
 whiteToPlay :: Position -> Bool
-whiteToPlay (Position _ gh) = even . length $ gh
+whiteToPlay = even . length . gamehistory
 
 toPlay :: Position -> Color
 toPlay pos = if whiteToPlay pos then White else Black
