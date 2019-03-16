@@ -167,3 +167,27 @@ mean                 160.1 ms   (150.9 ms .. 172.1 ms)
 std dev              14.97 ms   (9.949 ms .. 21.31 ms)
 variance introduced by outliers: 26% (moderately inflated)
 
+16.03.2019 08:13
+whitePieces as CAF too - another win!
+
+Benchmark hchess-bench: RUNNING...
+benchmarking moves/positionTree startPosition
+time                 39.73 μs   (38.39 μs .. 41.05 μs)
+                     0.993 R²   (0.990 R² .. 0.996 R²)
+mean                 39.72 μs   (38.71 μs .. 40.57 μs)
+std dev              3.123 μs   (2.672 μs .. 3.762 μs)
+variance introduced by outliers: 76% (severely inflated)
+
+benchmarking chess/expandHorizon 2 from startPosition
+time                 85.64 μs   (81.75 μs .. 89.07 μs)
+                     0.992 R²   (0.988 R² .. 0.997 R²)
+mean                 86.40 μs   (84.57 μs .. 88.28 μs)
+std dev              6.348 μs   (5.214 μs .. 8.370 μs)
+variance introduced by outliers: 71% (severely inflated)
+
+benchmarking chess/streamBest depth 2 from startPosition
+time                 90.60 ms   (66.04 ms .. 111.8 ms)
+                     0.924 R²   (0.851 R² .. 0.983 R²)
+mean                 66.51 ms   (59.88 ms .. 76.89 ms)
+std dev              14.91 ms   (9.210 ms .. 21.97 ms)
+variance introduced by outliers: 71% (severely inflated)

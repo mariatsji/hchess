@@ -236,20 +236,20 @@ makeMoves p (x : xs) = makeMoves (movePiece p (fst x) (snd x)) xs
 
 -- CAF now? would be nice
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt = (Map.!?) . m
+pieceAt = pieceAt' . m
 
 pieceAt' :: Snapshot -> Square -> Maybe Piece
-pieceAt' snp s = snp Map.!? s
+pieceAt' = (Map.!?)
 
 whitePieces :: Position -> [(Square, Piece)]
-whitePieces (Position m' _) = Map.foldMapWithKey f m'
+whitePieces = Map.foldMapWithKey f . m
  where
   f :: Square -> Piece -> [(Square, Piece)]
   f s p | colr p == White = [(s, p)]
         | otherwise       = []
 
 blackPieces :: Position -> [(Square, Piece)]
-blackPieces (Position m' _) = Map.foldMapWithKey f m'
+blackPieces  = Map.foldMapWithKey f . m
  where
   f :: Square -> Piece -> [(Square, Piece)]
   f s p | colr p == Black = [(s, p)]
