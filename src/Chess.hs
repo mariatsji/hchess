@@ -234,8 +234,9 @@ makeMoves :: Position -> [(Square, Square)] -> Position
 makeMoves p []       = p
 makeMoves p (x : xs) = makeMoves (movePiece p (fst x) (snd x)) xs
 
+-- CAF now? would be nice
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt pos s = (m pos) Map.!? s
+pieceAt = (Map.!?) . m
 
 pieceAt' :: Snapshot -> Square -> Maybe Piece
 pieceAt' snp s = snp Map.!? s

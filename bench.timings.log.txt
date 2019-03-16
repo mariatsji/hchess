@@ -116,3 +116,54 @@ time                 49.00 ms   (46.75 ms .. 51.06 ms)
 mean                 54.95 ms   (52.98 ms .. 58.01 ms)
 std dev              4.669 ms   (3.401 ms .. 6.682 ms)
 variance introduced by outliers: 29% (moderately inflated)
+
+
+16.03 08:00
+
+Running 1 benchmarks...
+Benchmark hchess-bench: RUNNING...
+benchmarking moves/positionTree startPosition
+time                 28.06 μs   (27.53 μs .. 28.76 μs)
+                     0.997 R²   (0.996 R² .. 0.999 R²)
+mean                 28.18 μs   (27.77 μs .. 28.87 μs)
+std dev              1.738 μs   (1.154 μs .. 2.817 μs)
+variance introduced by outliers: 67% (severely inflated)
+
+benchmarking chess/expandHorizon 2 from startPosition
+time                 63.84 μs   (62.54 μs .. 65.57 μs)
+                     0.997 R²   (0.994 R² .. 0.999 R²)
+mean                 63.27 μs   (62.69 μs .. 64.35 μs)
+std dev              2.544 μs   (1.685 μs .. 3.777 μs)
+variance introduced by outliers: 43% (moderately inflated)
+
+benchmarking chess/streamBest depth 2 from startPosition
+time                 46.45 ms   (42.15 ms .. 50.07 ms)
+                     0.987 R²   (0.979 R² .. 0.999 R²)
+mean                 44.49 ms   (43.29 ms .. 46.05 ms)
+std dev              2.696 ms   (1.708 ms .. 3.134 ms)
+variance introduced by outliers: 20% (moderately inflated)
+
+pieceAt as a CAF - huge breakthrough
+16.03 08:06
+
+benchmarking moves/positionTree startPosition
+time                 83.42 μs   (72.42 μs .. 93.54 μs)
+                     0.938 R²   (0.916 R² .. 0.967 R²)
+mean                 79.69 μs   (73.69 μs .. 91.84 μs)
+std dev              25.64 μs   (15.72 μs .. 43.13 μs)
+variance introduced by outliers: 98% (severely inflated)
+
+benchmarking chess/expandHorizon 2 from startPosition
+time                 226.3 μs   (210.3 μs .. 246.4 μs)
+                     0.957 R²   (0.929 R² .. 0.983 R²)
+mean                 269.8 μs   (234.7 μs .. 387.3 μs)
+std dev              189.4 μs   (46.17 μs .. 407.1 μs)
+variance introduced by outliers: 99% (severely inflated)
+
+benchmarking chess/streamBest depth 2 from startPosition
+time                 133.5 ms   (115.0 ms .. 149.1 ms)
+                     0.992 R²   (0.988 R² .. 0.999 R²)
+mean                 160.1 ms   (150.9 ms .. 172.1 ms)
+std dev              14.97 ms   (9.949 ms .. 21.31 ms)
+variance introduced by outliers: 26% (moderately inflated)
+
