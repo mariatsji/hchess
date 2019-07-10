@@ -14,9 +14,9 @@
     stack install --profile --work-dir=.stackprofile && \
     time stack exec --work-dir=.stackprofile -- hchess-bench-exe +RTS -N8 -hc -p -s -K100M
 
-    less hchess.prof
-    hp2ps -e8in -c hchess.hp
-    open hchess.ps
+    less hchess-profiled.prof
+    hp2ps -e8in -c hchess-profiled.hp
+    open hchess-profiled.ps
 
 # profile with threadscope
 

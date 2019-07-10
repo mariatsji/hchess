@@ -190,9 +190,9 @@ points (Square c1 r1) (Square c2 r2) =
   let cline = line c1 c2
       rline = line r1 r2
   in if length cline > (length rline)
-    then uncurry Square <$> zip cline (cycle [r1])
+    then uncurry Square <$> zip cline (repeat r1)
   else if length rline > length cline
-    then uncurry Square <$> zip (cycle [c1]) rline
+    then uncurry Square <$> zip (repeat c1) rline
   else uncurry Square <$> zip cline rline
     where
       line :: Int -> Int -> [Int]
@@ -340,7 +340,7 @@ enPassant pos s@(Square c r)
     else
       let prevSnapshot = gamehistory pos !! 1
       in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece && pieceAt' prevSnapshot s == Nothing
-    
+
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
@@ -477,7 +477,7 @@ castle' pos color kingPosF rookPosF doCastleF =
           && -- must not be in check
              willNotPassCheck pos (kingPosF color) (rookPosF color) -- must not move through check
           )
-    then 
+    then
       let newSnapshot = doCastleF (m pos) color
       in [Position { m = newSnapshot, gamehistory = (m pos) : (gamehistory pos) }]
     else []
