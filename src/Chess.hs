@@ -122,7 +122,7 @@ squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 startPosition :: Position
 startPosition = Position
   { m           = Map.fromList
-    $ [ (Square 1 1, Rook White)
+      [ (Square 1 1, Rook White)
       , (Square 2 1, Knight White)
       , (Square 3 1, Bishop White)
       , (Square 4 1, Queen White)
@@ -178,7 +178,7 @@ movePiece pos@(Position m' gh') from@(Square fc _) to@(Square tc tr)
 movePiece' :: Snapshot -> Square -> Square -> Snapshot
 movePiece' snp from to = case Map.lookup from snp of
   Nothing ->
-    error $ "should be a piece at " ++ (show from) ++ " in pos " ++ (show snp)
+    error $ "should be a piece at " <> show from <> " in pos " <> show snp
   (Just piece) -> runST $ do
     pRef    <- newSTRef (removePieceAt snp from)
     without <- readSTRef pRef
@@ -189,7 +189,7 @@ points :: Square -> Square -> [Square]
 points (Square c1 r1) (Square c2 r2) =
   let cline = line c1 c2
       rline = line r1 r2
-  in if length cline > (length rline)
+  in if length cline > length rline
     then uncurry Square <$> zip cline (repeat r1)
   else if length rline > length cline
     then uncurry Square <$> zip (repeat c1) rline
@@ -231,8 +231,7 @@ replacePieceAt :: Snapshot -> Square -> Piece -> Snapshot
 replacePieceAt snp square piece = Map.insert square piece snp
 
 makeMoves :: Position -> [(Square, Square)] -> Position
-makeMoves p []       = p
-makeMoves p (x : xs) = makeMoves (movePiece p (fst x) (snd x)) xs
+makeMoves = foldl (\ p x -> uncurry (movePiece p) x)
 
 -- CAF now? would be nice
 pieceAt :: Position -> Square -> Maybe Piece
@@ -285,7 +284,7 @@ positionTreeIgnoreCheckPromotionsCastle pos Black =
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos@(Position snp gh) (s, p) = case p of
   (Pawn _) ->
-    let potentials = filter (\t -> canGoThere pos s (fst t)) $ toSquaresPawn pos (s, p)
+    let potentials = filter (canGoThere pos s . fst) $ toSquaresPawn pos (s, p)
     in  map
         (\t -> case snd t of
                     Nothing -> movePiece pos s (fst t)
@@ -375,11 +374,11 @@ promote c@Black pos =
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> [Position]
 promoteBindFriendly White pos =
-  if elem (Just (Pawn White)) [ pieceAt pos (Square col 8) | col <- [1 .. 8] ]
+  if Just (Pawn White) `elem` [ pieceAt pos (Square col 8) | col <- [1 .. 8] ]
     then promoteBindFriendly' White pos
     else [pos]
 promoteBindFriendly Black pos =
-  if elem (Just (Pawn Black)) [ pieceAt pos (Square col 1) | col <- [1 .. 8] ]
+  if Just (Pawn Black) `elem` [ pieceAt pos (Square col 1) | col <- [1 .. 8] ]
     then promoteBindFriendly' Black pos
     else [pos]
 
@@ -422,7 +421,7 @@ toSquaresRook s@(Square c r) =
       maxUp    = 8 - r
       maxLeft  = 1 - c
       maxRight = 8 - c
-      lane     = fmap (\r' -> squareTo s 0 r') [maxDown .. maxUp]
+      lane     = fmap (squareTo s 0) [maxDown .. maxUp]
       row      = fmap (\c' -> squareTo s c' 0) [maxLeft .. maxRight]
       laneF    = force lane
       rowF     = force row
@@ -479,7 +478,7 @@ castle' pos color kingPosF rookPosF doCastleF =
           )
     then
       let newSnapshot = doCastleF (m pos) color
-      in [Position { m = newSnapshot, gamehistory = (m pos) : (gamehistory pos) }]
+      in [Position { m = newSnapshot, gamehistory = m pos : gamehistory pos }]
     else []
 
 doCastleShort :: Snapshot -> Color -> Snapshot
@@ -579,7 +578,7 @@ isDraw :: Position -> Bool
 isDraw pos = isPatt pos || threefoldrepetition pos
 
 threefoldrepetition :: Position -> Bool
-threefoldrepetition (Position m' gh) = length (filter (\p' -> p' == m') gh) > 1
+threefoldrepetition (Position m' gh) = length (filter (== m') gh) > 1
 
 max' :: Ord a => [a] -> a
 max' []       = error "no max element in empty list"

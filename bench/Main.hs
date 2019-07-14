@@ -1,10 +1,10 @@
-import qualified AI                            as AI
-import qualified Chess                         as Chess
+import qualified AI
+import qualified Chess
 import           Criterion.Main
 import           Criterion.Main.Options
 import           Criterion.Types
-import qualified Evaluation                    as Evaluation
-import qualified Printer                       as Printer
+import qualified Evaluation
+import qualified Printer
 
 import           Control.Monad
 import           Data.Maybe

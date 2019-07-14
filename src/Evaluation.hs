@@ -20,16 +20,16 @@ import           Prelude          hiding (foldl, foldl', foldr)
 import           Chess
 
 data Evaluated =
-  Evaluated !Position
-            Float
-            Status
+  Evaluated {-# UNPACK #-} !Position
+            {-# UNPACK #-} !Float
+            !Status
   deriving (Eq, Show, Generic, NFData)
 
 evaluate' :: Position -> Evaluated
 evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)
 
 evaluate'' :: [Position] -> [Evaluated]
-evaluate'' poses = map evaluate' poses
+evaluate'' = map evaluate'
 
 toGH :: Evaluated -> (Status, Position)
 toGH e =
@@ -66,27 +66,27 @@ development :: Position -> Float
 development (Position m' gh') = sum $ fmap scoreOfficerDevelopment (Map.toList m')
 
 scoreOfficerDevelopment :: (Square, Piece) -> Float
-scoreOfficerDevelopment ((Square _ row), Knight White) =
+scoreOfficerDevelopment (Square _ row, Knight White) =
   if row == 1
     then 0.0
     else 0.07
-scoreOfficerDevelopment ((Square _ row), Knight Black) =
+scoreOfficerDevelopment (Square _ row, Knight Black) =
   if row == 8
     then 0.0
     else (-0.07)
-scoreOfficerDevelopment ((Square _ row), Bishop White) =
+scoreOfficerDevelopment (Square _ row, Bishop White) =
   if row == 1
     then 0.0
     else 0.06
-scoreOfficerDevelopment ((Square _ row), Bishop Black) =
+scoreOfficerDevelopment (Square _ row, Bishop Black) =
   if row == 8
     then 0.0
     else (-0.06)
-scoreOfficerDevelopment ((Square _ row), Rook White) =
+scoreOfficerDevelopment (Square _ row, Rook White) =
   if row == 1
     then 0.0
     else 0.05
-scoreOfficerDevelopment ((Square _ row), Rook Black) =
+scoreOfficerDevelopment (Square _ row, Rook Black) =
   if row == 8
     then 0.0
     else (-0.05)

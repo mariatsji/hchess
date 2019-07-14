@@ -32,7 +32,7 @@ streamBest pos depth =
         .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-  in if (length (gamehistory best) > length (gamehistory pos) + 1)
+  in if length (gamehistory best) > length (gamehistory pos) + 1
         then Right oneStep'
         else Left (oneStep', getStatus bestWithinHorizon)
 
@@ -48,8 +48,7 @@ edgeGreed !pos depth
         map evaluate' $ expandHorizon depth pos
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-   in if (length (gamehistory best) > length (gamehistory pos) + 1)
-        then Right oneStep'
+   in if length (gamehistory best) > length (gamehistory pos) + 1 then Right oneStep'
         else Left (oneStep', getStatus bestWithinHorizon)
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
@@ -66,7 +65,7 @@ swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluat
 expandHorizon :: Int -> Position -> [Position]
 expandHorizon 0 !pos = undefined
 expandHorizon 1 !pos = positionTree pos
-expandHorizon n !pos = expandHorizon 1 pos >>= (expandHorizon (n - 1))
+expandHorizon n !pos = expandHorizon 1 pos >>= expandHorizon (n - 1)
 
 -- best give you Either Status or a gh ++ Position (gh with next position in it)
 focusedBest :: Position -> Int -> Either (Position, Status) Position

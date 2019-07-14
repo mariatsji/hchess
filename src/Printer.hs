@@ -13,7 +13,7 @@ import           GHC.Exts
 
 pretty :: Position -> IO ()
 pretty pos = do
-  mapM_ UP.putStrLn $ fmap prettyRow $ rowify pos
+  mapM_ UP.putStrLn $ prettyRow <$> rowify pos
   putStrLn "-"
   return ()
 
@@ -27,7 +27,7 @@ prettyEs :: [Evaluated] -> IO ()
 prettyEs = mapM_ prettyE
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify (Position m' gh') = reverse $ groupWith (\((Square _ r), _) -> r) (listWithEmpties m')
+rowify (Position m' gh') = reverse $ groupWith (\(Square _ r, _) -> r) (listWithEmpties m')
 
 listWithEmpties :: Map.Map Square Piece -> [(Square, Maybe Piece)]
 listWithEmpties m' = fmap (\s -> (s, m' Map.!? s)) board
