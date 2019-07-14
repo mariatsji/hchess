@@ -1,8 +1,8 @@
 import           AI
 import           Chess
+import           Data.Bitraversable
 import           Printer
 
 main = do
-  putStrLn "expanding position 4 from startpos"
-  pretty . last $ (AI.expandHorizon 4) Chess.startPosition
-  putStrLn "completed"
+  putStrLn "stream best depth 4 from startpos"
+  bitraverse (pretty . fst) pretty (AI.streamBest Chess.startPosition 4)

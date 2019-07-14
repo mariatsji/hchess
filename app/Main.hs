@@ -65,9 +65,10 @@ gameLoopHM !pos depth = do
     Left s -> do
       putStrLn "Could not parse move"
       gameLoopHM pos depth
-    Right newPos ->
+    Right newPos -> do
+      Printer.pretty newPos
       let status = determineStatus newPos
-      in if status == BlackToPlay
+      if status == BlackToPlay
         then
           case force $ AI.streamBest newPos depth of
             Right newPos2 -> do
