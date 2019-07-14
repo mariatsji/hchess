@@ -46,7 +46,7 @@ executable hchess-profiled
   build-depends:       base
                      , hchess
   default-language:    Haskell2010
-  ghc-options:         -threaded -rtsopts -O3 "-with-rtsopts=-maxN8 -hc -p -s -T -K100M"
+  ghc-options:         -threaded -rtsopts -O3
 
 benchmark hchess-bench
   type:                exitcode-stdio-1.0
