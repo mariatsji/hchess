@@ -233,11 +233,19 @@ pieceAt pos = pieceAt' (m pos)
 pieceAt' :: Snapshot -> Square -> Maybe Piece
 pieceAt' sna squ = sna Map.!? squ
 
-whitePieces :: Position -> Map.Map Square Piece
-whitePieces pos = Map.filter ((==) White . colr) (m pos)
+whitePieces :: Position -> [(Square, Piece)]
+whitePieces = Map.foldMapWithKey f . m
+ where
+  f :: Square -> Piece -> [(Square, Piece)]
+  f s p | colr p == White = [(s, p)]
+        | otherwise       = []
 
-blackPieces :: Position -> Snapshot
-blackPieces pos = Map.filter ((==) Black . colr) (m pos)
+blackPieces :: Position -> [(Square, Piece)]
+blackPieces  = Map.foldMapWithKey f . m
+ where
+  f :: Square -> Piece -> [(Square, Piece)]
+  f s p | colr p == Black = [(s, p)]
+        | otherwise       = []
 
 whiteToPlay :: Position -> Bool
 whiteToPlay = even . length . gamehistory
@@ -252,19 +260,19 @@ positionTree pos =
 positionTreeIgnoreCheck :: Position -> [Position]
 positionTreeIgnoreCheck pos
   | whiteToPlay pos =
-      let forceRegularMoves = Map.toList (whitePieces pos) >>= positionsPrPiece pos >>= promoteBindFriendly White
+      let forceRegularMoves = whitePieces pos >>= positionsPrPiece pos >>= promoteBindFriendly White
           forceCastle = castle pos
       in forceRegularMoves <> forceCastle
   | otherwise =
-      let forceRegularMoves = Map.toList (blackPieces pos) >>= positionsPrPiece pos >>= promoteBindFriendly Black
+      let forceRegularMoves = blackPieces pos >>= positionsPrPiece pos >>= promoteBindFriendly Black
           forceCastle = castle pos
       in forceRegularMoves <> forceCastle
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> [Position]
 positionTreeIgnoreCheckPromotionsCastle pos White =
-  Map.toList (whitePieces pos) >>= positionsPrPiece pos
+  whitePieces pos >>= positionsPrPiece pos
 positionTreeIgnoreCheckPromotionsCastle pos Black =
-  Map.toList (blackPieces pos) >>= positionsPrPiece pos
+  blackPieces pos >>= positionsPrPiece pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos@(Position snp _) (s, p) = case p of
@@ -576,9 +584,9 @@ anyPosWithoutKing col pos = not $ allHasKing col pos
 
 allHasKing :: Color -> [Position] -> Bool
 allHasKing White poses =
-  all (any (\(_, p) -> p == King White) . Map.toList . whitePieces) poses
+  all (any (\(_, p) -> p == King White) . whitePieces) poses
 allHasKing Black poses =
-  all (any (\(_, p) -> p == King Black) . Map.toList . blackPieces) poses
+  all (any (\(_, p) -> p == King Black) . blackPieces) poses
 
 determineStatus :: Position -> Status
 determineStatus pos | toPlay pos == White && isCheckMate pos = WhiteIsMate
