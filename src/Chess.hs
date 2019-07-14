@@ -269,11 +269,11 @@ positionTreeIgnoreCheck pos
   | whiteToPlay pos =
       let forceRegularMoves = whitePieces pos >>= positionsPrPiece pos >>= promoteBindFriendly White
           forceCastle = castle pos
-      in forceRegularMoves ++ forceCastle
+      in forceRegularMoves <> forceCastle
   | otherwise =
       let forceRegularMoves = blackPieces pos >>= positionsPrPiece pos >>= promoteBindFriendly Black
           forceCastle = castle pos
-      in forceRegularMoves ++ forceCastle
+      in forceRegularMoves <> forceCastle
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> [Position]
 positionTreeIgnoreCheckPromotionsCastle pos White =
@@ -308,19 +308,19 @@ toSquaresPawn pos (s@(Square _ r), p)
   | colr p == White
   = filter insideBoard'
     $  [ (squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2 ]
-    ++ [ (squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1 ]
-    ++ [ (squareTo s (-1) 1, Nothing) | enemyAt pos s $ squareTo s (-1) 1 ]
-    ++ [ (squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0) ]
-    ++ [ (squareTo s 1 1, Nothing) | enemyAt pos s $ squareTo s 1 1 ]
-    ++ [ (squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0) ]
+    <> [ (squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1 ]
+    <> [ (squareTo s (-1) 1, Nothing) | enemyAt pos s $ squareTo s (-1) 1 ]
+    <> [ (squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0) ]
+    <> [ (squareTo s 1 1, Nothing) | enemyAt pos s $ squareTo s 1 1 ]
+    <> [ (squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0) ]
   | otherwise
   = filter insideBoard'
     $  [ (squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2) ]
-    ++ [ (squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1) ]
-    ++ [ (squareTo s (-1) (-1), Nothing) | enemyAt pos s $ squareTo s (-1) (-1) ]
-    ++ [ (squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0) ]
-    ++ [ (squareTo s 1 (-1), Nothing) | enemyAt pos s $ squareTo s 1 (-1) ]
-    ++ [ (squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0) ]
+    <> [ (squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1) ]
+    <> [ (squareTo s (-1) (-1), Nothing) | enemyAt pos s $ squareTo s (-1) (-1) ]
+    <> [ (squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0) ]
+    <> [ (squareTo s 1 (-1), Nothing) | enemyAt pos s $ squareTo s 1 (-1) ]
+    <> [ (squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0) ]
 
 -- en passant
 enPassant :: Position -> Square -> Bool
@@ -363,13 +363,13 @@ promote c@White pos =
       mpRForced = force (maybePromote c pos (Rook White))
       mpBForced = force (maybePromote c pos (Bishop White))
       mpKForced = force (maybePromote c pos (Knight White))
-  in  mpQForced ++ mpRForced ++ mpBForced ++ mpKForced
+  in  mpQForced <> mpRForced <> mpBForced <> mpKForced
 promote c@Black pos =
   let mpQForced = force (maybePromote c pos (Queen Black))
       mpRForced = force (maybePromote c pos (Rook Black))
       mpBForced = force (maybePromote c pos (Bishop Black))
       mpKForced = force (maybePromote c pos (Knight Black))
-  in  mpQForced ++ mpRForced ++ mpBForced ++ mpKForced
+  in  mpQForced <> mpRForced <> mpBForced <> mpKForced
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> [Position]
@@ -412,7 +412,7 @@ toSquaresBishop s@(Square c r) =
       b' = force $ fmap (\x -> squareTo s x (-x)) [1 .. min maxDown maxRight]
       c' = force $ fmap (\x -> squareTo s (-x) (-x)) [1 .. min maxDown maxLeft]
       d'       = force $ fmap (\x -> squareTo s (-x) x) [1 .. min maxLeft maxUp]
-  in  a' ++ b' ++ c' ++ d'
+  in  a' <> b' <> c' <> d'
 
 -- rooks
 toSquaresRook :: Square -> [Square]
@@ -425,7 +425,7 @@ toSquaresRook s@(Square c r) =
       row      = fmap (\c' -> squareTo s c' 0) [maxLeft .. maxRight]
       laneF    = force lane
       rowF     = force row
-  in  laneF ++ rowF
+  in  laneF <> rowF
 
 -- queens
 toSquaresQueen :: Square -> [Square]
@@ -449,7 +449,7 @@ type RookPos = Color -> Square
 type PerformCastleF = Snapshot -> Color -> Snapshot
 
 castle :: Position -> [Position]
-castle pos = castleShort pos (toPlay pos) ++ castleLong pos (toPlay pos)
+castle pos = castleShort pos (toPlay pos) <> castleLong pos (toPlay pos)
 
 castleShort :: Position -> Color -> [Position]
 castleShort pos color = castle' pos color kingPos shortRookPos doCastleShort
@@ -552,10 +552,10 @@ willNotPassCheck pos (Square 5 8) (Square 1 8) =
 willNotPassCheck _ s1 s2 =
   error
     $  "cannot use squares "
-    ++ show s1
-    ++ " and "
-    ++ show s2
-    ++ " as castling squares"
+    <> show s1
+    <> " and "
+    <> show s2
+    <> " as castling squares"
 
 insideBoard :: Square -> Bool
 insideBoard (Square c r) = c >= 1 && c <= 8 && r >= 1 && r <= 8
