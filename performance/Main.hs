@@ -1,7 +1,8 @@
-import Chess
-import Printer
+import           AI
+import           Chess
+import           Printer
 
 main = do
-  putStrLn "printing last position in positionTree after startPos"
-  pretty . last $ Chess.positionTree Chess.startPosition
+  putStrLn "expanding position 4 from startpos"
+  pretty . last $ (AI.expandHorizon 4) Chess.startPosition
   putStrLn "completed"
