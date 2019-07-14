@@ -235,10 +235,10 @@ makeMoves = foldl (\ p x -> uncurry (movePiece p) x)
 
 -- CAF now? would be nice
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt = pieceAt' . m
+pieceAt pos = pieceAt' (m pos)
 
 pieceAt' :: Snapshot -> Square -> Maybe Piece
-pieceAt' = (Map.!?)
+pieceAt' sna squ = sna Map.!? squ
 
 whitePieces :: Position -> [(Square, Piece)]
 whitePieces = Map.foldMapWithKey f . m
