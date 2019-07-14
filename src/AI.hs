@@ -18,8 +18,7 @@ import           Control.Monad
 import           Data.List
 import           Data.Ord
 import           Evaluation
-import           Prelude           hiding (foldl, foldl', foldr)
-import           Printer
+import           Prelude           hiding (foldr)
 
 import Conduit
 
@@ -53,17 +52,17 @@ edgeGreed !pos depth
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
-swapForBetter White ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluated ghBSF scoreBSF statusBSC) =
+swapForBetter White ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBSF _) =
   if scorePot > scoreBSF
     then ePot
     else bestSoFar
-swapForBetter Black ePot@(Evaluated ghPot scorePot statusPot) bestSoFar@(Evaluated ghBSF scoreBSF statusBSC) =
+swapForBetter Black ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBSF _) =
   if scorePot < scoreBSF
     then ePot
     else bestSoFar
 
 expandHorizon :: Int -> Position -> [Position]
-expandHorizon 0 !pos = undefined
+expandHorizon 0 _ = undefined
 expandHorizon 1 !pos = positionTree pos
 expandHorizon n !pos = expandHorizon 1 pos >>= expandHorizon (n - 1)
 
@@ -138,6 +137,6 @@ getStatus :: Evaluated -> Status
 getStatus (Evaluated _ _ x) = x
 
 oneStep :: Position -> Position -> Position
-oneStep short@(Position ma gha) long@(Position mb ghb) =
+oneStep (Position ma gha) long@(Position mb ghb) =
   let nextPos = (mb : ghb) !! (length (mb : ghb) - length (ma : gha)  - 1)
   in long { m = nextPos , gamehistory = ma : gha }

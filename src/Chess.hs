@@ -55,10 +55,7 @@ import qualified Data.Map.Strict                 as Map
 import           Data.Maybe
 import           Data.STRef
 import           GHC.Generics                             ( Generic )
-import           Prelude                           hiding ( foldl
-                                                          , foldl'
-                                                          , foldr
-                                                          )
+import           Prelude                           hiding ( foldr )
 
 data Color
   = White
@@ -200,10 +197,6 @@ points (Square c1 r1) (Square c2 r2) =
         let step = if b > a then 1 else (-1)
         in [a + step, (a + step) + step .. b - step]
 
--- points :: Square -> Square -> [Square]
--- points (Square c1 r1) (Square c2 r2) =
---  let toSquare (c, r) = Square c r in toSquare <$> points' (c1, r1) (c2, r2)
-
 canGoThere :: Position -> Square -> Square -> Bool
 canGoThere pos from to =
   all isNothing (fmap (pieceAt pos) (points from to))
@@ -282,7 +275,7 @@ positionTreeIgnoreCheckPromotionsCastle pos Black =
   blackPieces pos >>= positionsPrPiece pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
-positionsPrPiece pos@(Position snp gh) (s, p) = case p of
+positionsPrPiece pos@(Position snp _) (s, p) = case p of
   (Pawn _) ->
     let potentials = filter (canGoThere pos s . fst) $ toSquaresPawn pos (s, p)
     in  map
@@ -334,7 +327,7 @@ enPassant pos s@(Square c r)
   piece = if toPlay pos == White then Just (Pawn Black) else Just (Pawn White)
   fromSquare = if toPlay pos == White then Square c 7 else Square c 2
   jumpedHereJustNow :: Position -> Square -> Bool
-  jumpedHereJustNow pos' s' =
+  jumpedHereJustNow _ _ =
     if length (gamehistory pos) < 3 then False
     else
       let prevSnapshot = gamehistory pos !! 1
@@ -533,7 +526,7 @@ longRookPos White = Square 1 1
 longRookPos Black = Square 1 8
 
 haveNotMoved :: Position -> Piece -> Square -> Bool
-haveNotMoved pos'@(Position m' gh') p s =
+haveNotMoved pos'@(Position _ gh') p s =
   all (\pos -> pieceAt' pos s == Just p) gh' && pieceAt pos' s == Just p
 
 willNotPassCheck :: Position -> Square -> Square -> Bool
@@ -579,11 +572,6 @@ isDraw pos = isPatt pos || threefoldrepetition pos
 
 threefoldrepetition :: Position -> Bool
 threefoldrepetition (Position m' gh) = length (filter (== m') gh) > 1
-
-max' :: Ord a => [a] -> a
-max' []       = error "no max element in empty list"
-max' [x     ] = x
-max' (x : xs) = if x > max' xs then x else max' xs
 
 eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _) (Position m2 _) = m1 == m2
