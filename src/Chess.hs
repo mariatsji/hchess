@@ -259,14 +259,8 @@ positionTree pos =
 
 positionTreeIgnoreCheck :: Position -> [Position]
 positionTreeIgnoreCheck pos
-  | whiteToPlay pos =
-      let forceRegularMoves = whitePieces pos >>= positionsPrPiece pos >>= promoteBindFriendly White
-          forceCastle = castle pos
-      in forceRegularMoves <> forceCastle
-  | otherwise =
-      let forceRegularMoves = blackPieces pos >>= positionsPrPiece pos >>= promoteBindFriendly Black
-          forceCastle = castle pos
-      in forceRegularMoves <> forceCastle
+  | whiteToPlay pos = (whitePieces pos >>= positionsPrPiece pos >>= promoteBindFriendly White) <> castle pos
+  | otherwise = (blackPieces pos >>= positionsPrPiece pos >>= promoteBindFriendly Black) <> castle pos
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> [Position]
 positionTreeIgnoreCheckPromotionsCastle pos White =
