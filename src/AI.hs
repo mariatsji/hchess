@@ -1,53 +1,54 @@
-{-# LANGUAGE BangPatterns    #-}
+{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
 
 module AI
-  ( focused'
-  , focused
-  , focusedBest
-  , edgeGreed
-  , streamBest
-  , highestSoFar
-  , expandHorizon
-  , swapForBetter
-  , oneStep
-  ) where
+  ( focused',
+    focused,
+    focusedBest,
+    edgeGreed,
+    streamBest,
+    highestSoFar,
+    expandHorizon,
+    swapForBetter,
+    oneStep
+    )
+where
 
-import           Chess
-import           Control.Monad
-import           Data.List
-import           Data.Ord
-import           Evaluation
-import           Prelude           hiding (foldr)
-
+import Chess
 import Conduit
+import Control.Monad
+import Data.List
+import Data.Ord
+import Evaluation
+import Prelude hiding (foldr)
 
 streamBest :: Position -> Int -> Either (Position, Status) Position
 streamBest pos depth =
-  let bestWithinHorizon = 
+  let bestWithinHorizon =
         runConduitPure
-        $ yieldMany (expandHorizon depth pos)
-        .| mapC evaluate'
-        .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
+          $ yieldMany (expandHorizon depth pos)
+          .| mapC evaluate'
+          .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-  in if length (gamehistory best) > length (gamehistory pos) + 1
+   in if length (gamehistory best) > length (gamehistory pos) + 1
         then Right oneStep'
         else Left (oneStep', getStatus bestWithinHorizon)
 
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
-edgeGreed !pos depth
-      -- startEvaluation :: Evaluated
-      -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh
- =
+edgeGreed !pos depth =
+  -- startEvaluation :: Evaluated
+  -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh
   let bestWithinHorizon :: Evaluated
       -- print =  unsafePerformIO $ prettyEs $ map evaluate' $ expandHorizon depth gh
       bestWithinHorizon =
-        foldr1 (swapForBetter (toPlay pos)) $!
-        map evaluate' $ expandHorizon depth pos
+        foldr1 (swapForBetter (toPlay pos))
+          $! map evaluate'
+          $ expandHorizon depth pos
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-   in if length (gamehistory best) > length (gamehistory pos) + 1 then Right oneStep'
+   in if length (gamehistory best) > length (gamehistory pos) + 1
+        then Right oneStep'
         else Left (oneStep', getStatus bestWithinHorizon)
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
@@ -107,7 +108,7 @@ highestSoFar i ev soFar
 
 replaceLowest :: Evaluated -> [Evaluated] -> [Evaluated]
 replaceLowest e [] = [e]
-replaceLowest e (e':ex) =
+replaceLowest e (e' : ex) =
   if getScore e < getScore e'
     then e' : ex
     else replaceLowest e ex
@@ -122,7 +123,7 @@ lowestSoFar i ev soFar
 
 replaceHighest :: Evaluated -> [Evaluated] -> [Evaluated]
 replaceHighest e [] = [e]
-replaceHighest e (e':ex) =
+replaceHighest e (e' : ex) =
   if getScore e > getScore e'
     then e' : ex
     else replaceHighest e ex
@@ -138,5 +139,5 @@ getStatus (Evaluated _ _ x) = x
 
 oneStep :: Position -> Position -> Position
 oneStep (Position ma gha) long@(Position mb ghb) =
-  let nextPos = (mb : ghb) !! (length (mb : ghb) - length (ma : gha)  - 1)
-  in long { m = nextPos , gamehistory = ma : gha }
+  let nextPos = (mb : ghb) !! (length (mb : ghb) - length (ma : gha) - 1)
+   in long {m = nextPos, gamehistory = ma : gha}

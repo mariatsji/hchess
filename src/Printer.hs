@@ -1,15 +1,16 @@
 module Printer
-  ( pretty
-  , prettyE
-  , prettyEs
-  ) where
+  ( pretty,
+    prettyE,
+    prettyEs
+    )
+where
 
-import           Chess
+import Chess
 import qualified Data.ByteString.Char8 as UP
-import qualified Data.ByteString.UTF8  as UF
-import qualified Data.Map.Strict       as Map
-import           Evaluation
-import           GHC.Exts
+import qualified Data.ByteString.UTF8 as UF
+import qualified Data.Map.Strict as Map
+import Evaluation
+import GHC.Exts
 
 pretty :: Position -> IO ()
 pretty pos = do

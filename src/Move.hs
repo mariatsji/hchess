@@ -1,15 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Move
-  ( parseMove
-  , parseMoves
-  , parseFrom
-  , parseTo
-  ) where
+  ( parseMove,
+    parseMoves,
+    parseFrom,
+    parseTo
+    )
+where
 
-import           Chess
-import           Data.Char
-import           Text.Regex.TDFA
+import Chess
+import Data.Char
+import Text.Regex.TDFA
 
 parseMove :: String -> Position -> Either String Position
 parseMove s pos
@@ -19,13 +20,14 @@ parseMove s pos
             (toPlay pos)
             (Chess.movePiece pos (parseFrom s) (parseTo s))
             (Queen White)
-        colorToPlay = 
+        colorToPlay =
           if whiteToPlay pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
-     in if moveAttempt `elem` Chess.positionTree pos &&
-           colorToPlay == fmap colr (pieceAt pos fromSquare)
+     in if moveAttempt `elem` Chess.positionTree pos
+          && colorToPlay
+          == fmap colr (pieceAt pos fromSquare)
           then Right moveAttempt
           else Left "Could not do queen promotion"
   | s =~ ("[a-h][1-8].[a-h][1-8]R" :: String) =
@@ -39,8 +41,9 @@ parseMove s pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
-     in if moveAttempt `elem` Chess.positionTree pos &&
-           colorToPlay == fmap colr (pieceAt pos fromSquare)
+     in if moveAttempt `elem` Chess.positionTree pos
+          && colorToPlay
+          == fmap colr (pieceAt pos fromSquare)
           then Right moveAttempt
           else Left "Could not do rook promotion"
   | s =~ ("[a-h][1-8].[a-h][1-8]B" :: String) =
@@ -54,8 +57,9 @@ parseMove s pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
-     in if moveAttempt `elem` Chess.positionTree pos &&
-           colorToPlay == fmap colr (pieceAt pos fromSquare)
+     in if moveAttempt `elem` Chess.positionTree pos
+          && colorToPlay
+          == fmap colr (pieceAt pos fromSquare)
           then Right moveAttempt
           else Left "Could not do Bishop promotion"
   | s =~ ("[a-h][1-8].[a-h][1-8]K" :: String) =
@@ -69,8 +73,9 @@ parseMove s pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
-     in if moveAttempt `elem` Chess.positionTree pos &&
-           colorToPlay == fmap colr (pieceAt pos fromSquare)
+     in if moveAttempt `elem` Chess.positionTree pos
+          && colorToPlay
+          == fmap colr (pieceAt pos fromSquare)
           then Right moveAttempt
           else Left "Could not do Knight promotion"
   | s =~ ("[a-h][1-8].[a-h][1-8]" :: String) =
@@ -80,8 +85,9 @@ parseMove s pos
             then Just White
             else Just Black
         fromSquare = parseFrom s
-     in if any (eqPosition moveAttempt) (Chess.positionTree pos) &&
-           colorToPlay == fmap colr (pieceAt pos fromSquare)
+     in if any (eqPosition moveAttempt) (Chess.positionTree pos)
+          && colorToPlay
+          == fmap colr (pieceAt pos fromSquare)
           then Right moveAttempt
           else Left "Could not find move to be OK"
   | s =~ ("O-O-O" :: String) =
@@ -94,9 +100,11 @@ parseMove s pos
           if toPlay pos == White
             then Square 5 1
             else Square 5 8
-     in if [] /= castleAttempt &&
-           head castleAttempt `elem` Chess.positionTree pos &&
-           colorToPlay == fmap colr (pieceAt pos fromSquare)
+     in if [] /= castleAttempt
+          && head castleAttempt
+          `elem` Chess.positionTree pos
+          && colorToPlay
+          == fmap colr (pieceAt pos fromSquare)
           then Right $ head castleAttempt
           else Left "Could not do O-O-O"
   | s =~ ("O-O" :: String) =
@@ -109,9 +117,11 @@ parseMove s pos
           if toPlay pos == White
             then Square 5 1
             else Square 5 8
-     in if [] /= castleAttempt &&
-           head castleAttempt `elem` Chess.positionTree pos &&
-           colorToPlay == fmap colr (pieceAt pos fromSquare)
+     in if [] /= castleAttempt
+          && head castleAttempt
+          `elem` Chess.positionTree pos
+          && colorToPlay
+          == fmap colr (pieceAt pos fromSquare)
           then Right $ head castleAttempt
           else Left "Could not do O-O"
   | otherwise = Left $ "Unable to parse move with string " ++ s
@@ -120,24 +130,24 @@ parseMoves :: [String] -> Either String Position
 parseMoves moves =
   foldr
     (\s a -> a >>= parseMove s)
-  (Right Chess.startPosition :: Either String Position)
-  (reverse moves)
+    (Right Chess.startPosition :: Either String Position)
+    (reverse moves)
 
 parseFrom :: String -> Square
-parseFrom x = 
+parseFrom x =
   let cC = head x
       c = asInt cC
       rC = x !! 1
       r = digitToInt rC
-  in Square c r
+   in Square c r
 
 parseTo :: String -> Square
-parseTo x = 
+parseTo x =
   let cC = x !! 3
       c = asInt cC
       rC = x !! 4
       r = digitToInt rC
-  in Square c r
+   in Square c r
 
 asInt :: Char -> Int
 asInt 'a' = 1

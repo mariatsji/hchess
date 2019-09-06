@@ -1,28 +1,29 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DeriveGeneric   #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedLists #-}
 
 module Evaluation
-  ( Evaluated(..)
-  , evaluate
-  , evaluate'
-  , evaluate''
-  , pawnAdvancement
-  , toGH
-  ) where
+  ( Evaluated (..),
+    evaluate,
+    evaluate',
+    evaluate'',
+    pawnAdvancement,
+    toGH
+    )
+where
 
-import           Control.DeepSeq
-import           Data.List
-import qualified Data.Map.Strict  as Map
-import           GHC.Generics     (Generic)
-import           Prelude          hiding (foldr)
+import Chess
+import Control.DeepSeq
+import Data.List
+import qualified Data.Map.Strict as Map
+import GHC.Generics (Generic)
+import Prelude hiding (foldr)
 
-import           Chess
-
-data Evaluated =
-  Evaluated {-# UNPACK #-} !Position
-            {-# UNPACK #-} !Float
-            !Status
+data Evaluated
+  = Evaluated
+      {-# UNPACK #-} !Position
+      {-# UNPACK #-} !Float
+      !Status
   deriving (Eq, Show, Generic, NFData)
 
 evaluate' :: Position -> Evaluated
@@ -42,7 +43,7 @@ evaluate p =
       pawnAdv = force $ pawnAdvancement p
       develp = force $ development p
       safeK = force $ safeKing p
-  in whiteCount - blackCount + pawnAdv + develp + safeK
+   in whiteCount - blackCount + pawnAdv + develp + safeK
 
 evaluateGH :: Position -> Float
 evaluateGH gh
@@ -52,14 +53,18 @@ evaluateGH gh
 
 safeKing :: Position -> Float
 safeKing p
-  | (pieceAt p (Square 7 1) == Just (King White)) &&
-      (pieceAt p (Square 6 1) == Just (Rook White)) = 0.1
-  | (pieceAt p (Square 3 1) == Just (King White)) &&
-      (pieceAt p (Square 4 1) == Just (Rook White)) = 0.1
-  | (pieceAt p (Square 7 8) == Just (King Black)) &&
-      (pieceAt p (Square 6 8) == Just (Rook Black)) = -0.1
-  | (pieceAt p (Square 3 8) == Just (King Black)) &&
-      (pieceAt p (Square 4 8) == Just (Rook Black)) = -0.1
+  | (pieceAt p (Square 7 1) == Just (King White))
+      && (pieceAt p (Square 6 1) == Just (Rook White)) =
+    0.1
+  | (pieceAt p (Square 3 1) == Just (King White))
+      && (pieceAt p (Square 4 1) == Just (Rook White)) =
+    0.1
+  | (pieceAt p (Square 7 8) == Just (King Black))
+      && (pieceAt p (Square 6 8) == Just (Rook Black)) =
+    -0.1
+  | (pieceAt p (Square 3 8) == Just (King Black))
+      && (pieceAt p (Square 4 8) == Just (Rook Black)) =
+    -0.1
   | otherwise = 0.0
 
 development :: Position -> Float
@@ -106,7 +111,7 @@ pawnPosValue (Square 6 r, Pawn Black) = (9 - r' r) * (-0.06)
 pawnPosValue (Square 4 r, Pawn Black) = (9 - r' r) * (-0.07)
 pawnPosValue (Square 5 r, Pawn Black) = (9 - r' r) * (-0.07)
 pawnPosValue (Square _ r, Pawn Black) = (9 - r' r) * (-0.05)
-pawnPosValue _                        = 0.00
+pawnPosValue _ = 0.00
 
 r' :: Int -> Float
 r' n = fromIntegral n :: Float
@@ -119,15 +124,15 @@ countPieces (Position m' _) =
    in (sum $ map valueOf whiteList, sum $ map valueOf blackList)
 
 valueOf :: Piece -> Float
-valueOf (Pawn White)   = 1.0
-valueOf (Pawn Black)   = 1.0
+valueOf (Pawn White) = 1.0
+valueOf (Pawn Black) = 1.0
 valueOf (Knight White) = 3.0
 valueOf (Knight Black) = 3.0
 valueOf (Bishop White) = 3.0
 valueOf (Bishop Black) = 3.0
-valueOf (Rook White)   = 5.0
-valueOf (Rook Black)   = 5.0
-valueOf (Queen White)  = 9.0
-valueOf (Queen Black)  = 9.0
-valueOf (King White)   = 100.0
-valueOf (King Black)   = 100.0
+valueOf (Rook White) = 5.0
+valueOf (Rook Black) = 5.0
+valueOf (Queen White) = 9.0
+valueOf (Queen Black) = 9.0
+valueOf (King White) = 100.0
+valueOf (King Black) = 100.0

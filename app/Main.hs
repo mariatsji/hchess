@@ -2,12 +2,11 @@
 
 module Main where
 
-import           Control.DeepSeq
-
-import           AI
-import           Chess
-import           Move
-import           Printer
+import AI
+import Chess
+import Control.DeepSeq
+import Move
+import Printer
 
 main :: IO ()
 main = do
@@ -69,18 +68,17 @@ gameLoopHM !pos depth = do
       Printer.pretty newPos
       let status = determineStatus newPos
       if status == BlackToPlay
-        then
-          case force $ AI.streamBest newPos depth of
-            Right newPos2 -> do
-              Printer.pretty newPos2
-              gameLoopHM newPos2 depth
-            Left (pos'', status) -> do
-              Printer.pretty pos''
-              print status
-              main
-      else do
-        print status
-        gameLoopHM pos depth
+        then case force $ AI.streamBest newPos depth of
+          Right newPos2 -> do
+            Printer.pretty newPos2
+            gameLoopHM newPos2 depth
+          Left (pos'', status) -> do
+            Printer.pretty pos''
+            print status
+            main
+        else do
+          print status
+          gameLoopHM pos depth
 
 gameLoopHH :: Position -> IO ()
 gameLoopHH !pos = do
@@ -93,10 +91,11 @@ gameLoopHH !pos = do
       gameLoopHH pos
     Right pos' ->
       let newStatus = determineStatus pos'
-      in if newStatus == WhiteToPlay || newStatus == BlackToPlay
-        then if null l
-               then main
-               else gameLoopHH pos'
-        else do
-          print newStatus
-          main
+       in if newStatus == WhiteToPlay || newStatus == BlackToPlay
+            then
+              if null l
+                then main
+                else gameLoopHH pos'
+            else do
+              print newStatus
+              main
