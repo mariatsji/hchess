@@ -105,6 +105,7 @@ replacePieceAt snp square piece = Map.insert square piece snp
 
 pieceAt' :: Snapshot -> Square -> Maybe Piece
 pieceAt' sna squ = sna Map.!? squ
+{-# INLINE pieceAt' #-}
 
 searchForPieces :: Position -> (Piece -> Bool) -> [(Square, Piece)]
 searchForPieces pos searchpred = Map.toList $ Map.filterWithKey (const searchpred) (m pos)
