@@ -20,6 +20,7 @@ library
                       ,Evaluation
                       ,Move
                       ,AI
+                      ,Position
   build-depends:       base >= 4.7 && < 5
                       ,utf8-string
                       ,bytestring

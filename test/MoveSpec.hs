@@ -45,10 +45,10 @@ spec = do
             b `shouldBe` (False :: Bool)
         it "finds the correct traversed squares in a straight bishop-like move" $ do
             let squares = Chess.points (Square 5  3) (Square 7  5)
-            squares `shouldBe` ([(Square 6  4)] :: [Square])
+            squares `shouldBe` ([Square 6 4] :: [Square])
         it "finds the correct traversed squares in a straight rook-like move" $ do
             let squares = Chess.points (Square 1 1) (Square 1  4)
-            squares `shouldBe` ([(Square 1 2),(Square 1 3)] :: [Square])
+            squares `shouldBe` ([Square 1 2, Square 1 3] :: [Square])
         it "finds the correct traversed squares from h1 - a8" $ do
             let squares = Chess.points (Square 8  1) (Square 1  8)
             squares `shouldBe` ([(Square 7 2),(Square 6 3),(Square 5 4),(Square 4 5),(Square 3 6),(Square 2 7)] :: [Square])
