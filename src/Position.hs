@@ -106,21 +106,9 @@ replacePieceAt snp square piece = Map.insert square piece snp
 pieceAt' :: Snapshot -> Square -> Maybe Piece
 pieceAt' sna squ = sna Map.!? squ
 
-whitePieces :: Position -> [(Square, Piece)]
-whitePieces = Map.foldMapWithKey f . m
-  where
-    f :: Square -> Piece -> [(Square, Piece)]
-    f s p
-      | colr p == White = [(s, p)]
-      | otherwise = []
-
-blackPieces :: Position -> [(Square, Piece)]
-blackPieces = Map.foldMapWithKey f . m
-  where
-    f :: Square -> Piece -> [(Square, Piece)]
-    f s p
-      | colr p == Black = [(s, p)]
-      | otherwise = []
+searchForPieces :: Position -> (Piece -> Bool) -> [(Square, Piece)]
+searchForPieces pos searchpred = Map.toList $ Map.filterWithKey (const searchpred) (m pos)
+{-# INLINE searchForPieces #-}
 
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position

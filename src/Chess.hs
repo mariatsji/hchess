@@ -94,6 +94,14 @@ movePiece pos@(Position m' gh') from@(Square fc _) to@(Square tc tr)
     let newSnapshot = movePiece' m' from to
      in Position {m = newSnapshot, gamehistory = m' : gh'}
 
+whitePieces :: Position -> [(Square, Piece)]
+whitePieces pos = searchForPieces pos (\p -> colr p == White)
+{-# INLINE whitePieces #-}
+
+blackPieces :: Position -> [(Square, Piece)]
+blackPieces pos = searchForPieces pos (\p -> colr p == Black)
+{-# INLINE blackPieces #-}
+
 points :: Square -> Square -> [Square]
 points (Square c1 r1) (Square c2 r2) =
   let cline = line c1 c2
