@@ -7,6 +7,7 @@ extra-deps:
 - gtk-0.14.10
 - gtk-mac-integration-0.3.4.0
 - regex-tdfa-1.2.3.1
+- ghc-heap-view-0.6.0@sha256:9b36603788c294f18873c217a7dbe7d11af28353dad026c13116f557deba0d5b,3101
 
 flags: {}
 

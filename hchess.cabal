@@ -25,6 +25,7 @@ library
                       ,utf8-string
                       ,bytestring
                       ,containers
+                      ,unordered-containers
                       ,regex-tdfa
                       ,vector
                       ,parallel

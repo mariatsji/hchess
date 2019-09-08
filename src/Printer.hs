@@ -8,8 +8,9 @@ where
 import Chess
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
-import qualified Data.Map.Strict as Map
+import qualified Data.IntMap.Strict as Map
 import Evaluation
+import Position (hash, unHash)
 import GHC.Exts
 
 pretty :: Position -> IO ()
@@ -30,8 +31,8 @@ prettyEs = mapM_ prettyE
 rowify :: Position -> [[(Square, Maybe Piece)]]
 rowify (Position m' _) = reverse $ groupWith (\(Square _ r, _) -> r) (listWithEmpties m')
 
-listWithEmpties :: Map.Map Square Piece -> [(Square, Maybe Piece)]
-listWithEmpties m' = fmap (\s -> (s, m' Map.!? s)) board
+listWithEmpties :: Map.IntMap Piece -> [(Square, Maybe Piece)]
+listWithEmpties m' = fmap (\s -> (unHash s, Map.lookup s m')) (hash <$> board)
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =

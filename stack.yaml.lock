@@ -25,6 +25,13 @@ packages:
       sha256: 7dc7f994daab914b5e1bc74a614058c1f2eb10598458219232b5227c44deb37d
   original:
     hackage: regex-tdfa-1.2.3.1
+- completed:
+    hackage: ghc-heap-view-0.6.0@sha256:9b36603788c294f18873c217a7dbe7d11af28353dad026c13116f557deba0d5b,3101
+    pantry-tree:
+      size: 547
+      sha256: 473f4eae21b5d100661c139d4ca8cda820f0a25976eedf092970b8c4d2383b53
+  original:
+    hackage: ghc-heap-view-0.6.0@sha256:9b36603788c294f18873c217a7dbe7d11af28353dad026c13116f557deba0d5b,3101
 snapshots:
 - completed:
     size: 495801

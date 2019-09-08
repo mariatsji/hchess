@@ -15,7 +15,8 @@ where
 import Chess
 import Control.DeepSeq
 import Data.List
-import qualified Data.Map.Strict as Map
+import qualified Data.IntMap.Strict as Map
+import Position (toList')
 import GHC.Generics (Generic)
 import Prelude hiding (foldr)
 
@@ -68,7 +69,7 @@ safeKing p
   | otherwise = 0.0
 
 development :: Position -> Float
-development (Position m' _) = sum $ fmap scoreOfficerDevelopment (Map.toList m')
+development (Position m' _) = sum $ fmap scoreOfficerDevelopment (toList' m')
 
 scoreOfficerDevelopment :: (Square, Piece) -> Float
 scoreOfficerDevelopment (Square _ row, Knight White) =
@@ -98,7 +99,7 @@ scoreOfficerDevelopment (Square _ row, Rook Black) =
 scoreOfficerDevelopment _ = 0.0
 
 pawnAdvancement :: Position -> Float
-pawnAdvancement (Position m' _) = sum $ fmap pawnPosValue (Map.toList m')
+pawnAdvancement (Position m' _) = sum $ fmap pawnPosValue (toList' m')
 
 pawnPosValue :: (Square, Piece) -> Float
 pawnPosValue (Square 3 r, Pawn White) = r' r * 0.06

@@ -4,7 +4,8 @@
 module Position where
 
 import Control.DeepSeq (NFData)
-import qualified Data.Map.Strict as Map
+import Data.IntMap.Strict (IntMap)
+import qualified Data.IntMap.Strict as Map
 import Data.STRef
 import Control.Monad.ST
 import GHC.Generics (Generic)
@@ -27,7 +28,7 @@ data Square
       {-# UNPACK #-} !Int
   deriving (Eq, Ord, Show, Generic, NFData)
 
-type Snapshot = Map.Map Square Piece
+type Snapshot = IntMap Piece
 
 data Position
   = Position
@@ -35,6 +36,12 @@ data Position
         gamehistory :: [Snapshot]
         }
   deriving (Eq, Show, Generic, NFData)
+
+hash :: Square -> Map.Key
+hash (Square col row) = (row - 1) * 8 + (col - 1)
+
+unHash :: Map.Key -> Square
+unHash i = Square ((i `rem` 8) + 1) ((i `quot` 8) + 1)
 
 colr :: Piece -> Color
 colr (Pawn c) = c
@@ -47,8 +54,8 @@ colr (King c) = c
 startPosition :: Position
 startPosition = Position
   { m =
-      Map.fromList
-        [ (Square 1 1, Rook White),
+      fromList'
+         [(Square 1 1, Rook White),
           (Square 2 1, Knight White),
           (Square 3 1, Bishop White),
           (Square 4 1, Queen White),
@@ -88,7 +95,7 @@ emptyBoard :: Position
 emptyBoard = Position {m = Map.empty, gamehistory = []}
 
 movePiece' :: Snapshot -> Square -> Square -> Snapshot
-movePiece' snp from to = case Map.lookup from snp of
+movePiece' snp from to = case Map.lookup (hash from) snp of
   Nothing ->
     error $ "should be a piece at " <> show from <> " in pos " <> show snp
   (Just piece) -> runST $ do
@@ -98,25 +105,41 @@ movePiece' snp from to = case Map.lookup from snp of
     readSTRef pRef
 
 removePieceAt :: Snapshot -> Square -> Snapshot
-removePieceAt snp square = Map.delete square snp
+removePieceAt snp square = Map.delete (hash square) snp
 
 replacePieceAt :: Snapshot -> Square -> Piece -> Snapshot
-replacePieceAt snp square piece = Map.insert square piece snp
+replacePieceAt snp square piece = Map.insert (hash square) piece snp
 
 pieceAt' :: Snapshot -> Square -> Maybe Piece
-pieceAt' sna squ = sna Map.!? squ
+pieceAt' sna squ = sna Map.!? hash squ
 {-# INLINE pieceAt' #-}
 
 searchForPieces :: Position -> (Piece -> Bool) -> [(Square, Piece)]
-searchForPieces pos searchpred = Map.toList $ Map.filterWithKey (const searchpred) (m pos)
+searchForPieces pos searchpred = 
+  let map' = Map.filterWithKey (const searchpred) (m pos)
+  in toList' map'
 {-# INLINE searchForPieces #-}
 
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
-promoteTo c pos@(Position m' _) p = pos {m = Map.fromList $ fmap (prom c p) (Map.toList m')}
+promoteTo c pos@(Position m' _) p = 
+  let asList = toList' m'
+      asListPromoted = fmap (prom c p) asList
+      asMapAgain = fromList' asListPromoted
+  in pos {m = asMapAgain}
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
   if r == 8 && p2 == Pawn White then (s, p1) else (s, p2)
 prom Black p1 (s@(Square _ r), p2) =
   if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
+
+toList' :: IntMap Piece -> [(Square, Piece)]
+toList' l = first unHash <$> Map.toList l
+
+fromList' :: [(Square, Piece)] -> IntMap Piece
+fromList' l = Map.fromList $ first hash <$> l
+
+first :: (a -> b) -> (a, c) -> (b, c)
+first f (a,c) = (f a, c)
+{-# INLINE first #-}
