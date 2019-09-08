@@ -213,3 +213,14 @@ time                 39.68 ms   (39.06 ms .. 40.58 ms)
 mean                 41.35 ms   (40.58 ms .. 42.65 ms)
 std dev              1.964 ms   (1.442 ms .. 2.823 ms)
 variance introduced by outliers: 13% (moderately inflated)
+
+IntMap
+12,337,992,040 bytes allocated in the heap
+      28,041,872 bytes copied during GC
+         219,176 bytes maximum residency (23 sample(s))
+          92,336 bytes maximum slop
+               0 MB total memory in use (0 MB lost due to fragmentation)
+
+real	0m6.052s
+user	0m5.901s
+sys	0m0.161s

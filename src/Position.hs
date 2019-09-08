@@ -39,9 +39,11 @@ data Position
 
 hash :: Square -> Map.Key
 hash (Square col row) = (row - 1) * 8 + (col - 1)
+{-# INLINE hash #-}
 
 unHash :: Map.Key -> Square
 unHash i = Square ((i `rem` 8) + 1) ((i `quot` 8) + 1)
+{-# INLINE unHash #-}
 
 colr :: Piece -> Color
 colr (Pawn c) = c
