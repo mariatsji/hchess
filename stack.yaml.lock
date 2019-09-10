@@ -5,27 +5,6 @@
 
 packages:
 - completed:
-    hackage: gtk-0.14.10@sha256:3ab0b91fa36e3a8bc6fba38d8b08b8b36fc34c5b3ac4a6bb844e9997b5b8bcc0,16563
-    pantry-tree:
-      size: 21349
-      sha256: a58f6d3ae62a671aad19db1e25808359e900aca5f5285de3b992bec9dd6044a2
-  original:
-    hackage: gtk-0.14.10
-- completed:
-    hackage: gtk-mac-integration-0.3.4.0@sha256:97b61234c0a3c746468bc11d22a69aea62fa0bc982850aea4e0a3eb92545639f,2471
-    pantry-tree:
-      size: 864
-      sha256: f65d56c0cba890ceaf9cb4e9df6f26e78c191fa00181d2651381851ffd9bced8
-  original:
-    hackage: gtk-mac-integration-0.3.4.0
-- completed:
-    hackage: regex-tdfa-1.2.3.1@sha256:b9583de2e12810d6b2a13fe63254ee8b9d0f0558382527394635dd2af9205764,3640
-    pantry-tree:
-      size: 1745
-      sha256: 7dc7f994daab914b5e1bc74a614058c1f2eb10598458219232b5227c44deb37d
-  original:
-    hackage: regex-tdfa-1.2.3.1
-- completed:
     hackage: ghc-heap-view-0.6.0@sha256:9b36603788c294f18873c217a7dbe7d11af28353dad026c13116f557deba0d5b,3101
     pantry-tree:
       size: 547
@@ -34,7 +13,7 @@ packages:
     hackage: ghc-heap-view-0.6.0@sha256:9b36603788c294f18873c217a7dbe7d11af28353dad026c13116f557deba0d5b,3101
 snapshots:
 - completed:
-    size: 495801
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/13/11.yaml
-    sha256: 835062158db2b3ebb8b9525d9662a02ebf9783e8f6a08a64684cd5546f847152
-  original: lts-13.11
+    size: 523448
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/14/1.yaml
+    sha256: 0045b9bae36c3bb2dd374c29b586389845af1557eea0423958d152fc500d4fbf
+  original: lts-14.1

@@ -20,5 +20,5 @@
     },
   },
   "editor.autoClosingBrackets": false,
-  "haskero.intero.ignoreDotGhci": false,
+  "haskero.intero.stackPath": "./stackw",
 }

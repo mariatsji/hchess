@@ -3,6 +3,7 @@
 
 module Position where
 
+import Bunch
 import Control.DeepSeq (NFData)
 import Data.IntMap.Strict (IntMap)
 import qualified Data.IntMap.Strict as Map
@@ -56,7 +57,7 @@ colr (King c) = c
 startPosition :: Position
 startPosition = Position
   { m =
-      fromList'
+      fromList' $ Bunch 
          [(Square 1 1, Rook White),
           (Square 2 1, Knight White),
           (Square 3 1, Bishop White),
@@ -115,7 +116,7 @@ replacePieceAt snp square piece = Map.insert (hash square) piece snp
 pieceAt' :: Snapshot -> Square -> Maybe Piece
 pieceAt' sna squ = sna Map.!? hash squ
 
-searchForPieces :: Position -> (Piece -> Bool) -> [(Square, Piece)]
+searchForPieces :: Position -> (Piece -> Bool) -> Bunch (Square, Piece)
 searchForPieces pos searchpred = 
   let map' = Map.filterWithKey (const searchpred) (m pos)
   in toList' map'
@@ -135,11 +136,11 @@ prom White p1 (s@(Square _ r), p2) =
 prom Black p1 (s@(Square _ r), p2) =
   if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
 
-toList' :: IntMap Piece -> [(Square, Piece)]
-toList' l = first unHash <$> Map.toList l
+toList' :: IntMap Piece -> Bunch (Square, Piece)
+toList' l = Bunch $ first unHash <$> Map.toList l
 
-fromList' :: [(Square, Piece)] -> IntMap Piece
-fromList' l = Map.fromList $ first hash <$> l
+fromList' :: Bunch (Square, Piece) -> IntMap Piece
+fromList' l = Map.fromList $ first hash <$> unBunch l
 
 first :: (a -> b) -> (a, c) -> (b, c)
 first f (a,c) = (f a, c)

@@ -21,6 +21,7 @@ library
                       ,Move
                       ,AI
                       ,Position
+                      ,Bunch
   build-depends:       base >= 4.7 && < 5
                       ,utf8-string
                       ,bytestring

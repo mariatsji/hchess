@@ -48,6 +48,7 @@ module Chess
     )
 where
 
+import Bunch
 import Control.DeepSeq
 import Data.List
 import Data.Maybe
@@ -94,10 +95,10 @@ movePiece pos@(Position m' gh') from@(Square fc _) to@(Square tc tr)
     let newSnapshot = movePiece' m' from to
      in Position {m = newSnapshot, gamehistory = m' : gh'}
 
-whitePieces :: Position -> [(Square, Piece)]
+whitePieces :: Position -> Bunch (Square, Piece)
 whitePieces pos = searchForPieces pos (\p -> colr p == White)
 
-blackPieces :: Position -> [(Square, Piece)]
+blackPieces :: Position -> Bunch (Square, Piece)
 blackPieces pos = searchForPieces pos (\p -> colr p == Black)
 
 points :: Square -> Square -> [Square]
@@ -155,18 +156,18 @@ positionTree pos =
 
 positionTreeIgnoreCheck :: Position -> [Position]
 positionTreeIgnoreCheck pos
-  | whiteToPlay pos = (whitePieces pos >>= positionsPrPiece pos >>= promoteBindFriendly White) <> castle pos
-  | otherwise = (blackPieces pos >>= positionsPrPiece pos >>= promoteBindFriendly Black) <> castle pos
+  | whiteToPlay pos = (unBunch (whitePieces pos) >>= positionsPrPiece pos >>= promoteBindFriendly White) <> castle pos
+  | otherwise = (unBunch (blackPieces pos) >>= positionsPrPiece pos >>= promoteBindFriendly Black) <> castle pos
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> [Position]
 positionTreeIgnoreCheckPromotionsCastle pos White =
-  whitePieces pos >>= positionsPrPiece pos
+  unBunch (whitePieces pos) >>= positionsPrPiece pos
 positionTreeIgnoreCheckPromotionsCastle pos Black =
-  blackPieces pos >>= positionsPrPiece pos
+  unBunch (blackPieces pos) >>= positionsPrPiece pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos@(Position snp _) (s, p) = case p of
-  (Pawn _) ->
+  Pawn _ ->
     let potentials = filter (canGoThere pos s . fst) $ toSquaresPawn pos (s, p)
      in map
           ( \t -> case snd t of
@@ -174,17 +175,17 @@ positionsPrPiece pos@(Position snp _) (s, p) = case p of
               Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
             )
           potentials
-  (Knight _) ->
+  Knight _ ->
     fmap
       (movePiece pos s)
       (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
-  (Bishop _) ->
+  Bishop _ ->
     fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
-  (Rook _) ->
+  Rook _ ->
     fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresRook s)
-  (Queen _) ->
+  Queen _ ->
     fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
-  (King _) ->
+  King _ ->
     fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
@@ -303,7 +304,7 @@ toSquaresRook s@(Square c r) =
 
 -- queens
 toSquaresQueen :: Square -> [Square]
-toSquaresQueen s = toSquaresBishop s `mappend` toSquaresRook s
+toSquaresQueen s = toSquaresBishop s <> toSquaresRook s
 
 -- kings
 toSquaresKing :: Square -> [Square]
