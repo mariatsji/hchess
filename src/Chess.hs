@@ -96,11 +96,9 @@ movePiece pos@(Position m' gh') from@(Square fc _) to@(Square tc tr)
 
 whitePieces :: Position -> [(Square, Piece)]
 whitePieces pos = searchForPieces pos (\p -> colr p == White)
-{-# INLINE whitePieces #-}
 
 blackPieces :: Position -> [(Square, Piece)]
 blackPieces pos = searchForPieces pos (\p -> colr p == Black)
-{-# INLINE blackPieces #-}
 
 points :: Square -> Square -> [Square]
 points (Square c1 r1) (Square c2 r2) =
@@ -144,7 +142,6 @@ makeMoves = foldl (\p x -> uncurry (movePiece p) x)
 -- CAF now? would be nice
 pieceAt :: Position -> Square -> Maybe Piece
 pieceAt pos = pieceAt' (m pos)
-{-# INLINE pieceAt #-}
 
 whiteToPlay :: Position -> Bool
 whiteToPlay = even . length . gamehistory
@@ -327,15 +324,12 @@ type PerformCastleF = Snapshot -> Color -> Snapshot
 
 castle :: Position -> [Position]
 castle pos = castleShort pos (toPlay pos) <> castleLong pos (toPlay pos)
-{-# INLINE castle #-}
 
 castleShort :: Position -> Color -> [Position]
 castleShort pos color = castle' pos color kingPos shortRookPos doCastleShort
-{-# INLINE castleShort #-}
 
 castleLong :: Position -> Color -> [Position]
 castleLong pos color = castle' pos color kingPos longRookPos doCastleLong
-{-# INLINE castleLong #-}
 
 castle'
   :: Position -> Color -> KingPos -> RookPos -> PerformCastleF -> [Position]
@@ -355,7 +349,6 @@ castle' pos color kingPosF rookPosF doCastleF =
       let newSnapshot = doCastleF (m pos) color
        in [Position {m = newSnapshot, gamehistory = m pos : gamehistory pos}]
     else []
-{-# INLINE castle' #-}
 
 doCastleShort :: Snapshot -> Color -> Snapshot
 doCastleShort pos White =
@@ -376,7 +369,6 @@ doCastleShort pos Black =
       )
     (Square 6 8)
     (Rook Black)
-{-# INLINE doCastleShort #-}
 
 doCastleLong :: Snapshot -> Color -> Snapshot
 doCastleLong pos White =
@@ -397,31 +389,25 @@ doCastleLong pos Black =
       )
     (Square 4 8)
     (Rook Black)
-{-# INLINE doCastleLong #-}
 
 vacantBetween :: Position -> Square -> Square -> Bool
 vacantBetween pos from to = all (vacantAt pos) $ points from to
-{-# INLINE vacantBetween #-}
 
 kingPos :: Color -> Square
 kingPos White = Square 5 1
 kingPos Black = Square 5 8
-{-# INLINE kingPos #-}
 
 shortRookPos :: Color -> Square
 shortRookPos White = Square 8 1
 shortRookPos Black = Square 8 8
-{-# INLINE shortRookPos #-}
 
 longRookPos :: Color -> Square
 longRookPos White = Square 1 1
 longRookPos Black = Square 1 8
-{-# INLINE longRookPos #-}
 
 haveNotMoved :: Position -> Piece -> Square -> Bool
 haveNotMoved pos'@(Position _ gh') p s =
   all (\pos -> pieceAt' pos s == Just p) gh' && pieceAt pos' s == Just p
-{-# INLINE haveNotMoved #-}
 
 willNotPassCheck :: Position -> Square -> Square -> Bool
 willNotPassCheck pos (Square 5 1) (Square 8 1) =
@@ -443,16 +429,13 @@ willNotPassCheck _ s1 s2 =
     <> " and "
     <> show s2
     <> " as castling squares"
-{-# INLINE willNotPassCheck #-}
 
 insideBoard :: Square -> Bool
 insideBoard (Square c r) = c >= 1 && c <= 8 && r >= 1 && r <= 8
-{-# INLINE insideBoard #-}
 
 insideBoard' :: (Square, Maybe Square) -> Bool
 insideBoard' (s, Nothing) = insideBoard s
 insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
-{-# INLINE insideBoard' #-}
 
 isInCheck :: Position -> Color -> Bool
 isInCheck pos clr =
@@ -460,38 +443,30 @@ isInCheck pos clr =
         positionTreeIgnoreCheckPromotionsCastle pos (succ' clr)
       anyPWithoutKing = anyPosWithoutKing clr potentialNextPositions
    in anyPWithoutKing
-{-# INLINE isInCheck #-}
 
 isCheckMate :: Position -> Bool
 isCheckMate pos = isInCheck pos (toPlay pos) && null (positionTree pos)
-{-# INLINE isCheckMate #-}
 
 isDraw :: Position -> Bool
 isDraw pos = isPatt pos || threefoldrepetition pos
-{-# INLINE isDraw #-}
 
 threefoldrepetition :: Position -> Bool
 threefoldrepetition (Position m' gh) = length (filter (== m') gh) > 1
-{-# INLINE threefoldrepetition #-}
 
 eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _) (Position m2 _) = m1 == m2
-{-# INLINE eqPosition #-}
 
 isPatt :: Position -> Bool
 isPatt pos = not (isInCheck pos (toPlay pos)) && null (positionTree pos)
-{-# INLINE isPatt #-}
 
 anyPosWithoutKing :: Color -> [Position] -> Bool
 anyPosWithoutKing col pos = not $ allHasKing col pos
-{-# INLINE anyPosWithoutKing #-}
 
 allHasKing :: Color -> [Position] -> Bool
 allHasKing White poses =
   all (any (\(_, p) -> p == King White) . whitePieces) poses
 allHasKing Black poses =
   all (any (\(_, p) -> p == King Black) . blackPieces) poses
-{-# INLINE allHasKing #-}
 
 determineStatus :: Position -> Status
 determineStatus pos
@@ -500,4 +475,3 @@ determineStatus pos
   | isDraw pos = Remis
   | toPlay pos == White = WhiteToPlay
   | otherwise = BlackToPlay
-{-# INLINE determineStatus #-}
