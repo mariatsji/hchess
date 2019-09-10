@@ -15,9 +15,7 @@ where
 import Bunch
 import Chess
 import Control.DeepSeq
-import Data.List
-import qualified Data.IntMap.Strict as Map
-import Position (toList')
+import Position (toList', partitionPieces)
 import GHC.Generics (Generic)
 import Prelude hiding (foldr)
 
@@ -120,10 +118,9 @@ r' n = fromIntegral n :: Float
 
 -- (whitepieces, blackpieces)
 countPieces :: Position -> (Float, Float)
-countPieces (Position m' _) =
-  let pieces = Map.elems m'
-      (whiteList, blackList) = partition (\p -> colr p == White) pieces
-   in (sum $ map valueOf whiteList, sum $ map valueOf blackList)
+countPieces p =
+  let (whiteList, blackList) = partitionPieces p
+  in (sum $ fmap valueOf whiteList, sum $ fmap valueOf blackList)
 
 valueOf :: Piece -> Float
 valueOf (Pawn White) = 1.0
