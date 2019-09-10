@@ -96,34 +96,26 @@ focused' (Evaluated !pos _ BlackToPlay) (d, w) =
 focused' !e _ = Bunch [e]
 
 highest' :: Int -> Bunch Evaluated -> Bunch Evaluated
-highest' cutoff = foldr (highestSoFar cutoff) (Bunch [])
+highest' cutoff = foldr (highestSoFar cutoff) emptyBunch
 
 highestSoFar :: Int -> Evaluated -> Bunch Evaluated -> Bunch Evaluated
 highestSoFar i ev soFar
   | length soFar < i = Bunch (pure ev) <> soFar
   | otherwise = replaceLowest ev soFar
 
-replaceLowest :: Evaluated -> Bunch Evaluated -> Bunch Evaluated -- TODO make agnostic to Bunch implementation
-replaceLowest e (Bunch []) = Bunch [e]
-replaceLowest e (Bunch (e' : ex)) =
-  if getScore e < getScore e'
-    then Bunch (e' : ex)
-    else replaceLowest e (Bunch ex)
+replaceLowest :: Evaluated -> Bunch Evaluated -> Bunch Evaluated
+replaceLowest e = foldl' (\acc c -> if getScore e < getScore c then singleton e <> acc else singleton c <> acc) emptyBunch
 
 lowest' :: Int -> Bunch Evaluated -> Bunch Evaluated
-lowest' cutoff = foldr (lowestSoFar cutoff) (Bunch [])
+lowest' cutoff = foldr (lowestSoFar cutoff) emptyBunch
 
 lowestSoFar :: Int -> Evaluated -> Bunch Evaluated -> Bunch Evaluated
 lowestSoFar i ev soFar
   | length soFar < i = Bunch (pure ev) <> soFar
   | otherwise = replaceHighest ev soFar
 
-replaceHighest :: Evaluated -> Bunch Evaluated -> Bunch Evaluated -- TODO make agnostic of Bunch implementation
-replaceHighest e (Bunch []) = Bunch [e]
-replaceHighest e (Bunch (e' : ex)) =
-  if getScore e > getScore e'
-    then Bunch (e' : ex)
-    else replaceHighest e (Bunch ex)
+replaceHighest :: Evaluated -> Bunch Evaluated -> Bunch Evaluated
+replaceHighest e = foldl' (\acc c -> if getScore e > getScore c then singleton e <> acc else singleton c <> acc) emptyBunch
 
 getScore :: Evaluated -> Float
 getScore (Evaluated _ x _) = x
