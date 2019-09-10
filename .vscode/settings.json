@@ -20,6 +20,5 @@
     },
   },
   "editor.autoClosingBrackets": false,
-  "editor.autoIndent": true,
   "haskero.intero.ignoreDotGhci": false,
 }
