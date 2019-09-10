@@ -5,6 +5,7 @@ import Chess
 import Control.Exception (evaluate)
 import Data.Either
 import qualified Data.Map.Lazy as Map
+import Data.Maybe (isNothing)
 import Move
 import Printer
 import Test.Hspec
@@ -52,10 +53,10 @@ spec = do
       squares `shouldBe` ([Square 1 2, Square 1 3] :: [Square])
     it "finds the correct traversed squares from h1 - a8" $ do
       let squares = Chess.points (Square 8 1) (Square 1 8)
-      squares `shouldBe` ([(Square 7 2), (Square 6 3), (Square 5 4), (Square 4 5), (Square 3 6), (Square 2 7)] :: [Square])
+      squares `shouldBe` ([Square 7 2, Square 6 3, Square 5 4, Square 4 5, Square 3 6, Square 2 7] :: [Square])
     it "finds toSquares for pawns in startrow" $ do
-      let squares = Chess.toSquaresPawn Chess.startPosition ((Square 5 2), Pawn White)
-      squares `shouldMatchList` ([((Square 5 3), Nothing), ((Square 5 4), Nothing)] :: [(Square, Maybe Square)])
+      let squares = Chess.toSquaresPawn Chess.startPosition (Square 5 2, Pawn White)
+      squares `shouldMatchList` ([(Square 5 3, Nothing), (Square 5 4, Nothing)] :: [(Square, Maybe Square)])
     it "recognizes a position with a king" $ do
       let b = Chess.anyPosWithoutKing White (Bunch [Chess.startPosition])
       b `shouldBe` (False :: Bool)
@@ -68,7 +69,7 @@ spec = do
     it "knows that white is in check" $ do
       let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
       p' `shouldSatisfy` isRight
-      let p = fromRight Chess.startPosition $ p'
+      let p = fromRight Chess.startPosition p'
       Chess.isInCheck p (toPlay p) `shouldBe` (True :: Bool)
     it "knows that white is not in check" $ do
       let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
@@ -78,10 +79,10 @@ spec = do
     it "promotes pawns for Black " $ do
       let m1 = Chess.replacePieceAt (m Chess.emptyBoard) (Square 8 1) (Pawn Black)
       let p2 = Chess.promote Black (Position m1 [m Chess.startPosition])
-      Chess.pieceAt (head p2) (Square 8 1) `shouldBe` (Just (Queen Black))
-      Chess.pieceAt (head $ tail p2) (Square 8 1) `shouldBe` (Just (Rook Black))
-      Chess.pieceAt (head $ tail $ tail p2) (Square 8 1) `shouldBe` (Just (Bishop Black))
-      Chess.pieceAt (last $ p2) (Square 8 1) `shouldBe` (Just (Knight Black))
+      Chess.pieceAt (head p2) (Square 8 1) `shouldBe` Just (Queen Black)
+      Chess.pieceAt (head $ tail p2) (Square 8 1) `shouldBe` Just (Rook Black)
+      Chess.pieceAt (head $ tail $ tail p2) (Square 8 1) `shouldBe` Just (Bishop Black)
+      Chess.pieceAt (last p2) (Square 8 1) `shouldBe` Just (Knight Black)
     it "finds promotion positions for White" $ do
       let m1 = Chess.replacePieceAt (m Chess.emptyBoard) (Square 5 8) (Pawn White)
       let t = Chess.promoteBindFriendly White (Position m1 [])
@@ -89,12 +90,12 @@ spec = do
     it "leaves unpromotable boards alone for White" $ do
       let m1 = Chess.replacePieceAt (m Chess.emptyBoard) (Square 5 7) (Pawn White)
       let t = Chess.promoteBindFriendly White (Position m1 [])
-      t `shouldBe` (Bunch [Position m1 []])
+      t `shouldBe` Bunch [Position m1 []]
     it "promotes passed pawns for Black in the position tree" $ do
       let m1 = Chess.replacePieceAt (m Chess.emptyBoard) (Square 5 2) (Pawn Black)
           p1 = Position m1 [m Chess.startPosition]
       let t = Chess.positionTree p1
-      Chess.pieceAt (unsafeHead t) (Square 5 1) `shouldBe` (Just (Queen Black))
+      Chess.pieceAt (unsafeHead t) (Square 5 1) `shouldBe` Just (Queen Black)
       length t `shouldBe` (4 :: Int)
     it "does a long castle for black when the startpos is used" $ do
       let m1 = Chess.removePieceAt (m Chess.startPosition) (Square 2 8)
@@ -103,15 +104,15 @@ spec = do
           p = Position m3 [m2, m1, m Chess.startPosition]
           c = Chess.castleLong p Black
       length c `shouldBe` (1 :: Int)
-      Chess.pieceAt (head c) (Square 3 8) `shouldBe` (Just (King Black))
-      Chess.pieceAt (head c) (Square 4 8) `shouldBe` (Just (Rook Black))
+      Chess.pieceAt (head c) (Square 3 8) `shouldBe` Just (King Black)
+      Chess.pieceAt (head c) (Square 4 8) `shouldBe` Just (Rook Black)
     it "includes long castle for white in legal moves" $ do
       let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]
       let p' = Move.parseMoves moves
       p' `shouldSatisfy` isRight
       let p = fromRight Chess.startPosition p'
       let legals = Chess.positionTree p
-      let kingMoves = filter' (\p -> pieceAt p (Square 5 1) == Nothing) legals
+      let kingMoves = filter' (\p -> isNothing (pieceAt p (Square 5 1))) legals
       length kingMoves `shouldBe` (2 :: Int)
     it "parses a long castle for white" $ do
       let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]
@@ -121,74 +122,74 @@ spec = do
           p2' = Move.parseMove "O-O-O" p
       p2' `shouldSatisfy` isRight
       let p2 = fromRight Chess.startPosition p2'
-      length (gamehistory p2) - (length (gamehistory p)) `shouldBe` (1 :: Int)
+      length (gamehistory p2) - length (gamehistory p) `shouldBe` (1 :: Int)
     it "white does not castle through check" $ do
       let p =
             Chess.makeMoves Chess.startPosition
-              [ ((Square 5 2), (Square 5 4)),
-                ((Square 5 7), (Square 5 5)),
-                ((Square 7 1), (Square 6 3)),
-                ((Square 2 8), (Square 3 6)),
-                ((Square 6 1), (Square 2 5)),
-                ((Square 4 7), (Square 4 6)),
-                ((Square 2 1), (Square 3 3)),
-                ((Square 4 8), (Square 7 5)),
-                ((Square 3 3), (Square 4 5)),
-                ((Square 7 5), (Square 7 2))
+              [ (Square 5 2, Square 5 4),
+                (Square 5 7, Square 5 5),
+                (Square 7 1, Square 6 3),
+                (Square 2 8, Square 3 6),
+                (Square 6 1, Square 2 5),
+                (Square 4 7, Square 4 6),
+                (Square 2 1, Square 3 3),
+                (Square 4 8, Square 7 5),
+                (Square 3 3, Square 4 5),
+                (Square 7 5, Square 7 2)
                 ]
       let p2 = Chess.castleShort p White
       p2 `shouldBe` []
     it "lets white castle from moves out of the opening" $ do
       let p =
             Chess.makeMoves Chess.startPosition
-              [ ((Square 5 2), (Square 5 4)),
-                ((Square 5 7), (Square 5 5)),
-                ((Square 7 1), (Square 6 3)),
-                ((Square 2 8), (Square 3 6)),
-                ((Square 6 1), (Square 2 5)),
-                ((Square 4 7), (Square 4 6))
+              [ (Square 5 2, Square 5 4),
+                (Square 5 7, Square 5 5),
+                (Square 7 1, Square 6 3),
+                (Square 2 8, Square 3 6),
+                (Square 6 1, Square 2 5),
+                (Square 4 7, Square 4 6)
                 ]
       let t = Chess.positionTree p
-      let kingMoves = filter' (\p -> pieceAt p (Square 5 1) == Nothing) t
+      let kingMoves = filter' (\p -> isNothing (pieceAt p (Square 5 1))) t
       length kingMoves `shouldBe` (3 :: Int)
     it "finds two en passant moves for white" $ do
       let p =
             Chess.makeMoves Chess.startPosition
-              [ ((Square 5 2), (Square 5 4)),
-                ((Square 2 8), (Square 1 6)),
-                ((Square 5 4), (Square 5 5)),
-                ((Square 1 6), (Square 2 8)),
-                ((Square 3 2), (Square 3 4)),
-                ((Square 2 8), (Square 1 6)),
-                ((Square 3 4), (Square 3 5)),
-                ((Square 4 7), (Square 4 5))
+              [ (Square 5 2, Square 5 4),
+                (Square 2 8, Square 1 6),
+                (Square 5 4, Square 5 5),
+                (Square 1 6, Square 2 8),
+                (Square 3 2, Square 3 4),
+                (Square 2 8, Square 1 6),
+                (Square 3 4, Square 3 5),
+                (Square 4 7, Square 4 5)
                 ]
       let t = Chess.positionTree p
-      let cPawnMoves = filter' (\p -> pieceAt p (Square 3 5) == Nothing) t
+      let cPawnMoves = filter' (\p -> isNothing (pieceAt p (Square 3 5))) t
       length cPawnMoves `shouldBe` (2 :: Int)
-      let ePawnMoves = filter' (\p -> pieceAt p (Square 5 5) == Nothing) t
+      let ePawnMoves = filter' (\p -> isNothing (pieceAt p (Square 5 5))) t
       length ePawnMoves `shouldBe` (2 :: Int)
     it "counts occurrences of a position in a game history" $ do
       let p =
             Chess.makeMoves Chess.startPosition
-              [ ((Square 2 1), (Square 3 3)),
-                ((Square 2 8), (Square 1 6)),
-                ((Square 3 3), (Square 2 1)),
-                ((Square 1 6), (Square 2 8)),
-                ((Square 2 1), (Square 3 3)),
-                ((Square 2 8), (Square 1 6)),
-                ((Square 3 3), (Square 2 1)),
-                ((Square 1 6), (Square 2 8))
+              [ (Square 2 1, Square 3 3),
+                (Square 2 8, Square 1 6),
+                (Square 3 3, Square 2 1),
+                (Square 1 6, Square 2 8),
+                (Square 2 1, Square 3 3),
+                (Square 2 8, Square 1 6),
+                (Square 3 3, Square 2 1),
+                (Square 1 6, Square 2 8)
                 ]
       Chess.threefoldrepetition p `shouldBe` True
     it "does not trigger 3-fold-repetition rule out of the blue" $ do
       let p =
             Chess.makeMoves Chess.startPosition
-              [ ((Square 5 2), (Square 5 4)),
-                ((Square 1 7), (Square 1 5)),
-                ((Square 4 2), (Square 4 4)),
-                ((Square 1 5), (Square 1 4)),
-                ((Square 1 2), (Square 1 3))
+              [ (Square 5 2, Square 5 4),
+                (Square 1 7, Square 1 5),
+                (Square 4 2, Square 4 4),
+                (Square 1 5, Square 1 4),
+                (Square 1 2, Square 1 3)
                 ]
       Chess.threefoldrepetition p `shouldBe` False
     it "parses an en passant move for black" $ do
@@ -208,7 +209,7 @@ spec = do
       let moves = ["e2-e4", "a7-a5", "e4-e5", "a5-a4", "e5-e6", "a4-a3", "b2-b3"]
       let p = Move.parseMoves moves
       let t = Chess.positionTree (fromRight Chess.startPosition p)
-      let bPawnMoves = filter' (\p -> pieceAt p (Square 1 3) == Nothing) t
+      let bPawnMoves = filter' (\p -> isNothing (pieceAt p (Square 1 3))) t
       length bPawnMoves `shouldBe` (0 :: Int)
     it "records gamehistory correctly" $ do
       let p1 = startPosition

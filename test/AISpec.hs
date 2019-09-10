@@ -18,7 +18,7 @@ spec = describe "AI" $ do
     e `shouldSatisfy` (> (-1.1))
     e `shouldSatisfy` (< 1.1)
   it "evaluate advanced pawns over home pawns" $ do
-    let p = Chess.makeMoves Chess.startPosition [((Square 5 2), (Square 5 4))]
+    let p = Chess.makeMoves Chess.startPosition [(Square 5 2, Square 5 4)]
         e = Evaluation.evaluate p
     e `shouldSatisfy` (> 0.0)
   it "expands the horizon of start position" $ do
