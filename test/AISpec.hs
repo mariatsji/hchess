@@ -1,16 +1,15 @@
 module AISpec where
 
-import           Control.Exception (evaluate)
-import           Test.Hspec
-import           Test.QuickCheck
-
-import           Data.Typeable
-
-import           AI
-import           Chess
-import           Evaluation
-import           Move
-import           Printer
+import AI
+import Bunch
+import Chess
+import Control.Exception (evaluate)
+import Data.Typeable
+import Evaluation
+import Move
+import Printer
+import Test.Hspec
+import Test.QuickCheck
 
 spec :: Spec
 spec = describe "AI" $ do
@@ -30,10 +29,10 @@ spec = describe "AI" $ do
     length three > length two `shouldBe` True
   it "successfully steps one point in a direction with oneStep with 1 look a head" $ do
     let p1 = Chess.startPosition
-    let p2 = head $ positionTree p1
+    let p2 = unsafeHead $ positionTree p1
     oneStep p1 p2 `shouldBe` p2
   it "successfully steps one point in a direction with oneStep based on 2 looks ahead" $ do
     let p1 = Chess.startPosition
-    let p2 = head $ positionTree p1
-    let p3 = head $ positionTree p2
+    let p2 = unsafeHead $ positionTree p1
+    let p3 = unsafeHead $ positionTree p2
     oneStep p1 p3 `shouldBe` p2

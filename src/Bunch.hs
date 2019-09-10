@@ -20,9 +20,15 @@ unBunch = coerce
 
 emptyBunch :: Bunch a
 emptyBunch = Bunch []
+{-# INLINE emptyBunch #-}
 
 singleton :: a -> Bunch a
 singleton x = Bunch [x]
+{-# INLINE singleton #-}
 
 filter' :: (a -> Bool) -> Bunch a -> Bunch a
 filter' pred' bunch = coerce $ filter pred' (unBunch bunch)
+
+unsafeHead :: Bunch a -> a
+unsafeHead = head . unBunch
+{-# INLINE unsafeHead #-}

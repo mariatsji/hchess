@@ -83,8 +83,8 @@ searchWidth = 1000
 focused :: Position -> Int -> Evaluated -- this is maybe grap
 focused pos depth
   | toPlay pos == White =
-    head . unBunch $ highest' searchWidth (focused' (evaluate' pos) (depth, 3))
-  | otherwise = head . unBunch $ lowest' searchWidth (focused' (evaluate' pos) (depth, 3))
+    unsafeHead $ highest' searchWidth (focused' (evaluate' pos) (depth, 3))
+  | otherwise = unsafeHead $ lowest' searchWidth (focused' (evaluate' pos) (depth, 3))
 
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
 focused' :: Evaluated -> (Int, Int) -> Bunch Evaluated
