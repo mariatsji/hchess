@@ -14,6 +14,7 @@ module AI
     )
 where
 
+import Bunch
 import Chess
 import Conduit
 import Control.Monad
@@ -26,7 +27,7 @@ streamBest :: Position -> Int -> Either (Position, Status) Position
 streamBest pos depth =
   let bestWithinHorizon =
         runConduitPure
-          $ yieldMany (expandHorizon depth pos)
+          $ yieldMany (unBunch $ expandHorizon depth pos)
           .| mapC evaluate'
           .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
       best = getPos bestWithinHorizon
@@ -40,11 +41,7 @@ edgeGreed !pos depth =
   -- startEvaluation :: Evaluated
   -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh
   let bestWithinHorizon :: Evaluated
-      -- print =  unsafePerformIO $ prettyEs $ map evaluate' $ expandHorizon depth gh
-      bestWithinHorizon =
-        foldr1 (swapForBetter (toPlay pos))
-          $! map evaluate'
-          $ expandHorizon depth pos
+      bestWithinHorizon = foldr1 (swapForBetter (toPlay pos)) (evaluate' <$> expandHorizon depth pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
    in if length (gamehistory best) > length (gamehistory pos) + 1
@@ -62,7 +59,7 @@ swapForBetter Black ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBS
     then ePot
     else bestSoFar
 
-expandHorizon :: Int -> Position -> [Position]
+expandHorizon :: Int -> Position -> Bunch Position
 expandHorizon 0 _ = undefined
 expandHorizon 1 !pos = positionTree pos
 expandHorizon n !pos = expandHorizon 1 pos >>= expandHorizon (n - 1)
@@ -86,47 +83,47 @@ searchWidth = 1000
 focused :: Position -> Int -> Evaluated -- this is maybe grap
 focused pos depth
   | toPlay pos == White =
-    head $ highest' searchWidth (focused' (evaluate' pos) (depth, 3))
-  | otherwise = head $ lowest' searchWidth (focused' (evaluate' pos) (depth, 3))
+    head . unBunch $ highest' searchWidth (focused' (evaluate' pos) (depth, 3))
+  | otherwise = head . unBunch $ lowest' searchWidth (focused' (evaluate' pos) (depth, 3))
 
 -- takes a status and gamehistory and a perspective (black or white) and a search (depth, width). recurs. gives full gh (i.e. not only next position)
-focused' :: Evaluated -> (Int, Int) -> [Evaluated]
-focused' !e (0, _) = [e]
+focused' :: Evaluated -> (Int, Int) -> Bunch Evaluated
+focused' !e (0, _) = Bunch [e]
 focused' (Evaluated !pos _ WhiteToPlay) (d, w) =
   highest' w (evaluate'' (positionTree pos)) >>= flip focused' (d - 1, w)
 focused' (Evaluated !pos _ BlackToPlay) (d, w) =
   lowest' w (evaluate'' (positionTree pos)) >>= flip focused' (d - 1, w)
-focused' !e _ = [e]
+focused' !e _ = Bunch [e]
 
-highest' :: Int -> [Evaluated] -> [Evaluated]
-highest' cutoff = foldr (highestSoFar cutoff) []
+highest' :: Int -> Bunch Evaluated -> Bunch Evaluated
+highest' cutoff = foldr (highestSoFar cutoff) (Bunch [])
 
-highestSoFar :: Int -> Evaluated -> [Evaluated] -> [Evaluated]
+highestSoFar :: Int -> Evaluated -> Bunch Evaluated -> Bunch Evaluated
 highestSoFar i ev soFar
-  | length soFar < i = ev : soFar
+  | length soFar < i = Bunch (pure ev) <> soFar
   | otherwise = replaceLowest ev soFar
 
-replaceLowest :: Evaluated -> [Evaluated] -> [Evaluated]
-replaceLowest e [] = [e]
-replaceLowest e (e' : ex) =
+replaceLowest :: Evaluated -> Bunch Evaluated -> Bunch Evaluated -- TODO make agnostic to Bunch implementation
+replaceLowest e (Bunch []) = Bunch [e]
+replaceLowest e (Bunch (e' : ex)) =
   if getScore e < getScore e'
-    then e' : ex
-    else replaceLowest e ex
+    then Bunch (e' : ex)
+    else replaceLowest e (Bunch ex)
 
-lowest' :: Int -> [Evaluated] -> [Evaluated]
-lowest' cutoff = foldr (lowestSoFar cutoff) []
+lowest' :: Int -> Bunch Evaluated -> Bunch Evaluated
+lowest' cutoff = foldr (lowestSoFar cutoff) (Bunch [])
 
-lowestSoFar :: Int -> Evaluated -> [Evaluated] -> [Evaluated]
+lowestSoFar :: Int -> Evaluated -> Bunch Evaluated -> Bunch Evaluated
 lowestSoFar i ev soFar
-  | length soFar < i = ev : soFar
+  | length soFar < i = Bunch (pure ev) <> soFar
   | otherwise = replaceHighest ev soFar
 
-replaceHighest :: Evaluated -> [Evaluated] -> [Evaluated]
-replaceHighest e [] = [e]
-replaceHighest e (e' : ex) =
+replaceHighest :: Evaluated -> Bunch Evaluated -> Bunch Evaluated -- TODO make agnostic of Bunch implementation
+replaceHighest e (Bunch []) = Bunch [e]
+replaceHighest e (Bunch (e' : ex)) =
   if getScore e > getScore e'
-    then e' : ex
-    else replaceHighest e ex
+    then Bunch (e' : ex)
+    else replaceHighest e (Bunch ex)
 
 getScore :: Evaluated -> Float
 getScore (Evaluated _ x _) = x

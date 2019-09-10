@@ -12,6 +12,7 @@ module Evaluation
     )
 where
 
+import Bunch
 import Chess
 import Control.DeepSeq
 import Data.List
@@ -30,8 +31,8 @@ data Evaluated
 evaluate' :: Position -> Evaluated
 evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)
 
-evaluate'' :: [Position] -> [Evaluated]
-evaluate'' = map evaluate'
+evaluate'' :: Bunch Position -> Bunch Evaluated
+evaluate'' = fmap evaluate'
 
 toGH :: Evaluated -> (Status, Position)
 toGH e =
