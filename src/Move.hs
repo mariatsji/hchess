@@ -127,11 +127,10 @@ parseMove s pos
   | otherwise = Left $ "Unable to parse move with string " ++ s
 
 parseMoves :: [String] -> Either String Position
-parseMoves moves =
-  foldr
-    (\s a -> a >>= parseMove s)
+parseMoves =
+  foldl
+    (\acc c -> acc >>= parseMove c)
     (Right Chess.startPosition :: Either String Position)
-    (reverse moves)
 
 parseFrom :: String -> Square
 parseFrom x =

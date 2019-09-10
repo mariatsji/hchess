@@ -145,11 +145,11 @@ prom Black p1 (s@(Square _ r), p2) =
   if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
 
 toList' :: IntMap Piece -> Bunch (Square, Piece)
-toList' l = Bunch $ first unHash <$> Map.toList l
+toList' l = Bunch $ fmapFirst unHash <$> Map.toList l
 
 fromList' :: Bunch (Square, Piece) -> IntMap Piece
-fromList' l = Map.fromList $ first hash <$> unBunch l
+fromList' l = Map.fromList $ fmapFirst hash <$> unBunch l
 
-first :: (a -> b) -> (a, c) -> (b, c)
-first f (a, c) = (f a, c)
-{-# INLINE first #-}
+fmapFirst :: (a -> b) -> (a, c) -> (b, c)
+fmapFirst f (a, c) = (f a, c)
+{-# INLINE fmapFirst #-}

@@ -95,7 +95,7 @@ focused' (Evaluated !pos _ BlackToPlay) (d, w) =
   lowest' w (evaluate'' (positionTree pos)) >>= flip focused' (d - 1, w)
 focused' !e _ = Bunch [e]
 
-highest' :: Int -> Bunch Evaluated -> Bunch Evaluated
+highest' :: Foldable f => Int -> f Evaluated -> Bunch Evaluated
 highest' cutoff = foldr (highestSoFar cutoff) emptyBunch
 
 highestSoFar :: Int -> Evaluated -> Bunch Evaluated -> Bunch Evaluated
@@ -103,10 +103,10 @@ highestSoFar i ev soFar
   | length soFar < i = Bunch (pure ev) <> soFar
   | otherwise = replaceLowest ev soFar
 
-replaceLowest :: Evaluated -> Bunch Evaluated -> Bunch Evaluated
+replaceLowest :: Foldable f => Evaluated -> f Evaluated -> Bunch Evaluated
 replaceLowest e = foldl' (\acc c -> if getScore e < getScore c then singleton e <> acc else singleton c <> acc) emptyBunch
 
-lowest' :: Int -> Bunch Evaluated -> Bunch Evaluated
+lowest' :: Foldable f => Int -> f Evaluated -> Bunch Evaluated
 lowest' cutoff = foldr (lowestSoFar cutoff) emptyBunch
 
 lowestSoFar :: Int -> Evaluated -> Bunch Evaluated -> Bunch Evaluated
@@ -114,7 +114,7 @@ lowestSoFar i ev soFar
   | length soFar < i = Bunch (pure ev) <> soFar
   | otherwise = replaceHighest ev soFar
 
-replaceHighest :: Evaluated -> Bunch Evaluated -> Bunch Evaluated
+replaceHighest :: Foldable f => Evaluated -> f Evaluated -> Bunch Evaluated
 replaceHighest e = foldl' (\acc c -> if getScore e > getScore c then singleton e <> acc else singleton c <> acc) emptyBunch
 
 getScore :: Evaluated -> Float
