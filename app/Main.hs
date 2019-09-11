@@ -6,6 +6,7 @@ import AI
 import Chess
 import Control.DeepSeq
 import Move
+import Position
 import Printer
 
 main :: IO ()
@@ -20,16 +21,16 @@ main = do
 start :: String -> IO ()
 start "1" = do
   putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
-  Printer.pretty Chess.startPosition
-  gameLoopHH Chess.startPosition
+  Printer.pretty startPosition
+  gameLoopHH startPosition
 start "2" = do
   putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q"
   putStrLn
     "Enter machine search depth (2-5) where 1 is faster and 5 is stronger"
   l <- getLine
   let depth = read l :: Int
-  Printer.pretty Chess.startPosition
-  gameLoopHM Chess.startPosition depth
+  Printer.pretty startPosition
+  gameLoopHM startPosition depth
 start "3" = do
   putStrLn "Enter white search depth (2-5) where 2 is faster and 5 is stronger"
   lw <- getLine
@@ -37,8 +38,8 @@ start "3" = do
   putStrLn "Enter black search depth (2-5) where 2 is faster and 5 is stronger"
   lb <- getLine
   let bdepth = read lb :: Int
-  Printer.pretty Chess.startPosition
-  gameLoopMM Chess.startPosition wdepth bdepth
+  Printer.pretty startPosition
+  gameLoopMM startPosition wdepth bdepth
 start "q" = return ()
 start _ = main
 

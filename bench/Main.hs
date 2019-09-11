@@ -21,14 +21,14 @@ moveBench =
   bgroup
     "moves"
     [ bench "positionTree startPosition"
-        $ nf Chess.positionTree Chess.startPosition
+        $ nf Chess.positionTree startPosition
       ]
 
 aiBench =
   bgroup
     "chess"
     [ bench "expandHorizon 1 from startPosition"
-        $ nf (AI.expandHorizon 1) Chess.startPosition
+        $ nf (AI.expandHorizon 1) startPosition
       ]
 -- , bench "streamBest depth 2 from startPosition"
---  $ whnf (AI.streamBest Chess.startPosition) 2
+--  $ whnf (AI.streamBest startPosition) 2

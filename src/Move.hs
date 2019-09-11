@@ -10,6 +10,7 @@ where
 
 import Chess
 import Data.Char
+import Position
 import Text.Regex.TDFA
 
 parseMove :: String -> Position -> Either String Position
@@ -119,7 +120,7 @@ parseMove s pos
             else Square 5 8
      in if [] /= castleAttempt
           && head castleAttempt
-          `elem` Chess.positionTree pos
+          `elem` positionTree pos
           && colorToPlay
           == fmap colr (pieceAt pos fromSquare)
           then Right $ head castleAttempt
@@ -130,7 +131,7 @@ parseMoves :: [String] -> Either String Position
 parseMoves =
   foldl
     (\acc c -> acc >>= parseMove c)
-    (Right Chess.startPosition :: Either String Position)
+    (Right startPosition :: Either String Position)
 
 parseFrom :: String -> Square
 parseFrom x =

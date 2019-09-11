@@ -1,52 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Chess
-  ( board,
-    onlyPiecesBoard,
-    Color (..),
-    Piece (..),
-    Square (..),
-    Position (..),
-    Status (..),
-    startPosition,
-    movePiece,
-    makeMoves,
-    removePieceAt,
-    whitePieces,
-    blackPieces,
-    emptyBoard,
-    replacePieceAt,
-    positionTree,
-    positionTreeIgnoreCheck,
-    enPassant,
-    canGoThere,
-    finalDestinationNotOccupiedBySelf,
-    points,
-    eqPosition,
-    positionsPrPiece,
-    toSquaresPawn,
-    toSquaresBishop,
-    pieceAt,
-    toPlay,
-    whiteToPlay,
-    colr,
-    isInCheck,
-    anyPosWithoutKing,
-    isCheckMate,
-    isPatt,
-    threefoldrepetition,
-    isDraw,
-    succ',
-    promote,
-    promoteTo,
-    promoteBindFriendly,
-    castle,
-    castleShort,
-    castleLong,
-    determineStatus
-    )
-where
+module Chess where
 
 import Bunch
 import Control.DeepSeq
@@ -94,6 +49,10 @@ movePiece pos@(Position m' _) from@(Square fc _) to@(Square tc tr)
   | otherwise =
     let newSnapshot = movePiece' m' from to
      in mkPosition pos newSnapshot
+
+colorPieces :: Color -> Position -> Bunch (Square, Piece)
+colorPieces White = whitePieces
+colorPieces Black = blackPieces
 
 whitePieces :: Position -> Bunch (Square, Piece)
 whitePieces pos = searchForPieces pos (\p -> colr p == White)
@@ -155,15 +114,12 @@ positionTree pos =
   filter' (\p -> not $ isInCheck p (toPlay pos)) $! positionTreeIgnoreCheck pos
 
 positionTreeIgnoreCheck :: Position -> Bunch Position
-positionTreeIgnoreCheck pos
-  | whiteToPlay pos = (whitePieces pos >>= positionsPrPiece pos >>= promoteBindFriendly White) <> castle pos
-  | otherwise = (blackPieces pos >>= positionsPrPiece pos >>= promoteBindFriendly Black) <> castle pos
+positionTreeIgnoreCheck pos =
+  let c = toPlay pos
+  in (colorPieces c pos >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> Bunch Position
-positionTreeIgnoreCheckPromotionsCastle pos White =
-  whitePieces pos >>= positionsPrPiece pos
-positionTreeIgnoreCheckPromotionsCastle pos Black =
-  blackPieces pos >>= positionsPrPiece pos
+positionTreeIgnoreCheckPromotionsCastle pos c = colorPieces c pos >>= positionsPrPiece pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> Bunch Position
 positionsPrPiece pos@(Position snp _) (s, p) = case p of
@@ -219,7 +175,7 @@ enPassant pos s@(Square c r)
   | otherwise =
     (r == 4) && pieceAt pos s == Just (Pawn White) && jumpedHereJustNow pos s
   where
-    piece = if toPlay pos == White then Just (Pawn Black) else Just (Pawn White)
+    piece = Just $ Pawn (toPlay pos)
     fromSquare = if toPlay pos == White then Square c 7 else Square c 2
     jumpedHereJustNow :: Position -> Square -> Bool
     jumpedHereJustNow _ _ =
@@ -239,15 +195,10 @@ promote c pos = maybePromote c pos =<< [Queen c, Rook c, Bishop c, Knight c]
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> Bunch Position
-promoteBindFriendly White pos =
+promoteBindFriendly c pos =
   Bunch
-    $ if Just (Pawn White) `elem` [pieceAt pos (Square col 8) | col <- [1 .. 8]]
-      then promoteBindFriendly' White pos
-      else [pos]
-promoteBindFriendly Black pos =
-  Bunch
-    $ if Just (Pawn Black) `elem` [pieceAt pos (Square col 1) | col <- [1 .. 8]]
-      then promoteBindFriendly' Black pos
+    $ if Just (Pawn c) `elem` [pieceAt pos (Square col (promoteRow c)) | col <- [1 .. 8]]
+      then promoteBindFriendly' c pos
       else [pos]
 
 -- same pos or all four
@@ -344,59 +295,46 @@ castle' pos color kingPosF rookPosF doCastleF =
     else []
 
 doCastleShort :: Snapshot -> Color -> Snapshot
-doCastleShort pos White =
+doCastleShort pos c =
   replacePieceAt
     ( replacePieceAt
         (removePieceAt (removePieceAt pos (Square 5 1)) (Square 8 1))
-        (Square 7 1)
-        (King White)
+        (Square 7 (homeRow c))
+        (King c)
       )
-    (Square 6 1)
-    (Rook White)
-doCastleShort pos Black =
-  replacePieceAt
-    ( replacePieceAt
-        (removePieceAt (removePieceAt pos (Square 5 8)) (Square 8 8))
-        (Square 7 8)
-        (King Black)
-      )
-    (Square 6 8)
-    (Rook Black)
+    (Square 6 (homeRow c))
+    (Rook c)
 
 doCastleLong :: Snapshot -> Color -> Snapshot
-doCastleLong pos White =
+doCastleLong pos c =
   replacePieceAt
     ( replacePieceAt
         (removePieceAt (removePieceAt pos (Square 5 1)) (Square 1 1))
-        (Square 3 1)
-        (King White)
+        (Square 3 (homeRow c))
+        (King c)
       )
-    (Square 4 1)
-    (Rook White)
-doCastleLong pos Black =
-  replacePieceAt
-    ( replacePieceAt
-        (removePieceAt (removePieceAt pos (Square 5 8)) (Square 1 8))
-        (Square 3 8)
-        (King Black)
-      )
-    (Square 4 8)
-    (Rook Black)
+    (Square 4 (homeRow c))
+    (Rook c)
 
 vacantBetween :: Position -> Square -> Square -> Bool
 vacantBetween pos from to = all (vacantAt pos) $ points from to
 
 kingPos :: Color -> Square
-kingPos White = Square 5 1
-kingPos Black = Square 5 8
+kingPos c = Square 5 (homeRow c)
 
 shortRookPos :: Color -> Square
-shortRookPos White = Square 8 1
-shortRookPos Black = Square 8 8
+shortRookPos c = Square 8 (homeRow c)
 
 longRookPos :: Color -> Square
-longRookPos White = Square 1 1
-longRookPos Black = Square 1 8
+longRookPos c = Square 1 (homeRow c)
+
+homeRow :: Color -> Int
+homeRow White = 1
+homeRow Black = 8
+
+promoteRow :: Color -> Int
+promoteRow White = homeRow Black
+promoteRow Black = homeRow White
 
 haveNotMoved :: Position -> Piece -> Square -> Bool
 haveNotMoved pos'@(Position _ gh') p s =
@@ -456,10 +394,7 @@ anyPosWithoutKing :: Color -> Bunch Position -> Bool
 anyPosWithoutKing col pos = not $ allHasKing col pos
 
 allHasKing :: Color -> Bunch Position -> Bool
-allHasKing White poses =
-  all (any (\(_, p) -> p == King White) . whitePieces) (unBunch poses)
-allHasKing Black poses =
-  all (any (\(_, p) -> p == King Black) . blackPieces) (unBunch poses)
+allHasKing c poses = all (any (\(_, p) -> p == King c) . colorPieces c) (unBunch poses)
 
 determineStatus :: Position -> Status
 determineStatus pos

@@ -10,8 +10,8 @@ import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
 import qualified Data.IntMap.Strict as Map
 import Evaluation
-import Position (hash, unHash)
 import GHC.Exts
+import Position
 
 pretty :: Position -> IO ()
 pretty pos = do

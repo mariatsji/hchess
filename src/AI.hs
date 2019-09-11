@@ -21,6 +21,7 @@ import Control.Monad
 import Data.List
 import Data.Ord
 import Evaluation
+import Position
 import Prelude hiding (foldr)
 
 streamBest :: Position -> Int -> Either (Position, Status) Position
