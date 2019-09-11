@@ -39,6 +39,11 @@ data Position
         }
   deriving (Eq, Show, Generic, NFData)
 
+mkPosition :: Position -> Snapshot -> Position
+mkPosition pos snp =
+  let newGH = m pos : gamehistory pos
+   in pos {m = snp, gamehistory = newGH}
+
 hash :: Square -> Map.Key
 hash (Square col row) = (row - 1) * 8 + (col - 1)
 {-# INLINE hash #-}

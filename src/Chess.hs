@@ -82,18 +82,18 @@ squareTo :: Square -> Int -> Int -> Square
 squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos@(Position m' gh') from@(Square fc _) to@(Square tc tr)
+movePiece pos@(Position m' _) from@(Square fc _) to@(Square tc tr)
   | pieceAt pos from == Just (Pawn White) && (fc /= tc) && vacantAt pos to =
     let newSnapshot =
           movePiece' (removePieceAt m' (Square tc (tr - 1))) from to
-     in Position {m = newSnapshot, gamehistory = m' : gh'}
+     in mkPosition pos newSnapshot
   | pieceAt pos from == Just (Pawn Black) && (fc /= tc) && vacantAt pos to =
     let newSnapshot =
           movePiece' (removePieceAt m' (Square tc (tr + 1))) from to
-     in Position {m = newSnapshot, gamehistory = m' : gh'}
+     in mkPosition pos newSnapshot
   | otherwise =
     let newSnapshot = movePiece' m' from to
-     in Position {m = newSnapshot, gamehistory = m' : gh'}
+     in mkPosition pos newSnapshot
 
 whitePieces :: Position -> Bunch (Square, Piece)
 whitePieces pos = searchForPieces pos (\p -> colr p == White)
@@ -169,16 +169,18 @@ positionsPrPiece :: Position -> (Square, Piece) -> Bunch Position
 positionsPrPiece pos@(Position snp _) (s, p) = case p of
   Pawn _ ->
     let potentials = filter (canGoThere pos s . fst) $ toSquaresPawn pos (s, p)
-     in Bunch $ map
-          ( \t -> case snd t of
-              Nothing -> movePiece pos s (fst t)
-              Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
-            )
-          potentials
+     in Bunch
+          $ map
+              ( \t -> case snd t of
+                  Nothing -> movePiece pos s (fst t)
+                  Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
+                )
+              potentials
   Knight _ ->
-    Bunch $ fmap
-      (movePiece pos s)
-      (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
+    Bunch
+      $ fmap
+          (movePiece pos s)
+          (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
   Bishop _ ->
     Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
   Rook _ ->
@@ -230,31 +232,23 @@ maybePromote :: Color -> Position -> Piece -> [Position]
 maybePromote c pos p = [promoteTo c pos p | canPromote c pos p]
   where
     canPromote c' pos' p' = promoteTo c' pos' p' /= pos'
+{-# INLINE maybePromote #-}
 
 promote :: Color -> Position -> [Position]
-promote c@White pos =
-  let mpQForced = force (maybePromote c pos (Queen White))
-      mpRForced = force (maybePromote c pos (Rook White))
-      mpBForced = force (maybePromote c pos (Bishop White))
-      mpKForced = force (maybePromote c pos (Knight White))
-   in mpQForced <> mpRForced <> mpBForced <> mpKForced
-promote c@Black pos =
-  let mpQForced = force (maybePromote c pos (Queen Black))
-      mpRForced = force (maybePromote c pos (Rook Black))
-      mpBForced = force (maybePromote c pos (Bishop Black))
-      mpKForced = force (maybePromote c pos (Knight Black))
-   in mpQForced <> mpRForced <> mpBForced <> mpKForced
+promote c pos = maybePromote c pos =<< [Queen c, Rook c, Bishop c, Knight c]
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> Bunch Position
 promoteBindFriendly White pos =
-  Bunch $ if Just (Pawn White) `elem` [pieceAt pos (Square col 8) | col <- [1 .. 8]]
-    then promoteBindFriendly' White pos
-    else [pos]
+  Bunch
+    $ if Just (Pawn White) `elem` [pieceAt pos (Square col 8) | col <- [1 .. 8]]
+      then promoteBindFriendly' White pos
+      else [pos]
 promoteBindFriendly Black pos =
-  Bunch $ if Just (Pawn Black) `elem` [pieceAt pos (Square col 1) | col <- [1 .. 8]]
-    then promoteBindFriendly' Black pos
-    else [pos]
+  Bunch
+    $ if Just (Pawn Black) `elem` [pieceAt pos (Square col 1) | col <- [1 .. 8]]
+      then promoteBindFriendly' Black pos
+      else [pos]
 
 -- same pos or all four
 promoteBindFriendly' :: Color -> Position -> [Position]
@@ -283,10 +277,10 @@ toSquaresBishop s@(Square c r) =
       maxUp = 8 - r
       maxLeft = c - 1
       maxRight = 8 - c
-      a' = force $ fmap (\x -> squareTo s x x) [1 .. min maxUp maxRight]
-      b' = force $ fmap (\x -> squareTo s x (- x)) [1 .. min maxDown maxRight]
-      c' = force $ fmap (\x -> squareTo s (- x) (- x)) [1 .. min maxDown maxLeft]
-      d' = force $ fmap (\x -> squareTo s (- x) x) [1 .. min maxLeft maxUp]
+      a' = fmap (\x -> squareTo s x x) [1 .. min maxUp maxRight]
+      b' = fmap (\x -> squareTo s x (- x)) [1 .. min maxDown maxRight]
+      c' = fmap (\x -> squareTo s (- x) (- x)) [1 .. min maxDown maxLeft]
+      d' = fmap (\x -> squareTo s (- x) x) [1 .. min maxLeft maxUp]
    in a' <> b' <> c' <> d'
 
 -- rooks
@@ -298,9 +292,7 @@ toSquaresRook s@(Square c r) =
       maxRight = 8 - c
       lane = fmap (squareTo s 0) [maxDown .. maxUp]
       row = fmap (\c' -> squareTo s c' 0) [maxLeft .. maxRight]
-      laneF = force lane
-      rowF = force row
-   in laneF <> rowF
+   in lane <> row
 
 -- queens
 toSquaresQueen :: Square -> [Square]
@@ -348,7 +340,7 @@ castle' pos color kingPosF rookPosF doCastleF =
          )
     then
       let newSnapshot = doCastleF (m pos) color
-       in [Position {m = newSnapshot, gamehistory = m pos : gamehistory pos}]
+       in [mkPosition pos newSnapshot]
     else []
 
 doCastleShort :: Snapshot -> Color -> Snapshot
