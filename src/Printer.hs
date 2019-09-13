@@ -1,5 +1,4 @@
-module Printer
-where
+module Printer where
 
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF

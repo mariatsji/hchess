@@ -7,7 +7,7 @@ module Position where
 import Bunch
 import Control.DeepSeq (NFData)
 import Control.Monad.ST
-import Data.List (genericSplitAt, partition)
+import Data.List (partition)
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
@@ -101,10 +101,10 @@ startPosition = Position
 
 fromList' :: [(Square, Piece)] -> BitMap
 fromList' list =
-  foldl
-    ( \acc i ->
+  foldr
+    ( \i acc ->
         let maybePiece = lookup (unHash i) list
-         in setIn acc i (maybe 0 pieceHash maybePiece)
+         in maybe 0 pieceHash maybePiece : acc
       )
     []
     [0 .. 63]
@@ -113,22 +113,20 @@ fromList' list =
 initLookupPos :: BitMap -> Word8 -> Word8
 initLookupPos bitmap i =
   let maybePiece
-        | i < 16 = lookup' bitmap (unHash i) 
+        | i < 16 = lookup' bitmap (unHash i)
         | i < 48 = Nothing
-        | otherwise = lookup' bitmap (unHash i) 
+        | otherwise = lookup' bitmap (unHash i)
    in maybe 0 pieceHash maybePiece
 
 setIn :: BitMap -> Word8 -> Word8 -> BitMap
 setIn array pos val =
-  let (before, after) = drop 1 <$> genericSplitAt (clamp 0 63 pos) array
-   in before <> (val : after)
+  foldr (\(idx, encoded) acc -> (if idx == pos then val else encoded) : acc) [] $ zip [0 :: Word8 ..] array
 
 lookup' :: BitMap -> Square -> Maybe Piece
 lookup' bitmap s = pieceUnhash $ bitmap !! fromIntegral (hash s)
 
 startSquarePieces :: [(Square, Piece)]
 startSquarePieces = startWhitePieces <> startBlackPieces
-
 
 startWhitePieces :: [(Square, Piece)]
 startWhitePieces =
@@ -195,7 +193,7 @@ pieceAt' = lookup'
 searchForPieces :: Position -> (Piece -> Bool) -> Bunch (Square, Piece)
 searchForPieces pos searchpred =
   let sp = asList' (m pos)
-  in Bunch $ filter (searchpred . snd) sp
+   in Bunch $ filter (searchpred . snd) sp
 {-# INLINE searchForPieces #-}
 
 -- (whitepieces, blackpieces)
@@ -203,16 +201,22 @@ partitionPieces :: Position -> ([Piece], [Piece])
 partitionPieces pos = partition (\p -> colr p == White) (snd <$> asList' (m pos))
 
 asList' :: BitMap -> [(Square, Piece)]
-asList' bitmap = zip [0 ..] bitmap >>= (\(i, p) ->
-                              case pieceUnhash p of
-                                  Nothing -> []
-                                  Just p' -> [(unHash i, p')])
+asList' bitmap =
+  zip [0 ..] bitmap
+    >>= ( \(i, p) ->
+            case pieceUnhash p of
+              Nothing -> []
+              Just p' -> [(unHash i, p')]
+          )
 
 asListWithEmpties' :: BitMap -> [(Square, Maybe Piece)]
-asListWithEmpties' bitmap = zip [0 ..] bitmap >>= (\(i, p) ->
-                              case pieceUnhash p of
-                                  Nothing -> [(unHash i, Nothing)]
-                                  Just p' -> [(unHash i, pure p')])
+asListWithEmpties' bitmap =
+  zip [0 ..] bitmap
+    >>= ( \(i, p) ->
+            case pieceUnhash p of
+              Nothing -> [(unHash i, Nothing)]
+              Just p' -> [(unHash i, pure p')]
+          )
 
 fmapFirst :: (a -> b) -> (a, c) -> (b, c)
 fmapFirst f (a, c) = (f a, c)

@@ -116,7 +116,7 @@ positionTree pos =
 positionTreeIgnoreCheck :: Position -> Bunch Position
 positionTreeIgnoreCheck pos =
   let c = toPlay pos
-  in (colorPieces c pos >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
+   in (colorPieces c pos >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> Bunch Position
 positionTreeIgnoreCheckPromotionsCastle pos c = colorPieces c pos >>= positionsPrPiece pos
