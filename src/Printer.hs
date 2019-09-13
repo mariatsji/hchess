@@ -1,14 +1,8 @@
 module Printer
-  ( pretty,
-    prettyE,
-    prettyEs
-    )
 where
 
-import Chess
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
-import qualified Data.IntMap.Strict as Map
 import Evaluation
 import GHC.Exts
 import Position
@@ -29,10 +23,7 @@ prettyEs :: [Evaluated] -> IO ()
 prettyEs = mapM_ prettyE
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify (Position m' _) = reverse $ groupWith (\(Square _ r, _) -> r) (listWithEmpties m')
-
-listWithEmpties :: Map.IntMap Piece -> [(Square, Maybe Piece)]
-listWithEmpties m' = fmap (\s -> (unHash s, Map.lookup s m')) (hash <$> board)
+rowify pos = reverse $ groupWith (\(Square _ r, _) -> r) (asListWithEmpties' (m pos))
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =

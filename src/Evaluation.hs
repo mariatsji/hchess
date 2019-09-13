@@ -68,7 +68,7 @@ safeKing p
   | otherwise = 0.0
 
 development :: Position -> Float
-development (Position m' _) = sum $ fmap scoreOfficerDevelopment (toList' m')
+development (Position m' _) = sum $ fmap scoreOfficerDevelopment (asList' m')
 
 scoreOfficerDevelopment :: (Square, Piece) -> Float
 scoreOfficerDevelopment (Square _ row, Knight White) =
@@ -98,7 +98,7 @@ scoreOfficerDevelopment (Square _ row, Rook Black) =
 scoreOfficerDevelopment _ = 0.0
 
 pawnAdvancement :: Position -> Float
-pawnAdvancement (Position m' _) = sum $ fmap pawnPosValue (toList' m')
+pawnAdvancement (Position m' _) = sum $ fmap pawnPosValue (asList' m')
 
 pawnPosValue :: (Square, Piece) -> Float
 pawnPosValue (Square 3 r, Pawn White) = r' r * 0.06

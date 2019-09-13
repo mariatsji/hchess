@@ -183,15 +183,27 @@ enPassant pos s@(Square c r)
         && let prevSnapshot = gamehistory pos !! 1
             in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece && isNothing (pieceAt' prevSnapshot s)
 
+promote :: Color -> Position -> [Position]
+promote c pos = maybePromote c pos =<< [Queen c, Rook c, Bishop c, Knight c]
+
 -- promote one position to [] or all four positions
 maybePromote :: Color -> Position -> Piece -> [Position]
 maybePromote c pos p = [promoteTo c pos p | canPromote c pos p]
   where
     canPromote c' pos' p' = promoteTo c' pos' p' /= pos'
-{-# INLINE maybePromote #-}
 
-promote :: Color -> Position -> [Position]
-promote c pos = maybePromote c pos =<< [Queen c, Rook c, Bishop c, Knight c]
+-- promote one position
+promoteTo :: Color -> Position -> Piece -> Position
+promoteTo c pos p =
+  let allPieces = asList' $ m pos
+      asListPromoted = fromList' $ fmap (prom c p) allPieces
+   in pos {m = asListPromoted}
+
+prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
+prom White p1 (s@(Square _ r), p2) =
+  if r == 8 && p2 == Pawn White then (s, p1) else (s, p2)
+prom Black p1 (s@(Square _ r), p2) =
+  if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> Bunch Position
