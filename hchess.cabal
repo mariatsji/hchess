@@ -21,7 +21,7 @@ library
                       ,Move
                       ,AI
                       ,Position
-                      ,Position2
+                      ,Tree
                       ,Bunch
   build-depends:       base >= 4.7 && < 5
                       ,utf8-string
@@ -30,6 +30,7 @@ library
                       ,unordered-containers
                       ,regex-tdfa
                       ,vector
+                      ,profunctors
                       ,parallel
                       ,deepseq
                       ,conduit

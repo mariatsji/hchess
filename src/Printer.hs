@@ -22,7 +22,7 @@ prettyEs :: [Evaluated] -> IO ()
 prettyEs = mapM_ prettyE
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify pos = reverse $ groupWith (\(Square _ r, _) -> r) (asListWithEmpties' (m pos))
+rowify pos = reverse $ groupWith (\(Square _ r, _) -> r) (toList' (m pos))
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =

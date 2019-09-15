@@ -68,49 +68,51 @@ safeKing p
   | otherwise = 0.0
 
 development :: Position -> Float
-development (Position m' _) = sum $ fmap scoreOfficerDevelopment (asList' m')
+development pos = sum $ fmap scoreOfficerDevelopment (toList' (m pos))
 
-scoreOfficerDevelopment :: (Square, Piece) -> Float
-scoreOfficerDevelopment (Square _ row, Knight White) =
+scoreOfficerDevelopment :: (Square, Maybe Piece) -> Float
+scoreOfficerDevelopment (_, Nothing) = 0.0
+scoreOfficerDevelopment (Square _ row, Just (Knight White)) =
   if row == 1
     then 0.0
     else 0.07
-scoreOfficerDevelopment (Square _ row, Knight Black) =
+scoreOfficerDevelopment (Square _ row, Just (Knight Black)) =
   if row == 8
     then 0.0
     else (-0.07)
-scoreOfficerDevelopment (Square _ row, Bishop White) =
+scoreOfficerDevelopment (Square _ row, Just (Bishop White)) =
   if row == 1
     then 0.0
     else 0.06
-scoreOfficerDevelopment (Square _ row, Bishop Black) =
+scoreOfficerDevelopment (Square _ row, Just (Bishop Black)) =
   if row == 8
     then 0.0
     else (-0.06)
-scoreOfficerDevelopment (Square _ row, Rook White) =
+scoreOfficerDevelopment (Square _ row, Just (Rook White)) =
   if row == 1
     then 0.0
     else 0.05
-scoreOfficerDevelopment (Square _ row, Rook Black) =
+scoreOfficerDevelopment (Square _ row, Just (Rook Black)) =
   if row == 8
     then 0.0
     else (-0.05)
 scoreOfficerDevelopment _ = 0.0
 
 pawnAdvancement :: Position -> Float
-pawnAdvancement (Position m' _) = sum $ fmap pawnPosValue (asList' m')
+pawnAdvancement pos = sum $ fmap pawnPosValue (toList' (m pos))
 
-pawnPosValue :: (Square, Piece) -> Float
-pawnPosValue (Square 3 r, Pawn White) = r' r * 0.06
-pawnPosValue (Square 6 r, Pawn White) = r' r * 0.06
-pawnPosValue (Square 4 r, Pawn White) = r' r * 0.07
-pawnPosValue (Square 5 r, Pawn White) = r' r * 0.07
-pawnPosValue (Square _ r, Pawn White) = r' r * 0.05
-pawnPosValue (Square 3 r, Pawn Black) = (9 - r' r) * (-0.06)
-pawnPosValue (Square 6 r, Pawn Black) = (9 - r' r) * (-0.06)
-pawnPosValue (Square 4 r, Pawn Black) = (9 - r' r) * (-0.07)
-pawnPosValue (Square 5 r, Pawn Black) = (9 - r' r) * (-0.07)
-pawnPosValue (Square _ r, Pawn Black) = (9 - r' r) * (-0.05)
+pawnPosValue :: (Square, Maybe Piece) -> Float
+pawnPosValue (_, Nothing) = 0.00
+pawnPosValue (Square 3 r, Just (Pawn White)) = r' r * 0.06
+pawnPosValue (Square 6 r, Just (Pawn White)) = r' r * 0.06
+pawnPosValue (Square 4 r, Just (Pawn White)) = r' r * 0.07
+pawnPosValue (Square 5 r, Just (Pawn White)) = r' r * 0.07
+pawnPosValue (Square _ r, Just (Pawn White)) = r' r * 0.05
+pawnPosValue (Square 3 r, Just (Pawn Black)) = (9 - r' r) * (-0.06)
+pawnPosValue (Square 6 r, Just (Pawn Black)) = (9 - r' r) * (-0.06)
+pawnPosValue (Square 4 r, Just (Pawn Black)) = (9 - r' r) * (-0.07)
+pawnPosValue (Square 5 r, Just (Pawn Black)) = (9 - r' r) * (-0.07)
+pawnPosValue (Square _ r, Just (Pawn Black)) = (9 - r' r) * (-0.05)
 pawnPosValue _ = 0.00
 
 r' :: Int -> Float

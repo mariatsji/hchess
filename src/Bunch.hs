@@ -27,7 +27,8 @@ singleton x = Bunch [x]
 {-# INLINE singleton #-}
 
 filter' :: (a -> Bool) -> Bunch a -> Bunch a
-filter' pred' bunch = coerce $ filter pred' (unBunch bunch)
+filter' pred' bunch = {-# SCC "Bunch.filter'" #-} coerce $ filter pred' (unBunch bunch)
+{-# INLINE filter' #-}
 
 unsafeHead :: Bunch a -> a
 unsafeHead = head . unBunch

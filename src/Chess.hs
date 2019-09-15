@@ -195,9 +195,9 @@ maybePromote c pos p = [promoteTo c pos p | canPromote c pos p]
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
 promoteTo c pos p =
-  let allPieces = asList' $ m pos
-      asListPromoted = fromList' $ fmap (prom c p) allPieces
-   in pos {m = asListPromoted}
+  let allPieces = searchForPieces pos (const True)
+      listPromoted = fmap (prom c p) allPieces
+   in pos {m = fromList' (unBunch listPromoted)}
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
