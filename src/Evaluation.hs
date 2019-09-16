@@ -39,11 +39,11 @@ toGH e =
 
 evaluate :: Position -> Float
 evaluate p =
-  let (whiteCount, blackCount) = force $ countPieces p
-      pawnAdv = force $ pawnAdvancement p
-      develp = force $ development p
-      safeK = force $ safeKing p
-   in whiteCount - blackCount + pawnAdv + develp + safeK
+  let whiteSurplus = countPieces p
+      pawnAdv = pawnAdvancement p
+      develp = development p
+      safeK = safeKing p
+   in whiteSurplus + pawnAdv + develp + safeK
 
 evaluateGH :: Position -> Float
 evaluateGH gh
@@ -119,21 +119,13 @@ r' :: Int -> Float
 r' n = fromIntegral n :: Float
 
 -- (whitepieces, blackpieces)
-countPieces :: Position -> (Float, Float)
-countPieces p =
-  let (whiteList, blackList) = partitionPieces p
-   in (sum $ fmap valueOf whiteList, sum $ fmap valueOf blackList)
+countPieces :: Position -> Float
+countPieces pos = foldl (\acc (_,mp) -> acc + maybe 0 valueOf mp) 0.0 (toList' (m pos))
 
 valueOf :: Piece -> Float
-valueOf (Pawn White) = 1.0
-valueOf (Pawn Black) = 1.0
-valueOf (Knight White) = 3.0
-valueOf (Knight Black) = 3.0
-valueOf (Bishop White) = 3.0
-valueOf (Bishop Black) = 3.0
-valueOf (Rook White) = 5.0
-valueOf (Rook Black) = 5.0
-valueOf (Queen White) = 9.0
-valueOf (Queen Black) = 9.0
-valueOf (King White) = 100.0
-valueOf (King Black) = 100.0
+valueOf (Pawn c) = (if c == Black then (-1) else 1) * 1.0
+valueOf (Knight c) = (if c == Black then (-1) else 1) * 3.0
+valueOf (Bishop c) = (if c == Black then (-1) else 1) * 3.0
+valueOf (Rook c) = (if c == Black then (-1) else 1) * 5.0
+valueOf (Queen c) = (if c == Black then (-1) else 1) * 9.0
+valueOf (King c) = (if c == Black then (-1) else 1) * 100.0

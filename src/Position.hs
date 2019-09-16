@@ -8,8 +8,6 @@ module Position where
 import Bunch
 import Control.DeepSeq (NFData)
 import Control.Monad.ST
-import Data.List (partition)
-import Data.Maybe (catMaybes)
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
@@ -133,10 +131,6 @@ replacePieceAt snp square piece = set snp (hash square) (pure piece)
 
 pieceAt' :: Snapshot -> Square -> Maybe Piece
 pieceAt' snp s = snp ?! hash s
-
--- (whitepieces, blackpieces)
-partitionPieces :: Position -> ([Piece], [Piece])
-partitionPieces pos = partition (\p -> colr p == White) (catMaybes (toList (m pos)))
 
 searchForPieces :: Position -> (Piece -> Bool) -> Bunch (Square, Piece)
 searchForPieces pos pred' = let fixedPred = liftPredicate pred'
