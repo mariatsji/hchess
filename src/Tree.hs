@@ -13,17 +13,6 @@ instance Functor Tree where
   fmap f (Leaf x) = Leaf (f x)
   fmap f (Node x y) = Node (fmap f x) (fmap f y)
 
-instance Applicative Tree where
-  pure = Leaf
-  (Leaf f) <*> (Leaf x) = Leaf (f x)
-  (Leaf f) <*> (Node x y) = Node (f <$> x) (f <$> y)
-  (Node t1 t2) <*> x = Node (t1 <*> x) (t2 <*> x)
-
-instance Monad Tree where
-  return = pure
-  (Leaf a) >>= f = f a
-  (Node a b) >>= f = Node (a >>= f) (b >>= f)
-
 instance Semigroup (Tree a) where
   (<>) = Node
 
