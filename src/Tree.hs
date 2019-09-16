@@ -55,11 +55,12 @@ search (Leaf x) pred' = [x | pred' x]
 search (Node l r) pred' = {-# SCC "Tree.search" #-} search l pred' <> search r pred'
 {-# INLINE search #-}
 
-searchIdx :: Tree a -> (a -> Bool) -> [(Word8, a)]
-searchIdx tree' pred' = {-# SCC "Tree.searchIdx.go" #-} go tree' pred' []
-  where go :: Tree a -> (a -> Bool) -> [Bool] -> [(Word8, a)]
-        go (Leaf x) p path = [(bits6toNum path, x) | p x]
-        go (Node l r) p path = go l p (False : path) <> go r p (True : path)
+-- The two predicates are ANDed together - one based on Square and one based on Maybe Piece (could be smashed into one predicate, couldn't it?)
+searchIdx :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
+searchIdx tree' idxPred piecePred = {-# SCC "Tree.searchIdx.go" #-} go tree' idxPred piecePred []
+  where go :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
+        go (Leaf x) ip pp path = [(bits6toNum path, x) | ip (bits6toNum path) && pp x]
+        go (Node l r) ip pp path = go l ip pp (False : path) <> go r ip pp (True : path)
 {-# INLINE searchIdx #-}
 
 bits6toNum :: [Bool] -> Word8

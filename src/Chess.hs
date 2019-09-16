@@ -106,10 +106,10 @@ positionTree pos =
 positionTreeIgnoreCheck :: Position -> Bunch Position
 positionTreeIgnoreCheck pos =
   let c = toPlay pos
-   in (searchForPieces pos (\p -> colr p == c) >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
+   in (searchForPieces pos (const True) (\p -> colr p == c) >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> Bunch Position
-positionTreeIgnoreCheckPromotionsCastle pos c = searchForPieces pos (\p -> colr p == c) >>= positionsPrPiece pos
+positionTreeIgnoreCheckPromotionsCastle pos c = searchForPieces pos (const True) (\p -> colr p == c) >>= positionsPrPiece pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> Bunch Position
 positionsPrPiece pos@(Position snp _) (s, p) = case p of
@@ -185,15 +185,15 @@ maybePromote c pos p = [promoteTo c pos p | canPromote c pos p]
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
 promoteTo c pos p =
-  let allPieces = searchForPieces pos (const True) -- Bunch (Square, Piece)
+  let allPieces = searchForPieces pos (const True) (const True) -- Bunch (Square, Piece)
       listPromoted = fmap (prom c p) allPieces
    in pos {m = fromList' (unBunch listPromoted)}
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
-  if r == 8 && p2 == Pawn White then (s, p1) else (s, p2)
+  if r == 8 && p2 == Pawn White then (s, p1) else (s, Pawn White)
 prom Black p1 (s@(Square _ r), p2) =
-  if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
+  if r == 1 && p2 == Pawn Black then (s, p1) else (s, Pawn Black)
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> Bunch Position
@@ -397,7 +397,7 @@ anyPosWithoutKing col pos = not $ allHasKing col pos
 
 allHasKing :: Color -> Bunch Position -> Bool
 allHasKing c = all (any (\(_, p) -> p == King c) . colorPieces' c)
-  where colorPieces' c pos = searchForPieces pos (\p -> colr p == c)
+  where colorPieces' c' pos' = searchForPieces pos' (const True) (\p -> colr p == c')
 
 determineStatus :: Position -> Status
 determineStatus pos
