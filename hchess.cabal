@@ -34,7 +34,6 @@ library
                       ,parallel
                       ,deepseq
                       ,conduit
-                      ,ghc-datasize
   default-language:    Haskell2010
 
 executable hchess

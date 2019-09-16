@@ -5,13 +5,6 @@
 
 packages:
 - completed:
-    hackage: ghc-heap-view-0.6.0@sha256:9b36603788c294f18873c217a7dbe7d11af28353dad026c13116f557deba0d5b,3101
-    pantry-tree:
-      size: 547
-      sha256: 473f4eae21b5d100661c139d4ca8cda820f0a25976eedf092970b8c4d2383b53
-  original:
-    hackage: ghc-heap-view-0.6.0@sha256:9b36603788c294f18873c217a7dbe7d11af28353dad026c13116f557deba0d5b,3101
-- completed:
     hackage: ghc-datasize-0.2.1@sha256:a4885648ac788e20b6ad05c677ddaac38802499916e84e9133997891b2819440,1134
     pantry-tree:
       size: 216
