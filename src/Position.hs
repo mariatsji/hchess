@@ -133,13 +133,8 @@ pieceAt' :: Snapshot -> Square -> Maybe Piece
 pieceAt' snp s = snp ?! hash s
 
 searchForPieces :: Position -> (Piece -> Bool) -> Bunch (Square, Piece)
-searchForPieces pos pred' = let fixedPred = liftPredicate pred'
+searchForPieces pos pred' = let fixedPred = maybe False pred'
                             in Bunch $ catSndMaybes $ unHash <$.> searchIdx (m pos) fixedPred
-
-liftPredicate :: (a -> Bool) -> (Maybe a -> Bool)
-liftPredicate f = \case Nothing -> False
-                        Just y -> f y
-{-# INLINE liftPredicate #-}
 
 fromList' :: [(Square, Piece)] -> Snapshot
 fromList' = foldl (\tree (s,p) -> set tree (hash s) (pure p)) (empty64 Nothing)
