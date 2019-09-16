@@ -24,10 +24,10 @@ spec = do
       let newPos = movePiece startPosition (Square 5 2) (Square 5 4)
       pieceAt newPos (Square 5 4) `shouldBe` (Just $ Pawn White :: Maybe Piece)
     it "finds 16 white pieces in startpos"
-      $ length (whitePieces startPosition)
+      $ length (searchForPieces startPosition (\p -> colr p == White))
       `shouldBe` (16 :: Int)
     it "finds 16 black pieces in startpos"
-      $ length (blackPieces startPosition)
+      $ length (searchForPieces startPosition (\p -> colr p == Black))
       `shouldBe` (16 :: Int)
   describe "Move" $ do
     it "finds 20 possible opening moves for white" $ do

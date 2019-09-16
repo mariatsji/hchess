@@ -50,16 +50,6 @@ movePiece pos@(Position m' _) from@(Square fc _) to@(Square tc tr)
     let newSnapshot = movePiece' m' from to
      in mkPosition pos newSnapshot
 
-colorPieces :: Color -> Position -> Bunch (Square, Piece)
-colorPieces White = whitePieces
-colorPieces Black = blackPieces
-
-whitePieces :: Position -> Bunch (Square, Piece)
-whitePieces pos = searchForPieces pos (\p -> colr p == White)
-
-blackPieces :: Position -> Bunch (Square, Piece)
-blackPieces pos = searchForPieces pos (\p -> colr p == Black)
-
 points :: Square -> Square -> [Square]
 points (Square c1 r1) (Square c2 r2) =
   let cline = line c1 c2
@@ -116,10 +106,10 @@ positionTree pos =
 positionTreeIgnoreCheck :: Position -> Bunch Position
 positionTreeIgnoreCheck pos =
   let c = toPlay pos
-   in (colorPieces c pos >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
+   in (searchForPieces pos (\p -> colr p == c) >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
 
 positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> Bunch Position
-positionTreeIgnoreCheckPromotionsCastle pos c = colorPieces c pos >>= positionsPrPiece pos
+positionTreeIgnoreCheckPromotionsCastle pos c = searchForPieces pos (\p -> colr p == c) >>= positionsPrPiece pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> Bunch Position
 positionsPrPiece pos@(Position snp _) (s, p) = case p of
@@ -195,7 +185,7 @@ maybePromote c pos p = [promoteTo c pos p | canPromote c pos p]
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
 promoteTo c pos p =
-  let allPieces = searchForPieces pos (const True)
+  let allPieces = searchForPieces pos (const True) -- Bunch (Square, Piece)
       listPromoted = fmap (prom c p) allPieces
    in pos {m = fromList' (unBunch listPromoted)}
 
@@ -406,7 +396,8 @@ anyPosWithoutKing :: Color -> Bunch Position -> Bool
 anyPosWithoutKing col pos = not $ allHasKing col pos
 
 allHasKing :: Color -> Bunch Position -> Bool
-allHasKing c poses = all (any (\(_, p) -> p == King c) . colorPieces c) (unBunch poses)
+allHasKing c = all (any (\(_, p) -> p == King c) . colorPieces' c)
+  where colorPieces' c pos = searchForPieces pos (\p -> colr p == c)
 
 determineStatus :: Position -> Status
 determineStatus pos
