@@ -38,6 +38,7 @@ set (Node l r) i y = {-# SCC "Tree.set" #-}
         else
           let newL = set l newI y
            in Node newL r
+{-# INLINE set #-}
 
 (?!) :: Tree a -> Word8 -> a
 (?!) (Leaf x) _ = x
@@ -55,13 +56,21 @@ search (Node l r) pred' = {-# SCC "Tree.search" #-} search l pred' <> search r p
 {-# INLINE search #-}
 
 searchIdx :: Tree a -> (a -> Bool) -> [(Word8, a)]
-searchIdx tree' pred' = go tree' pred' 0
-  where go :: Tree a -> (a -> Bool) -> Word8 -> [(Word8, a)]
-        go (Leaf x) p i = [(i, x) | p x]
-        go (Node l r) p i = go l p (shift i 1) <> go r p (shift i 1 + 1)
+searchIdx tree' pred' = {-# SCC "Tree.searchIdx.go" #-} go tree' pred' []
+  where go :: Tree a -> (a -> Bool) -> [Bool] -> [(Word8, a)]
+        go (Leaf x) p path = [(bits6toNum path, x) | p x]
+        go (Node l r) p path = go l p (False : path) <> go r p (True : path)
+{-# INLINE searchIdx #-}
+
+bits6toNum :: [Bool] -> Word8
+bits6toNum bits = {-# SCC "Tree.toNum" #-} go bits 5 0
+  where go :: [Bool] -> Word8 -> Word8 -> Word8
+        go (b:bs) pos acc = (if b then 2^pos else 0) + go bs (pred pos) acc 
+        go [] _ acc = acc
+{-# INLINE bits6toNum #-}
 
 empty64 :: a -> Tree a
-empty64 = {-# SCC "Tree.empty64" #-} go 6
+empty64 = {-# SCC "Tree.empty64.go" #-} go 6
   where
     go :: Word8 -> a -> Tree a
     go 0 x = Leaf x
@@ -79,5 +88,5 @@ fromList l = {-# SCC "Tree.fromList" #-}
 {-# INLINE fromList #-}
 
 toList :: Tree a -> [a]
-toList tree = {-# SCC "Tree.toList" #-} fmap (\i -> tree ?! i) [0..63]
+toList tree = {-# SCC "Tree.toList" #-} fmap (\i -> tree ?! i) [0..63] -- todo Ttraverse tree directly
 {-# INLINE toList #-}
