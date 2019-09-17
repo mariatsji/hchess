@@ -74,6 +74,8 @@ canGoThere pos from to =
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos f t =
   fmap colr (pieceAt pos t) /= fmap colr (pieceAt pos f)
+  -- let pieces = unBunch $ snd <$> searchForPieces pos (\s -> s == f || s == t) (const True)
+  -- in length pieces == 2 && colr (head pieces) == colr (pieces !! 1)
 
 enemyAt :: Position -> Square -> Square -> Bool
 enemyAt pos f t =
@@ -187,7 +189,7 @@ promoteTo :: Color -> Position -> Piece -> Position
 promoteTo c pos p =
   let allPieces = searchForPieces pos (const True) (const True) -- Bunch (Square, Piece)
       listPromoted = fmap (prom c p) allPieces
-   in pos {m = fromList' (unBunch listPromoted)}
+   in mkPosition pos (fromList' (unBunch listPromoted))
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
