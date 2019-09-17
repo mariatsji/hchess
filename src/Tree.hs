@@ -16,6 +16,10 @@ instance Functor Tree where
 instance Semigroup (Tree a) where
   (<>) = Node
 
+instance Foldable Tree where
+  foldr f b (Leaf a) = f a b
+  foldr f b (Node t1 t2) = foldr f (foldr f b t2) t1
+
 set :: Tree a -> Word8 -> a -> Tree a
 set (Leaf _) _ y = Leaf y
 set (Node l r) i y = {-# SCC "Tree.set" #-}
