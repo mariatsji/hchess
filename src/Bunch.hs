@@ -16,20 +16,15 @@ instance Semigroup (Bunch a) where
 
 unBunch :: Bunch a -> [a]
 unBunch = coerce
-{-# INLINE unBunch #-}
 
 emptyBunch :: Bunch a
 emptyBunch = Bunch []
-{-# INLINE emptyBunch #-}
 
 singleton :: a -> Bunch a
 singleton x = Bunch [x]
-{-# INLINE singleton #-}
 
 filter' :: (a -> Bool) -> Bunch a -> Bunch a
-filter' pred' bunch = {-# SCC "Bunch.filter'" #-} coerce $ filter pred' (unBunch bunch)
-{-# INLINE filter' #-}
+filter' pred' bunch = coerce $ filter pred' (unBunch bunch)
 
 unsafeHead :: Bunch a -> a
 unsafeHead = head . unBunch
-{-# INLINE unsafeHead #-}
