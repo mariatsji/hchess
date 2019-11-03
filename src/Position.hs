@@ -33,17 +33,21 @@ data Square
 
 type Snapshot = Tree (Maybe Piece)
 
+data CastleStatus = CanCastleBoth | CanCastleA | CanCastleH | CanCastleNone deriving (Eq, Show, Generic, NFData)
+
 data Position
   = Position
       { m :: !Snapshot,
-        gamehistory :: [Snapshot]
+        gamehistory :: [Snapshot],
+        castleStatusWhite :: CastleStatus,
+        castleStatusBlack :: CastleStatus
         }
   deriving (Eq, Show, Generic, NFData)
 
-mkPosition :: Position -> Snapshot -> Position
-mkPosition pos snp =
+mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Position
+mkPosition pos snp csW csB =
   let newGH = m pos : gamehistory pos
-   in pos {m = snp, gamehistory = newGH}
+   in pos {m = snp, gamehistory = newGH, castleStatusWhite = csW, castleStatusBlack = csB}
 
 hash :: Square -> Word8
 hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
@@ -64,7 +68,9 @@ colr (King c) = c
 startPosition :: Position
 startPosition = Position
   { m = startTree,
-    gamehistory = []
+    gamehistory = [],
+    castleStatusWhite = CanCastleBoth,
+    castleStatusBlack = CanCastleBoth
     }
 
 startTree :: Snapshot
@@ -156,4 +162,4 @@ infixl 9 <$.>
 {-# INLINE (<$.>) #-}
 
 emptyBoard :: Position
-emptyBoard = Position (empty64 Nothing) []
+emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth

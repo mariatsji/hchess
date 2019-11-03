@@ -5,7 +5,6 @@ module Tree where
 import Data.Bits
 import Data.Word
 import Control.DeepSeq
-import Control.Parallel
 import GHC.Generics
 
 data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Eq, Show, Generic, NFData)
