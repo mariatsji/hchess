@@ -98,6 +98,18 @@ spec = do
       let t = positionTree p1
       pieceAt (unsafeHead t) (Square 5 1) `shouldBe` Just (Queen Black)
       length t `shouldBe` (4 :: Int)
+    it "allows castle both sides for white after opening move" $ do
+      let p = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
+      either (const CanCastleNone) castleStatusWhite p `shouldBe` CanCastleBoth
+      either (const CanCastleNone) castleStatusBlack p `shouldBe` CanCastleBoth
+    it "only allows white to castle kingside after moving rook on a1" $ do
+      let p = Move.parseMoves ["a2-a4", "d7-d5", "a1-a2"]
+      either (const CanCastleBoth) castleStatusWhite p `shouldBe` CanCastleH
+      either (const CanCastleNone) castleStatusBlack p `shouldBe` CanCastleBoth
+    it "does not allow black any castle after moving king" $ do
+      let p = Move.parseMoves ["e2-e4", "e7-e5", "d2-d4", "e8-e7"]
+      either (const CanCastleNone) castleStatusWhite p `shouldBe` CanCastleBoth
+      either (const CanCastleBoth) castleStatusBlack p `shouldBe` CanCastleNone
     it "does a long castle for black when the startpos is used" $ do
       let m1 = removePieceAt (m startPosition) (Square 2 8)
           m2 = removePieceAt m1 (Square 3 8)
