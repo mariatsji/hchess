@@ -8,6 +8,7 @@ module Position where
 import Bunch
 import Control.DeepSeq (NFData)
 import Control.Monad.ST
+import Data.Maybe
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
@@ -40,14 +41,16 @@ data Position
       { m :: !Snapshot,
         gamehistory :: [Snapshot],
         castleStatusWhite :: CastleStatus,
-        castleStatusBlack :: CastleStatus
+        castleStatusBlack :: CastleStatus,
+        whiteKing :: Maybe Square,
+        blackKing :: Maybe Square
         }
   deriving (Eq, Show, Generic, NFData)
 
-mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Position
-mkPosition pos snp csW csB =
+mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Maybe Square -> Maybe Square -> Position
+mkPosition pos snp csW csB whiteKing' blackKing' =
   let newGH = m pos : gamehistory pos
-   in pos {m = snp, gamehistory = newGH, castleStatusWhite = csW, castleStatusBlack = csB}
+   in pos {m = snp, gamehistory = newGH, castleStatusWhite = csW, castleStatusBlack = csB, whiteKing = whiteKing', blackKing = blackKing'}
 
 hash :: Square -> Word8
 hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
@@ -70,7 +73,9 @@ startPosition = Position
   { m = startTree,
     gamehistory = [],
     castleStatusWhite = CanCastleBoth,
-    castleStatusBlack = CanCastleBoth
+    castleStatusBlack = CanCastleBoth,
+    whiteKing = Just (Square 5 1),
+    blackKing = Just (Square 5 8)
     }
 
 startTree :: Snapshot
@@ -162,8 +167,9 @@ infixl 9 <$.>
 {-# INLINE (<$.>) #-}
 
 emptyBoard :: Position
-emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth
+emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth Nothing Nothing
 
 missingKing :: Color -> Position -> Bool
-missingKing clr pos = null $ search (m pos) (\mp -> mp == Just (King clr))
+missingKing White pos = isNothing (whiteKing pos)
+missingKing Black pos = isNothing (blackKing pos)
 {-# INLINE missingKing #-}

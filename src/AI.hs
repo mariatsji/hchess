@@ -128,6 +128,6 @@ getStatus :: Evaluated -> Status
 getStatus (Evaluated _ _ x) = x
 
 oneStep :: Position -> Position -> Position
-oneStep (Position ma gha _ _) long@(Position mb ghb _ _) =
+oneStep (Position ma gha _ _ _ _) long@(Position mb ghb _ _ _ _) =
   let nextPos = (mb : ghb) !! (length (mb : ghb) - length (ma : gha) - 1)
    in long {m = nextPos, gamehistory = ma : gha}

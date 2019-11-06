@@ -37,15 +37,15 @@ squareTo :: Square -> Int -> Int -> Square
 squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos@(Position m' _ _ _) from@(Square fc _) to@(Square tc tr)
+movePiece pos@(Position m' _ _ _ wk bk) from@(Square fc _) to@(Square tc tr)
   | pieceAt pos from == Just (Pawn White) && (fc /= tc) && vacantAt pos to =
     let newSnapshot =
           movePiece' (removePieceAt m' (Square tc (tr - 1))) from to
-     in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos) 
+     in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos) wk bk
   | pieceAt pos from == Just (Pawn Black) && (fc /= tc) && vacantAt pos to =
     let newSnapshot =
           movePiece' (removePieceAt m' (Square tc (tr + 1))) from to
-     in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos)
+     in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos) wk bk
   | otherwise =
     let newSnapshot = movePiece' m' from to
         newCastleStatusWhite = case toPlay pos of
@@ -54,7 +54,9 @@ movePiece pos@(Position m' _ _ _) from@(Square fc _) to@(Square tc tr)
         newCastleStatusBlack = case toPlay pos of
           Black -> mkNewCastleStatus pos Black from
           White -> castleStatusBlack pos
-     in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack
+        newWhiteKing = if pieceAt pos to == Just (King White) then Nothing else wk
+        newBlackKing = if pieceAt pos to == Just (King Black) then Nothing else bk 
+     in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newWhiteKing newBlackKing
 
 mkNewCastleStatus :: Position -> Color -> Square -> CastleStatus
 mkNewCastleStatus pos White from = case from of
@@ -145,7 +147,7 @@ positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> Bunch Position
 positionTreeIgnoreCheckPromotionsCastle pos c = searchForPieces pos (const True) (\p -> colr p == c) >>= positionsPrPiece pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> Bunch Position
-positionsPrPiece pos@(Position snp _ _ _) (s, p) = case p of
+positionsPrPiece pos@(Position snp _ _ _ _ _) (s, p) = case p of
   Pawn _ ->
     let potentials = filter (canGoThere pos s . fst) $ toSquaresPawn pos (s, p)
      in Bunch
@@ -191,7 +193,7 @@ toSquaresPawn pos (s@(Square _ r), p)
 
 -- en passant
 enPassant :: Position -> Square -> Bool
-enPassant (Position _ [] _ _) _ = False
+enPassant (Position _ [] _ _ _ _) _ = False
 enPassant pos s@(Square c r)
   | toPlay pos == White =
     (r == 5) && pieceAt pos s == Just (Pawn Black) && jumpedHereJustNow pos s
@@ -220,7 +222,7 @@ promoteTo :: Color -> Position -> Piece -> Position
 promoteTo c pos p =
   let allPieces = searchForPieces pos (const True) (const True) -- Bunch (Square, Piece)
       listPromoted = fmap (prom c p) allPieces
-   in mkPosition pos (fromList' (unBunch listPromoted)) (castleStatusWhite pos) (castleStatusBlack pos)
+   in mkPosition pos (fromList' (unBunch listPromoted)) (castleStatusWhite pos) (castleStatusBlack pos) (whiteKing pos) (blackKing pos)
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
@@ -335,7 +337,15 @@ castle' pos color kingPosF rookPosF doCastleF =
       let newSnapshot = doCastleF (m pos) color
           newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
           newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
-       in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack]
+          newKingPosWhite = case rookPosF color of
+            Square 1 1 -> Just $ Square 3 1
+            Square 8 1 -> Just $ Square 7 1
+            _ -> whiteKing pos
+          newKingPosBlack = case rookPosF color of
+            Square 1 8 -> Just $ Square 3 8
+            Square 8 8 -> Just $ Square 7 8
+            _ -> blackKing pos
+      in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newKingPosWhite newKingPosBlack]
     else []
 
 doCastleShort :: Snapshot -> Color -> Snapshot
@@ -421,20 +431,16 @@ isDraw :: Position -> Bool
 isDraw pos = isPatt pos || threefoldrepetition pos
 
 threefoldrepetition :: Position -> Bool
-threefoldrepetition (Position m' gh _ _) = length (filter (== m') gh) > 1
+threefoldrepetition (Position m' gh _ _ _ _) = length (filter (== m') gh) > 1
 
 eqPosition :: Position -> Position -> Bool
-eqPosition (Position m1 _ _ _) (Position m2 _ _ _) = m1 == m2
+eqPosition (Position m1 _ _ _ _ _) (Position m2 _ _ _ _ _) = m1 == m2
 
 isPatt :: Position -> Bool
 isPatt pos = not (isInCheck pos (toPlay pos)) && null (positionTree pos)
 
 anyPosWithoutKing :: Color -> Bunch Position -> Bool
-anyPosWithoutKing col pos = any (missingKing col) (unBunch pos) -- TODO any missing king instead.. lazier
-
-allHasKing :: Color -> Bunch Position -> Bool
-allHasKing c = all (any (\(_, p) -> p == King c) . colorPieces' c)
-  where colorPieces' c' pos' = searchForPieces pos' (const True) (\p -> colr p == c')
+anyPosWithoutKing col pos = any (missingKing col) (unBunch pos)
 
 determineStatus :: Position -> Status
 determineStatus pos
