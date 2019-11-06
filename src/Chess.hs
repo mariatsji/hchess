@@ -149,19 +149,18 @@ positionTreeIgnoreCheckPromotionsCastle pos c = searchForPieces pos (const True)
 positionsPrPiece :: Position -> (Square, Piece) -> Bunch Position
 positionsPrPiece pos@(Position snp _ _ _ _ _) (s, p) = case p of
   Pawn _ ->
-    let potentials = filter (canGoThere pos s . fst) $ toSquaresPawn pos (s, p)
-     in Bunch
-          $ map
-              ( \t -> case snd t of
-                  Nothing -> movePiece pos s (fst t)
-                  Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
-                )
-              potentials
+    Bunch $
+      map
+        ( \t -> case snd t of
+            Nothing -> movePiece pos s (fst t)
+            Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
+        )
+        (filter (canGoThere pos s . fst) $ toSquaresPawn pos (s, p))
   Knight _ ->
-    Bunch
-      $ fmap
-          (movePiece pos s)
-          (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
+    Bunch $
+      fmap
+        (movePiece pos s)
+        (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
   Bishop _ ->
     Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
   Rook _ ->
@@ -170,6 +169,7 @@ positionsPrPiece pos@(Position snp _ _ _ _ _) (s, p) = case p of
     Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
   King _ ->
     Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
+
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> (Square, Piece) -> [(Square, Maybe Square)]
@@ -420,9 +420,7 @@ insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
 
 isInCheck :: Position -> Color -> Bool
 isInCheck pos clr =
-  let potentialNextPositions =
-        positionTreeIgnoreCheckPromotionsCastle pos (succ' clr)
-   in anyPosWithoutKing clr potentialNextPositions
+  anyPosWithoutKing clr (positionTreeIgnoreCheckPromotionsCastle pos (succ' clr))
 
 isCheckMate :: Position -> Bool
 isCheckMate pos = isInCheck pos (toPlay pos) && null (positionTree pos)
