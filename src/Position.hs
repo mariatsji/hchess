@@ -163,3 +163,7 @@ infixl 9 <$.>
 
 emptyBoard :: Position
 emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth
+
+missingKing :: Color -> Position -> Bool
+missingKing clr pos = null $ search (m pos) (\mp -> mp == Just (King clr))
+{-# INLINE missingKing #-}

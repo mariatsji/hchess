@@ -412,8 +412,7 @@ isInCheck :: Position -> Color -> Bool
 isInCheck pos clr =
   let potentialNextPositions =
         positionTreeIgnoreCheckPromotionsCastle pos (succ' clr)
-      anyPWithoutKing = anyPosWithoutKing clr potentialNextPositions
-   in anyPWithoutKing
+   in anyPosWithoutKing clr potentialNextPositions
 
 isCheckMate :: Position -> Bool
 isCheckMate pos = isInCheck pos (toPlay pos) && null (positionTree pos)
@@ -431,7 +430,7 @@ isPatt :: Position -> Bool
 isPatt pos = not (isInCheck pos (toPlay pos)) && null (positionTree pos)
 
 anyPosWithoutKing :: Color -> Bunch Position -> Bool
-anyPosWithoutKing col pos = not $ allHasKing col pos
+anyPosWithoutKing col pos = any (missingKing col) (unBunch pos) -- TODO any missing king instead.. lazier
 
 allHasKing :: Color -> Bunch Position -> Bool
 allHasKing c = all (any (\(_, p) -> p == King c) . colorPieces' c)
