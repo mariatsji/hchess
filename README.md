@@ -15,8 +15,8 @@
     time stack exec --work-dir=.stackprofile -- hchess-bench-exe +RTS -N8 -hc -p -s -K100M
 
     less hchess-profiled.prof
-    hp2ps -e8in -c hchess-profiled.hp
-    open hchess-profiled.ps
+    hp2pretty ps hchess-profiled.hp
+    open hchess-profiled.svg
 
 # profile with threadscope
 
