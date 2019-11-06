@@ -2,6 +2,7 @@ module Printer where
 
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
+import Data.List
 import Evaluation
 import GHC.Exts
 import Position
@@ -22,7 +23,9 @@ prettyEs :: [Evaluated] -> IO ()
 prettyEs = mapM_ prettyE
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify pos = reverse $ groupWith (\(Square _ r, _) -> r) (toList' (m pos))
+rowify pos = reverse $ sortBy colSort <$> groupWith (\(Square _ r, _) -> r) (toList' (m pos))
+  where colSort :: (Square, Maybe Piece) -> (Square, Maybe Piece) -> Ordering
+        colSort (s1, _) (s2, _) = compare s1 s2
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =
