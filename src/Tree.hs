@@ -25,12 +25,8 @@ set (Leaf _) _ y = Leaf y
 set (Node l r) i y = {-# SCC "Tree.set" #-}
   let newI = shift i (-1)
    in if testBit i 0
-        then
-          let newR = set r newI y
-           in Node l newR
-        else
-          let newL = set l newI y
-           in Node newL r
+        then Node l (set r newI y)
+        else Node (set l newI y) r
 {-# INLINE set #-}
 
 (?!) :: Tree a -> Word8 -> a
@@ -92,5 +88,5 @@ fromList l = {-# SCC "Tree.fromList" #-}
 {-# INLINE fromList #-}
 
 toList :: Tree a -> [a]
-toList tree = {-# SCC "Tree.toList" #-} fmap (\i -> tree ?! i) [0..63] -- todo Ttraverse tree directly
+toList tree = {-# SCC "Tree.toList" #-} fmap (tree ?!) [0..63] -- todo Ttraverse tree directly
 {-# INLINE toList #-}
