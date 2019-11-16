@@ -55,7 +55,7 @@ movePiece pos@(Position m' _ _ _ wk bk) from@(Square fc _) to@(Square tc tr)
           Black -> mkNewCastleStatus pos Black from
           White -> castleStatusBlack pos
         newWhiteKing = if pieceAt pos to == Just (King White) then Nothing else wk
-        newBlackKing = if pieceAt pos to == Just (King Black) then Nothing else bk 
+        newBlackKing = if pieceAt pos to == Just (King Black) then Nothing else bk
      in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newWhiteKing newBlackKing
 
 mkNewCastleStatus :: Position -> Color -> Square -> CastleStatus
@@ -82,7 +82,6 @@ mkNewCastleStatus pos Black from = case from of
     _ -> CanCastleNone
   _ -> castleStatusBlack pos
 
-
 points :: Square -> Square -> [Square]
 points (Square c1 r1) (Square c2 r2) =
   let cline = line c1 c2
@@ -107,8 +106,9 @@ canGoThere pos from to =
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos f t =
   fmap colr (pieceAt pos t) /= fmap colr (pieceAt pos f)
-  -- let pieces = unBunch $ snd <$> searchForPieces pos (\s -> s == f || s == t) (const True)
-  -- in length pieces == 2 && colr (head pieces) == colr (pieces !! 1)
+
+-- let pieces = unBunch $ snd <$> searchForPieces pos (\s -> s == f || s == t) (const True)
+-- in length pieces == 2 && colr (head pieces) == colr (pieces !! 1)
 
 enemyAt :: Position -> Square -> Square -> Bool
 enemyAt pos f t =
@@ -170,26 +170,25 @@ positionsPrPiece pos@(Position snp _ _ _ _ _) (s, p) = case p of
   King _ ->
     Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
-
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> (Square, Piece) -> [(Square, Maybe Square)]
 toSquaresPawn pos (s@(Square _ r), p)
   | colr p == White =
-    filter insideBoard'
-      $ [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2]
-      <> [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1]
-      <> [(squareTo s (-1) 1, Nothing) | enemyAt pos s $ squareTo s (-1) 1]
-      <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
-      <> [(squareTo s 1 1, Nothing) | enemyAt pos s $ squareTo s 1 1]
-      <> [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
+    filter insideBoard' $
+      [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2]
+        <> [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1]
+        <> [(squareTo s (-1) 1, Nothing) | enemyAt pos s $ squareTo s (-1) 1]
+        <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
+        <> [(squareTo s 1 1, Nothing) | enemyAt pos s $ squareTo s 1 1]
+        <> [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
   | otherwise =
-    filter insideBoard'
-      $ [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)]
-      <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
-      <> [(squareTo s (-1) (-1), Nothing) | enemyAt pos s $ squareTo s (-1) (-1)]
-      <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
-      <> [(squareTo s 1 (-1), Nothing) | enemyAt pos s $ squareTo s 1 (-1)]
-      <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
+    filter insideBoard' $
+      [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)]
+        <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
+        <> [(squareTo s (-1) (-1), Nothing) | enemyAt pos s $ squareTo s (-1) (-1)]
+        <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
+        <> [(squareTo s 1 (-1), Nothing) | enemyAt pos s $ squareTo s 1 (-1)]
+        <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
 
 -- en passant
 enPassant :: Position -> Square -> Bool
@@ -204,9 +203,10 @@ enPassant pos s@(Square c r)
     fromSquare = if toPlay pos == White then Square c 7 else Square c 2
     jumpedHereJustNow :: Position -> Square -> Bool
     jumpedHereJustNow _ _ =
-      not $ length (gamehistory pos) < 3
-        && let prevSnapshot = gamehistory pos !! 1
-            in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece && isNothing (pieceAt' prevSnapshot s)
+      not $
+        length (gamehistory pos) < 3
+          && let prevSnapshot = gamehistory pos !! 1
+              in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece && isNothing (pieceAt' prevSnapshot s)
 
 promote :: Color -> Position -> [Position]
 promote c pos = maybePromote c pos =<< [Queen c, Rook c, Bishop c, Knight c]
@@ -233,8 +233,8 @@ prom Black p1 (s@(Square _ r), p2) =
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> Bunch Position
 promoteBindFriendly c pos =
-  Bunch
-    $ if Just (Pawn c) `elem` [pieceAt pos (Square col (promoteRow c)) | col <- [1 .. 8]]
+  Bunch $
+    if Just (Pawn c) `elem` [pieceAt pos (Square col (promoteRow c)) | col <- [1 .. 8]]
       then promoteBindFriendly' c pos
       else [pos]
 
@@ -256,7 +256,7 @@ toSquaresKnight s =
       squareTo s 2 (-1),
       squareTo s (-2) 1,
       squareTo s (-2) (-1)
-      ]
+    ]
 
 -- bishops
 toSquaresBishop :: Square -> [Square]
@@ -294,7 +294,7 @@ toSquaresKing s =
       b <- [-1, 0, 1],
       (a, b) /= (0, 0),
       insideBoard $ squareTo s a b
-    ]
+  ]
 
 -- castles
 type KingPos = Color -> Square
@@ -323,16 +323,16 @@ castleShort pos color = castle' pos color kingPos shortRookPos doCastleShort
 castleLong :: Position -> Color -> [Position]
 castleLong pos color = castle' pos color kingPos longRookPos doCastleLong
 
-castle'
-  :: Position -> Color -> KingPos -> RookPos -> PerformCastleF -> [Position]
+castle' ::
+  Position -> Color -> KingPos -> RookPos -> PerformCastleF -> [Position]
 castle' pos color kingPosF rookPosF doCastleF =
   if pieceAt pos (kingPosF color) == Just (king color) -- must have a king at home
     && pieceAt pos (rookPosF color) -- must have a rook at home
-       == Just (rook color)
+      == Just (rook color)
     && vacantBetween pos (kingPosF color) (rookPosF color) -- must be vacant between king and rook
     && ( not (isInCheck pos color) -- must not be in check
            && willNotPassCheck pos (kingPosF color) (rookPosF color) -- must not move through check
-         )
+       )
     then
       let newSnapshot = doCastleF (m pos) color
           newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
@@ -345,7 +345,7 @@ castle' pos color kingPosF rookPosF doCastleF =
             Square 1 8 -> Just $ Square 3 8
             Square 8 8 -> Just $ Square 7 8
             _ -> blackKing pos
-      in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newKingPosWhite newKingPosBlack]
+       in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newKingPosWhite newKingPosBlack]
     else []
 
 doCastleShort :: Snapshot -> Color -> Snapshot
@@ -355,7 +355,7 @@ doCastleShort pos c =
         (removePieceAt (removePieceAt pos (Square 5 1)) (Square 8 1))
         (Square 7 (homeRow c))
         (King c)
-      )
+    )
     (Square 6 (homeRow c))
     (Rook c)
 
@@ -366,7 +366,7 @@ doCastleLong pos c =
         (removePieceAt (removePieceAt pos (Square 5 1)) (Square 1 1))
         (Square 3 (homeRow c))
         (King c)
-      )
+    )
     (Square 4 (homeRow c))
     (Rook c)
 
@@ -404,12 +404,12 @@ willNotPassCheck pos (Square 5 8) (Square 1 8) =
   not (isInCheck (movePiece pos (Square 5 8) (Square 4 8)) (toPlay pos))
     && not (isInCheck (movePiece pos (Square 5 8) (Square 3 8)) (toPlay pos))
 willNotPassCheck _ s1 s2 =
-  error
-    $ "cannot use squares "
-    <> show s1
-    <> " and "
-    <> show s2
-    <> " as castling squares"
+  error $
+    "cannot use squares "
+      <> show s1
+      <> " and "
+      <> show s2
+      <> " as castling squares"
 
 insideBoard :: Square -> Bool
 insideBoard (Square c r) = c >= 1 && c <= 8 && r >= 1 && r <= 8
@@ -419,7 +419,29 @@ insideBoard' (s, Nothing) = insideBoard s
 insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
 
 isInCheck :: Position -> Color -> Bool
-isInCheck pos clr =
+isInCheck pos White =
+  case whiteKing pos of
+    Nothing -> False
+    Just kingSquare ->
+      let checkByPawn = pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
+          checkByKnight = any (\s -> pieceAt pos s == Just (Knight Black)) $ filter (canGoThere pos kingSquare) (toSquaresKnight kingSquare)
+          checkByRookQueen = any (\s -> pieceAt pos s `elem` [Just (Rook Black), Just (Queen Black)]) $ filter (canGoThere pos kingSquare) (toSquaresRook kingSquare)
+          checkByBishopQueen = any (\s -> pieceAt pos s `elem` [Just (Bishop Black), Just (Queen Black)]) $ filter (canGoThere pos kingSquare) (toSquaresBishop kingSquare)
+          checkByKing = any (\s -> pieceAt pos s == Just (King Black)) $ filter (canGoThere pos kingSquare) (toSquaresKing kingSquare)
+       in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
+isInCheck pos Black =
+  case blackKing pos of
+    Nothing -> False
+    Just kingSquare ->
+      let checkByPawn = pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
+          checkByKnight = any (\s -> pieceAt pos s == Just (Knight White)) $ toSquaresKnight kingSquare
+          checkByRookQueen = any (\s -> pieceAt pos s `elem` [Just (Rook White), Just (Queen White)]) $ filter (canGoThere pos kingSquare) (toSquaresRook kingSquare)
+          checkByBishopQueen = any (\s -> pieceAt pos s `elem` [Just (Bishop White), Just (Queen White)]) $ filter (canGoThere pos kingSquare) (toSquaresBishop kingSquare)
+          checkByKing = any (\s -> pieceAt pos s == Just (King White)) $ filter (canGoThere pos kingSquare) (toSquaresKing kingSquare)
+       in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
+
+isInCheckExpensive :: Position -> Color -> Bool
+isInCheckExpensive pos clr =
   anyPosWithoutKing clr (positionTreeIgnoreCheckPromotionsCastle pos (succ' clr))
 
 isCheckMate :: Position -> Bool
