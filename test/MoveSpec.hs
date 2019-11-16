@@ -58,9 +58,6 @@ spec = do
     it "finds toSquares for pawns in startrow" $ do
       let squares = toSquaresPawn startPosition (Square 5 2, Pawn White)
       squares `shouldMatchList` ([(Square 5 3, Nothing), (Square 5 4, Nothing)] :: [(Square, Maybe Square)])
-    it "recognizes a position with a king" $ do
-      let b = anyPosWithoutKing White (Bunch [startPosition])
-      b `shouldBe` (False :: Bool)
     it "finds a small number of end-positions" $ do
       let p1 = replacePieceAt (m emptyBoard) (Square 8 8) (King Black)
       let p2 = replacePieceAt p1 (Square 5 1) (King White)

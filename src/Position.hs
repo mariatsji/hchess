@@ -168,8 +168,3 @@ infixl 9 <$.>
 
 emptyBoard :: Position
 emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth Nothing Nothing
-
-missingKing :: Color -> Position -> Bool
-missingKing White pos = isNothing (whiteKing pos)
-missingKing Black pos = isNothing (blackKing pos)
-{-# INLINE missingKing #-}

@@ -458,10 +458,6 @@ isInCheck pos Black =
           checkByKing = any (\s -> pieceAt pos s == Just (King White)) $ filter (canGoThere pos kingSquare) (toSquaresKing kingSquare)
        in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
 
-isInCheckExpensive :: Position -> Color -> Bool
-isInCheckExpensive pos clr =
-  anyPosWithoutKing clr (positionTreeIgnoreCheckPromotionsCastle pos (succ' clr))
-
 isCheckMate :: Position -> Bool
 isCheckMate pos = isInCheck pos (toPlay pos) && null (positionTree pos)
 
@@ -476,9 +472,6 @@ eqPosition (Position m1 _ _ _ _ _) (Position m2 _ _ _ _ _) = m1 == m2
 
 isPatt :: Position -> Bool
 isPatt pos = not (isInCheck pos (toPlay pos)) && null (positionTree pos)
-
-anyPosWithoutKing :: Color -> Bunch Position -> Bool
-anyPosWithoutKing col pos = any (missingKing col) (unBunch pos)
 
 determineStatus :: Position -> Status
 determineStatus pos
