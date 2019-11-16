@@ -392,17 +392,35 @@ promoteRow Black = homeRow White
 
 willNotPassCheck :: Position -> Square -> Square -> Bool
 willNotPassCheck pos (Square 5 1) (Square 8 1) =
-  not (isInCheck (movePiece pos (Square 5 1) (Square 6 1)) (toPlay pos))
-    && not (isInCheck (movePiece pos (Square 5 1) (Square 7 1)) (toPlay pos))
+  not $
+    any
+      (\p -> isInCheck p (toPlay pos))
+      [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 6 1) (King (toPlay pos)), whiteKing = Just (Square 6 1)},
+        pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 7 1) (King (toPlay pos)), whiteKing = Just (Square 7 1)}
+      ]
 willNotPassCheck pos (Square 5 1) (Square 1 1) =
-  not (isInCheck (movePiece pos (Square 5 1) (Square 4 1)) (toPlay pos))
-    && not (isInCheck (movePiece pos (Square 5 1) (Square 3 1)) (toPlay pos))
+  not $
+    any
+      (\p -> isInCheck p (toPlay pos))
+      [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 4 1) (King (toPlay pos)), whiteKing = Just (Square 4 1)},
+        pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 3 1) (King (toPlay pos)), whiteKing = Just (Square 3 1)},
+        pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 2 1) (King (toPlay pos)), whiteKing = Just (Square 2 1)}
+      ]
 willNotPassCheck pos (Square 5 8) (Square 8 8) =
-  not (isInCheck (movePiece pos (Square 5 8) (Square 6 8)) (toPlay pos))
-    && not (isInCheck (movePiece pos (Square 5 8) (Square 7 8)) (toPlay pos))
+  not $
+    any
+      (\p -> isInCheck p (toPlay pos))
+      [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 6 8) (King (toPlay pos)), blackKing = Just (Square 6 8)},
+        pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 7 8) (King (toPlay pos)), blackKing = Just (Square 7 8)}
+      ]
 willNotPassCheck pos (Square 5 8) (Square 1 8) =
-  not (isInCheck (movePiece pos (Square 5 8) (Square 4 8)) (toPlay pos))
-    && not (isInCheck (movePiece pos (Square 5 8) (Square 3 8)) (toPlay pos))
+  not $
+    any
+      (\p -> isInCheck p (toPlay pos))
+      [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 4 8) (King (toPlay pos)), blackKing = Just (Square 4 8)},
+        pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 3 8) (King (toPlay pos)), blackKing = Just (Square 3 8)},
+        pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 2 8) (King (toPlay pos)), blackKing = Just (Square 2 8)}
+      ]
 willNotPassCheck _ s1 s2 =
   error $
     "cannot use squares "
