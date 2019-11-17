@@ -229,9 +229,15 @@ spec = do
       let p1 = startPosition
       let p2 = unsafeHead $ positionTree startPosition
       head (gamehistory p2) `shouldBe` m p1
+    it "updates the black king position when moving king" $ do
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7","e8-f7"]
+      blackKing p `shouldBe` Just (Square 6 7)
+    it "realizes black is check when a bishop wants to eat it" $ do
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7","e8-f7"]
+      isInCheck p Black `shouldBe` True 
     it "finds an empty position tree for black when black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
-      let p' = head $ unBunch (positionTree p)
+      let p' = unBunch (positionTree p)
       length p' `shouldBe` 0
     it "realizes black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
