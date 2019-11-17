@@ -54,8 +54,14 @@ movePiece pos@(Position m' _ _ _ wk bk) from@(Square fc _) to@(Square tc tr)
         newCastleStatusBlack = case toPlay pos of
           Black -> mkNewCastleStatus pos Black from
           White -> castleStatusBlack pos
-        newWhiteKing = if pieceAt pos to == Just (King White) then Nothing else wk
-        newBlackKing = if pieceAt pos to == Just (King Black) then Nothing else bk
+        newWhiteKing
+          | pieceAt pos to == Just (King White) = Nothing 
+          | pieceAt pos from == Just (King White) = Just to
+          | otherwise = wk
+        newBlackKing
+          | pieceAt pos to == Just (King Black) = Nothing 
+          | pieceAt pos from == Just (King Black) = Just to
+          | otherwise = bk
      in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newWhiteKing newBlackKing
 
 mkNewCastleStatus :: Position -> Color -> Square -> CastleStatus
