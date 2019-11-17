@@ -8,7 +8,6 @@ module Position where
 import Bunch
 import Control.DeepSeq (NFData)
 import Control.Monad.ST
-import Data.Maybe
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)

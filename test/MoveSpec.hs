@@ -202,6 +202,10 @@ spec = do
                 (Square 1 2, Square 1 3)
                 ]
       threefoldrepetition p `shouldBe` False
+    it "finds threefoldrepetition though" $ do
+      let moves = ["b1-c3", "b8-c6", "c3-b1", "c6-b8", "b1-c3", "b8-c6", "c3-b1", "c6-b8", "b1-c3", "b8-c6", "c3-b1", "c6-b8"]
+          Right p = parseMoves moves
+      threefoldrepetition p `shouldBe` True
     it "parses an en passant move for black" $ do
       let moves = ["e2-e4", "a7-a5", "f1-b5", "a5-a4", "b2-b4"]
       let p' = parseMoves moves
@@ -225,3 +229,13 @@ spec = do
       let p1 = startPosition
       let p2 = unsafeHead $ positionTree startPosition
       head (gamehistory p2) `shouldBe` m p1
+    it "finds an empty position tree for black when black is checkmate" $ do
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
+      let p' = head $ unBunch (positionTree p)
+      length p' `shouldBe` 0
+    it "realizes black is checkmate" $ do
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
+      isCheckMate p `shouldBe` True
+    it "determines status of a checkmate" $ do
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
+      determineStatus p `shouldBe` BlackIsMate

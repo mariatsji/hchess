@@ -37,3 +37,7 @@ spec = describe "AI" $ do
     let p2 = unsafeHead $ positionTree p1
     let p3 = unsafeHead $ positionTree p2
     oneStep p1 p3 `shouldBe` p2
+  it "edgegreed finds a checkmate" $ do
+    let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
+    let Left (resPos, status) = AI.edgeGreed p 2
+    status `shouldBe` BlackIsMate
