@@ -18,8 +18,12 @@ import Bunch
 import Chess
 import Conduit
 import Control.Monad
+import Data.Either.Combinators (maybeToRight)
+import Data.Maybe (listToMaybe, isJust)
 import Data.List
 import Data.Ord
+import Debug.Trace
+import Printer
 import Evaluation
 import Position
 import Prelude hiding (foldr)
@@ -33,9 +37,7 @@ streamBest pos depth =
           .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-   in if length (gamehistory best) > length (gamehistory pos) + 1
-        then Right oneStep'
-        else Left (oneStep', getStatus bestWithinHorizon)
+   in maybeToRight (pos, getStatus bestWithinHorizon) oneStep'
 
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
 edgeGreed !pos depth =
@@ -45,9 +47,7 @@ edgeGreed !pos depth =
       bestWithinHorizon = foldr1 (swapForBetter (toPlay pos)) (evaluate' <$> expandHorizon depth pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-   in if length (gamehistory best) > length (gamehistory pos) + 1
-        then Right oneStep'
-        else Left (oneStep', getStatus bestWithinHorizon)
+   in maybeToRight (pos, getStatus bestWithinHorizon) oneStep'
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
@@ -71,10 +71,7 @@ focusedBest pos depth =
   let posPotential = posFromE $ focused pos depth
       posFromE (Evaluated a _ _) = a
       posOneStep' = oneStep pos posPotential
-      status = determineStatus posPotential
-   in if length (gamehistory posPotential) > length (gamehistory pos) + 1
-        then Right posOneStep'
-        else Left (posOneStep', status)
+   in maybeToRight (pos, determineStatus posPotential) posOneStep'
 
 -- only evaluate the n most promising replies (which is to say every reply..)
 searchWidth :: Int
@@ -127,7 +124,9 @@ getPos (Evaluated x _ _) = x
 getStatus :: Evaluated -> Status
 getStatus (Evaluated _ _ x) = x
 
-oneStep :: Position -> Position -> Position
-oneStep (Position ma gha _ _ _ _) long@(Position mb ghb _ _ _ _) =
-  let nextPos = (mb : ghb) !! (length (mb : ghb) - length (ma : gha) - 1)
-   in long {m = nextPos, gamehistory = ma : gha}
+oneStep :: Position -> Position -> Maybe Position
+oneStep pos@(Position snpa gha csw csb wk bk) (Position snpb ghb _ _ _ _) =
+  let zipped = zipWith (\a b -> if a == b then Nothing else Just a) (snpb : ghb) (cycle (snpa : gha))
+      (future, _) = partition isJust zipped
+      safeLast = foldl (flip const) Nothing future
+  in ((\ghHead -> mkPosition pos ghHead csw csb wk bk) <$> safeLast)

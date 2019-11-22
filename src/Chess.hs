@@ -161,7 +161,7 @@ positionsPrPiece pos@(Position snp _ _ _ _ _) (s, p) = case p of
             Nothing -> movePiece pos s (fst t)
             Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
         )
-        (filter (canGoThere pos s . fst) $ toSquaresPawn pos (s, p))
+        (filter (canGoThere pos s . fst) $ toSquaresPawn pos s)
   Knight _ ->
     Bunch $
       fmap
@@ -177,23 +177,23 @@ positionsPrPiece pos@(Position snp _ _ _ _ _) (s, p) = case p of
     Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
-toSquaresPawn :: Position -> (Square, Piece) -> [(Square, Maybe Square)]
-toSquaresPawn pos (s@(Square _ r), p)
-  | colr p == White =
+toSquaresPawn :: Position -> Square-> [(Square, Maybe Square)]
+toSquaresPawn pos s@(Square _ r)
+  | toPlay pos == White =
     filter insideBoard' $
       [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2]
         <> [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1]
         <> [(squareTo s (-1) 1, Nothing) | enemyAt pos s $ squareTo s (-1) 1]
-        <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
         <> [(squareTo s 1 1, Nothing) | enemyAt pos s $ squareTo s 1 1]
+        <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
         <> [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
   | otherwise =
     filter insideBoard' $
       [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)]
         <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
         <> [(squareTo s (-1) (-1), Nothing) | enemyAt pos s $ squareTo s (-1) (-1)]
-        <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
         <> [(squareTo s 1 (-1), Nothing) | enemyAt pos s $ squareTo s 1 (-1)]
+        <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
         <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
 
 -- en passant

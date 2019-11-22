@@ -56,7 +56,7 @@ hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
 {-# INLINE hash #-}
 
 unHash :: Word8 -> Square
-unHash i = Square ((fromIntegral i `rem` 8) + 1) ((fromIntegral i `quot` 8) + 1) -- TODO Word8 in Square
+unHash i = Square ((fromIntegral i `rem` 8) + 1) ((fromIntegral i `quot` 8) + 1)
 {-# INLINE unHash #-}
 
 colr :: Piece -> Color

@@ -56,7 +56,7 @@ spec = do
       let squares = points (Square 8 1) (Square 1 8)
       squares `shouldBe` ([Square 7 2, Square 6 3, Square 5 4, Square 4 5, Square 3 6, Square 2 7] :: [Square])
     it "finds toSquares for pawns in startrow" $ do
-      let squares = toSquaresPawn startPosition (Square 5 2, Pawn White)
+      let squares = toSquaresPawn startPosition (Square 5 2)
       squares `shouldMatchList` ([(Square 5 3, Nothing), (Square 5 4, Nothing)] :: [(Square, Maybe Square)])
     it "finds a small number of end-positions" $ do
       let p1 = replacePieceAt (m emptyBoard) (Square 8 8) (King Black)
@@ -230,11 +230,8 @@ spec = do
       let p2 = unsafeHead $ positionTree startPosition
       head (gamehistory p2) `shouldBe` m p1
     it "updates the black king position when moving king" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7","e8-f7"]
-      blackKing p `shouldBe` Just (Square 6 7)
-    it "realizes black is check when a bishop wants to eat it" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7","e8-f7"]
-      isInCheck p Black `shouldBe` True 
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","e8-e7"]
+      blackKing p `shouldBe` Just (Square 5 7)
     it "finds an empty position tree for black when black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
       let p' = unBunch (positionTree p)

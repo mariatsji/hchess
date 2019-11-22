@@ -28,6 +28,7 @@ library
                       ,utf8-string
                       ,bytestring
                       ,containers
+                      ,either
                       ,unordered-containers
                       ,regex-tdfa
                       ,vector
