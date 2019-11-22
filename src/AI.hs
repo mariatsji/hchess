@@ -4,7 +4,6 @@
 module AI
   ( focused',
     focused,
-    focusedBest,
     edgeGreed,
     streamBest,
     highestSoFar,
@@ -18,12 +17,9 @@ import Bunch
 import Chess
 import Conduit
 import Control.Monad
-import Data.Either.Combinators (maybeToRight)
-import Data.Maybe (listToMaybe, isJust)
+import Data.Maybe (listToMaybe)
 import Data.List
 import Data.Ord
-import Debug.Trace
-import Printer
 import Evaluation
 import Position
 import Prelude hiding (foldr)
@@ -37,7 +33,8 @@ streamBest pos depth =
           .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-   in maybeToRight (pos, getStatus bestWithinHorizon) oneStep'
+  in maybe (Left (pos, getStatus bestWithinHorizon)) Right oneStep'
+   --in maybeToRight (pos, getStatus bestWithinHorizon) oneStep'
 
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
 edgeGreed !pos depth =
@@ -47,7 +44,7 @@ edgeGreed !pos depth =
       bestWithinHorizon = foldr1 (swapForBetter (toPlay pos)) (evaluate' <$> expandHorizon depth pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-   in maybeToRight (pos, getStatus bestWithinHorizon) oneStep'
+   in maybe (Left (pos, getStatus bestWithinHorizon)) Right oneStep'
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
@@ -64,14 +61,6 @@ expandHorizon :: Int -> Position -> Bunch Position
 expandHorizon 0 _ = undefined
 expandHorizon 1 !pos = positionTree pos
 expandHorizon n !pos = expandHorizon 1 pos >>= expandHorizon (n - 1)
-
--- best give you Either Status or a gh ++ Position (gh with next position in it)
-focusedBest :: Position -> Int -> Either (Position, Status) Position
-focusedBest pos depth =
-  let posPotential = posFromE $ focused pos depth
-      posFromE (Evaluated a _ _) = a
-      posOneStep' = oneStep pos posPotential
-   in maybeToRight (pos, determineStatus posPotential) posOneStep'
 
 -- only evaluate the n most promising replies (which is to say every reply..)
 searchWidth :: Int
@@ -125,8 +114,8 @@ getStatus :: Evaluated -> Status
 getStatus (Evaluated _ _ x) = x
 
 oneStep :: Position -> Position -> Maybe Position
-oneStep pos@(Position snpa gha csw csb wk bk) (Position snpb ghb _ _ _ _) =
-  let zipped = zipWith (\a b -> if a == b then Nothing else Just a) (snpb : ghb) (cycle (snpa : gha))
-      (future, _) = partition isJust zipped
-      safeLast = foldl (flip const) Nothing future
-  in ((\ghHead -> mkPosition pos ghHead csw csb wk bk) <$> safeLast)
+oneStep pos@(Position snpa gha _ _ _ _) (Position snpb ghb _ _ _ _) =
+  let diff = length (snpb : ghb) - length (snpa : gha)
+      onemorelist = (drop (diff - 1) (snpb : ghb))
+  in (\snp -> mkPositionExpensive pos snp ) <$> listToMaybe onemorelist
+  

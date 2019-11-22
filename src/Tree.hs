@@ -3,6 +3,7 @@
 module Tree where
 
 import Data.Bits
+import Data.List ((\\))
 import Data.Word
 import Control.DeepSeq
 import GHC.Generics
@@ -90,3 +91,6 @@ fromList l = {-# SCC "Tree.fromList" #-}
 toList :: Tree a -> [a]
 toList tree = {-# SCC "Tree.toList" #-} fmap (tree ?!) [0..63] -- todo Ttraverse tree directly
 {-# INLINE toList #-}
+
+diff :: Eq a => Tree a -> Tree a -> [(Word8, a)]
+diff a b = searchIdx b (\w8 -> a ?! w8 /= b ?! w8) (const True)

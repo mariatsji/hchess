@@ -7,6 +7,7 @@ module Position where
 
 import Bunch
 import Control.DeepSeq (NFData)
+import Data.Maybe (fromMaybe)
 import Control.Monad.ST
 import Data.STRef
 import Data.Word
@@ -43,13 +44,16 @@ data Position
         castleStatusBlack :: CastleStatus,
         whiteKing :: Maybe Square,
         blackKing :: Maybe Square
-        }
+      }
   deriving (Eq, Show, Generic, NFData)
 
 mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Maybe Square -> Maybe Square -> Position
 mkPosition pos snp csW csB whiteKing' blackKing' =
   let newGH = m pos : gamehistory pos
    in pos {m = snp, gamehistory = newGH, castleStatusWhite = csW, castleStatusBlack = csB, whiteKing = whiteKing', blackKing = blackKing'}
+
+mkPositionExpensive :: Position -> Snapshot -> Position
+mkPositionExpensive pos snp = undefined --TODO
 
 hash :: Square -> Word8
 hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
@@ -75,7 +79,7 @@ startPosition = Position
     castleStatusBlack = CanCastleBoth,
     whiteKing = Just (Square 5 1),
     blackKing = Just (Square 5 8)
-    }
+  }
 
 startTree :: Snapshot
 startTree = fromList' startSquarePieces
@@ -101,7 +105,7 @@ startWhitePieces =
     (Square 6 2, Pawn White),
     (Square 7 2, Pawn White),
     (Square 8 2, Pawn White)
-    ]
+  ]
 
 startBlackPieces :: [(Square, Piece)]
 startBlackPieces =
@@ -121,7 +125,7 @@ startBlackPieces =
     (Square 6 8, Bishop Black),
     (Square 7 8, Knight Black),
     (Square 8 8, Rook Black)
-    ]
+  ]
 
 movePiece' :: Snapshot -> Square -> Square -> Snapshot
 movePiece' snp from to = case snp ?! hash from of
@@ -146,7 +150,7 @@ searchForPieces :: Position -> (Square -> Bool) -> (Piece -> Bool) -> Bunch (Squ
 searchForPieces pos squarePred piecePred = Bunch $ catSndMaybes $ unHash <$.> searchIdx (m pos) (squarePred . unHash) (maybe False piecePred)
 
 fromList' :: [(Square, Piece)] -> Snapshot
-fromList' = foldl (\tree (s,p) -> set tree (hash s) (pure p)) (empty64 Nothing)
+fromList' = foldl (\tree (s, p) -> set tree (hash s) (pure p)) (empty64 Nothing)
 
 toList' :: Snapshot -> [(Square, Maybe Piece)]
 toList' snp = unHash <$.> searchIdx snp (const True) (const True)
@@ -157,13 +161,68 @@ catSndMaybes l =
     >>= ( \case
             (a, Just s) -> [(a, s)]
             _ -> []
-          )
+        )
 {-# INLINE catSndMaybes #-}
 
 (<$.>) :: Functor f => (a -> b) -> f (a, c) -> f (b, c)
 (<$.>) f = fmap (\(a', c') -> (f a', c'))
+
 infixl 9 <$.>
+
 {-# INLINE (<$.>) #-}
 
 emptyBoard :: Position
 emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth Nothing Nothing
+
+data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Square Piece | Castle Square Square deriving (Eq, Show)
+
+findMove :: Snapshot -> Snapshot -> Move
+findMove a b =
+  let changedSquaresAndPiece = (\t -> (unHash (fst t), snd t)) <$> a `diff` b
+      changedSquares = fst <$> changedSquaresAndPiece
+   in case length changedSquares of
+        4
+          | Square 8 1 `elem` changedSquares -> Castle (Square 5 1) (Square 8 1)
+          | Square 1 1 `elem` changedSquares -> Castle (Square 5 1) (Square 1 1)
+          | Square 8 8 `elem` changedSquares -> Castle (Square 5 8) (Square 8 8)
+          | Square 1 8 `elem` changedSquares -> Castle (Square 5 8) (Square 1 8)
+          | otherwise -> error "could not determine position diff of length 4 that does not seem to be a castle"
+        3 -> Enpassant (epfromSquare changedSquaresAndPiece) (eptoSquare changedSquaresAndPiece)
+        2 | twoPiecesOfSameColor changedSquaresAndPiece -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece)
+        2 -> MovedPiece (changedSquares !! 1) (head changedSquares)
+        _ -> error "could not determine changed position when diff length not 2,3,4"
+
+epfromSquare :: [(Square, Maybe Piece)] -> Square
+epfromSquare [] = error "could not determine epfromSquare"
+epfromSquare ((Square c r, mp) : xs)
+  | r == 4 = Square c r
+  | r == 6 = Square c r
+  | otherwise = epfromSquare xs
+
+eptoSquare :: [(Square, Maybe Piece)] -> Square
+eptoSquare [] = error "could not determine eptoSquare"
+eptoSquare ((Square c r, mp) : xs)
+  | r == 3 = Square c r
+  | r == 7 = Square c r
+  | otherwise = eptoSquare xs
+
+twoPiecesOfSameColor :: [(Square, Maybe Piece)] -> Bool
+twoPiecesOfSameColor l
+  | length l == 2 =
+    let colors = fmap (\(_, mp) -> colr <$> mp) l
+     in colors == [Just White, Just White] || colors == [Just Black, Just Black]
+  | otherwise = error "could not check two pieces of same color since list length /= 2"
+
+promfromSquare :: [(Square, Maybe Piece)] -> Square
+promfromSquare [] = error "could not determine promfromSquare"
+promfromSquare ((Square c r, mp) : xs)
+  | r == 2 = Square c r
+  | r == 7 = Square c r
+  | otherwise = promfromSquare xs
+
+promtoSquare :: [(Square, Maybe Piece)] -> Piece
+promtoSquare [] = error "could not determine promtoSquare"
+promtoSquare ((Square c r, mp) : xs)
+  | r == 1 = fromMaybe (error "expected white officer in promtosquare") mp
+  | r == 8 = fromMaybe (error "expected black officer in promtosquare") mp
+  | otherwise = promtoSquare xs

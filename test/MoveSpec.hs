@@ -242,3 +242,9 @@ spec = do
     it "determines status of a checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
       determineStatus p `shouldBe` BlackIsMate
+    it "knows what move has been played between two snapshots" $ do
+      let Right p1 = parseMoves ["e2-e4", "e7-e5"]
+          Right p2 = parseMoves ["e2-e4", "e7-e5", "f1-c4"]
+          themove = findMove (m p1) (m p2)
+      themove `shouldBe` MovedPiece (Square 6 1) (Square 3 4)
+
