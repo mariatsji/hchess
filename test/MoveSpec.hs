@@ -15,20 +15,20 @@ import Test.QuickCheck
 spec :: Spec
 spec = do
   describe "board" $ do
-    it "prints the start position"
-      $ Printer.pretty startPosition
-    it "creates a board with 64 squares"
-      $ length board
-      `shouldBe` (64 :: Int)
+    it "prints the start position" $
+      Printer.pretty startPosition
+    it "creates a board with 64 squares" $
+      length board
+        `shouldBe` (64 :: Int)
     it "moves E2-E4 from start pos" $ do
       let newPos = movePiece startPosition (Square 5 2) (Square 5 4)
       pieceAt newPos (Square 5 4) `shouldBe` (Just $ Pawn White :: Maybe Piece)
-    it "finds 16 white pieces in startpos and all in the first 16 squares"
-      $ length (searchForPieces startPosition (\(Square _ r) -> r < 3) (\p -> colr p == White))
-      `shouldBe` (16 :: Int)
-    it "finds 16 black pieces in startpos and all in the last 16 squares"
-      $ length (searchForPieces startPosition (\(Square _ r) -> r > 6) (\p -> colr p == Black))
-      `shouldBe` (16 :: Int)
+    it "finds 16 white pieces in startpos and all in the first 16 squares" $
+      length (searchForPieces startPosition (\(Square _ r) -> r < 3) (\p -> colr p == White))
+        `shouldBe` (16 :: Int)
+    it "finds 16 black pieces in startpos and all in the last 16 squares" $
+      length (searchForPieces startPosition (\(Square _ r) -> r > 6) (\p -> colr p == Black))
+        `shouldBe` (16 :: Int)
   describe "Move" $ do
     it "finds 20 possible opening moves for white" $ do
       let tree = positionTree startPosition
@@ -62,7 +62,7 @@ spec = do
       let p1 = replacePieceAt (m emptyBoard) (Square 8 8) (King Black)
       let p2 = replacePieceAt p1 (Square 5 1) (King White)
       let p3 = replacePieceAt p2 (Square 8 7) (Pawn White)
-      let t = positionTreeIgnoreCheck Position { m = p3, gamehistory = [m emptyBoard], castleStatusWhite = CanCastleBoth, castleStatusBlack = CanCastleBoth, whiteKing = Just (Square 5 1), blackKing = Just (Square 8 8) }
+      let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], castleStatusWhite = CanCastleBoth, castleStatusBlack = CanCastleBoth, whiteKing = Just (Square 5 1), blackKing = Just (Square 8 8)}
       length t `shouldBe` (3 :: Int)
     it "knows that white is in check" $ do
       let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
@@ -146,7 +146,8 @@ spec = do
       length (gamehistory p2) - length (gamehistory p) `shouldBe` (1 :: Int)
     it "white does not castle through check" $ do
       let p =
-            makeMoves startPosition
+            makeMoves
+              startPosition
               [ (Square 5 2, Square 5 4),
                 (Square 5 7, Square 5 5),
                 (Square 7 1, Square 6 3),
@@ -157,25 +158,27 @@ spec = do
                 (Square 4 8, Square 7 5),
                 (Square 3 3, Square 4 5),
                 (Square 7 5, Square 7 2)
-                ]
+              ]
       let p2 = castleShort p White
       p2 `shouldBe` []
     it "lets white castle from moves out of the opening" $ do
       let p =
-            makeMoves startPosition
+            makeMoves
+              startPosition
               [ (Square 5 2, Square 5 4),
                 (Square 5 7, Square 5 5),
                 (Square 7 1, Square 6 3),
                 (Square 2 8, Square 3 6),
                 (Square 6 1, Square 2 5),
                 (Square 4 7, Square 4 6)
-                ]
+              ]
       let t = positionTree p
       let kingMoves = filter' (\p -> isNothing (pieceAt p (Square 5 1))) t
       length kingMoves `shouldBe` (3 :: Int)
     it "finds two en passant moves for white" $ do
       let p =
-            makeMoves startPosition
+            makeMoves
+              startPosition
               [ (Square 5 2, Square 5 4),
                 (Square 2 8, Square 1 6),
                 (Square 5 4, Square 5 5),
@@ -184,7 +187,7 @@ spec = do
                 (Square 2 8, Square 1 6),
                 (Square 3 4, Square 3 5),
                 (Square 4 7, Square 4 5)
-                ]
+              ]
       let t = positionTree p
       let cPawnMoves = filter' (\p -> isNothing (pieceAt p (Square 3 5))) t
       length cPawnMoves `shouldBe` (2 :: Int)
@@ -192,7 +195,8 @@ spec = do
       length ePawnMoves `shouldBe` (2 :: Int)
     it "counts occurrences of a position in a game history" $ do
       let p =
-            makeMoves startPosition
+            makeMoves
+              startPosition
               [ (Square 2 1, Square 3 3),
                 (Square 2 8, Square 1 6),
                 (Square 3 3, Square 2 1),
@@ -201,17 +205,18 @@ spec = do
                 (Square 2 8, Square 1 6),
                 (Square 3 3, Square 2 1),
                 (Square 1 6, Square 2 8)
-                ]
+              ]
       threefoldrepetition p `shouldBe` True
     it "does not trigger 3-fold-repetition rule out of the blue" $ do
       let p =
-            makeMoves startPosition
+            makeMoves
+              startPosition
               [ (Square 5 2, Square 5 4),
                 (Square 1 7, Square 1 5),
                 (Square 4 2, Square 4 4),
                 (Square 1 5, Square 1 4),
                 (Square 1 2, Square 1 3)
-                ]
+              ]
       threefoldrepetition p `shouldBe` False
     it "finds threefoldrepetition though" $ do
       let moves = ["b1-c3", "b8-c6", "c3-b1", "c6-b8", "b1-c3", "b8-c6", "c3-b1", "c6-b8", "b1-c3", "b8-c6", "c3-b1", "c6-b8"]
@@ -241,17 +246,17 @@ spec = do
       let p2 = unsafeHead $ positionTree startPosition
       head (gamehistory p2) `shouldBe` m p1
     it "updates the black king position when moving king" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","e8-e7"]
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "e8-e7"]
       blackKing p `shouldBe` Just (Square 5 7)
     it "finds an empty position tree for black when black is checkmate" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
       let p' = unBunch (positionTree p)
       length p' `shouldBe` 0
     it "realizes black is checkmate" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
       isCheckMate p `shouldBe` True
     it "determines status of a checkmate" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
+      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
       determineStatus p `shouldBe` BlackIsMate
     it "knows what move has been played between two snapshots" $ do
       let Right p1 = parseMoves ["e2-e4", "e7-e5"]
@@ -282,3 +287,6 @@ spec = do
           Right p2 = parseMove "e8-d7" p1
           themove = findMove (m p1) (m p2)
       themove `shouldBe` MovedPiece (Square 5 8) (Square 4 7)
+    it "finds epfromsquare and eptosquare" $ do
+      epfromSquare [(Square 5 5, Nothing), (Square 6 5, Nothing), (Square 6 6, Just (Pawn White))] `shouldBe` Square 5 5
+      eptoSquare [(Square 5 5, Nothing), (Square 6 5, Nothing), (Square 6 6, Just (Pawn White))] `shouldBe` Square 6 6

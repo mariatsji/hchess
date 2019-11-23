@@ -31,10 +31,7 @@ spec = describe "AI" $ do
   it "successfully steps one point in a direction with oneStep with 1 look a head" $ do
     let p1 = startPosition
     let p2 = unsafeHead $ positionTree p1
-    print "**one step debug"
-    pretty p1
     let Just os = oneStep p1 p2
-    pretty os
     oneStep p1 p2 `shouldBe` Just p2
   it "successfully steps one point in a direction with oneStep based on 2 looks ahead" $ do
     let p1 = startPosition
