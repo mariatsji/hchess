@@ -8,7 +8,7 @@ module Position where
 import Bunch
 import Control.DeepSeq (NFData)
 import Control.Monad.ST
-import Data.Maybe (fromJust, fromMaybe, isNothing)
+import Data.Maybe (fromJust, fromMaybe, isNothing, isJust)
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
@@ -212,8 +212,16 @@ findMove a b =
           | otherwise -> error "could not determine position diff of length 4 that does not seem to be a castle"
         3 -> Enpassant (epfromSquare changedSquaresAndPiece) (eptoSquare changedSquaresAndPiece)
         2 | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece)
-          | otherwise -> MovedPiece (changedSquares !! 1) (head changedSquares)
+          | otherwise -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares)
         _ -> error "could not determine changed position when diff length not 2,3,4"
+
+findFrom :: Snapshot -> [Square] -> Square
+findFrom _ [] = error "Could not find from square in snapshot"
+findFrom snp (s:xs) = if isNothing $ snp ?! hash s then s else findFrom snp xs
+
+findTo :: Snapshot -> [Square] -> Square
+findTo _ [] = error "Could not find to square in snapshot"
+findTo snp (s:xs) = if isJust $ snp ?! hash s then s else findTo snp xs
 
 epfromSquare :: [(Square, Maybe Piece)] -> Square
 epfromSquare [] = error "could not determine epfromSquare"

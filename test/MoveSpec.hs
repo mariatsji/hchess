@@ -277,4 +277,8 @@ spec = do
           Right p2 = parseMove "b7-a8R" p1
           themove = findMove (m p1) (m p2)
       themove `shouldBe` Promotion (Square 2 7) (Rook White)
-
+    it "can move a black king and find position between snapshots" $ do
+      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-e5"]
+          Right p2 = parseMove "e8-d7" p1
+          themove = findMove (m p1) (m p2)
+      themove `shouldBe` MovedPiece (Square 5 8) (Square 4 7)

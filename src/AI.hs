@@ -107,9 +107,6 @@ getScore (Evaluated _ x _) = x
 getPos :: Evaluated -> Position
 getPos (Evaluated x _ _) = x
 
-getStatus :: Evaluated -> Status
-getStatus (Evaluated _ _ x) = x
-
 oneStep :: Position -> Position -> Maybe Position
 oneStep pos@(Position snpa gha _ _ _ _) (Position snpb ghb _ _ _ _) =
   let diff = length (snpb : ghb) - length (snpa : gha)

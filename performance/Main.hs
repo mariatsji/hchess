@@ -7,6 +7,5 @@ import GameLoop
 
 main = do
   putStrLn "stream best depth 3 from startpos"
-  --bitraverse (pretty . fst) pretty (AI.streamBest startPosition 3)
-  _ <- gameLoopMM startPosition 2 2
+  bitraverse (pretty . fst) pretty (AI.streamBest startPosition 3)
   print "finished"

@@ -2,10 +2,14 @@ module GameLoop where
 
 import AI
 import Chess
+import Control.Monad.Trans.Writer
+import Control.Monad.IO.Class
 import Move
 import Position
 import Printer
 import System.Exit
+
+type App a = WriterT [Move] IO a
 
 start :: String -> IO ()
 start "1" = do
@@ -28,10 +32,11 @@ start "3" = do
   lb <- getLine
   let bdepth = read lb :: Int
   Printer.pretty startPosition
-  gameLoopMM startPosition wdepth bdepth
+  moves <- runWriterT $ gameLoopMM startPosition wdepth bdepth
+  print moves
 start _ = exitSuccess
 
-gameLoopMM :: Position -> Int -> Int -> IO ()
+gameLoopMM :: Position -> Int -> Int -> App ()
 gameLoopMM pos whiteDepth blackDepth = do
   let depth =
         if toPlay pos == White
@@ -39,12 +44,13 @@ gameLoopMM pos whiteDepth blackDepth = do
           else blackDepth
   case AI.streamBest pos depth of
     Right pos' -> do
-      Printer.pretty pos'
+      tell [findMove (m pos) (m pos')]
+      liftIO $ Printer.pretty pos'
       gameLoopMM pos' whiteDepth blackDepth
     Left (pos', status) -> do
-      print status
-      Printer.pretty pos'
-      exitSuccess
+      liftIO $ print status
+      liftIO $ Printer.pretty pos'
+      liftIO exitSuccess
 
 gameLoopHM :: Position -> Int -> IO ()
 gameLoopHM pos depth = do
