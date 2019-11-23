@@ -58,26 +58,26 @@ mkPositionExpensive :: Position -> Snapshot -> Position
 mkPositionExpensive pos@(Position snpa _ csw csb wk bk) snpb = case findMove snpa snpb of
   MovedPiece from to -> case snpa ?! hash from of
     Just (King White) ->
-      mkPosition pos snpa CanCastleNone csb (fromJust (error "white king in move without to-square") to) bk
+      mkPosition pos snpb CanCastleNone csb (fromJust (error "white king in move without to-square") to) bk
     Just (King Black) ->
-      mkPosition pos snpa csw CanCastleNone wk (fromJust (error "black king in move without to-square") to)
+      mkPosition pos snpb csw CanCastleNone wk (fromJust (error "black king in move without to-square") to)
     _
-      | from == Square 1 1 && csw == CanCastleBoth -> mkPosition pos snpa CanCastleH csb wk bk
-      | from == Square 1 1 && csw == CanCastleA -> mkPosition pos snpa CanCastleNone csb wk bk
-      | from == Square 8 1 && csw == CanCastleBoth -> mkPosition pos snpa CanCastleA csb wk bk
-      | from == Square 8 1 && csw == CanCastleH -> mkPosition pos snpa CanCastleNone csb wk bk
-      | from == Square 1 8 && csb == CanCastleBoth -> mkPosition pos snpa csw CanCastleH wk bk
-      | from == Square 1 8 && csb == CanCastleA -> mkPosition pos snpa csw CanCastleNone wk bk
-      | from == Square 8 8 && csb == CanCastleBoth -> mkPosition pos snpa csw CanCastleA wk bk
-      | from == Square 8 8 && csb == CanCastleH -> mkPosition pos snpa csw CanCastleNone wk bk
-      | otherwise -> mkPosition pos snpa csw csb wk bk
+      | from == Square 1 1 && csw == CanCastleBoth -> mkPosition pos snpb CanCastleH csb wk bk
+      | from == Square 1 1 && csw == CanCastleA -> mkPosition pos snpb CanCastleNone csb wk bk
+      | from == Square 8 1 && csw == CanCastleBoth -> mkPosition pos snpb CanCastleA csb wk bk
+      | from == Square 8 1 && csw == CanCastleH -> mkPosition pos snpb CanCastleNone csb wk bk
+      | from == Square 1 8 && csb == CanCastleBoth -> mkPosition pos snpb csw CanCastleH wk bk
+      | from == Square 1 8 && csb == CanCastleA -> mkPosition pos snpb csw CanCastleNone wk bk
+      | from == Square 8 8 && csb == CanCastleBoth -> mkPosition pos snpb csw CanCastleA wk bk
+      | from == Square 8 8 && csb == CanCastleH -> mkPosition pos snpb csw CanCastleNone wk bk
+      | otherwise -> mkPosition pos snpb csw csb wk bk
   Enpassant _ _ -> mkPosition pos snpb csw csb wk bk
   Promotion _ _ -> mkPosition pos snpb csw csb wk bk
   Castle _ to
-    | to == Square 1 1 -> mkPosition pos snpa CanCastleNone csb (Just $ Square 3 1) bk
-    | to == Square 8 1 -> mkPosition pos snpa CanCastleNone csb (Just $ Square 7 1) bk
-    | to == Square 1 8 -> mkPosition pos snpa csw CanCastleNone wk (Just $ Square 3 8)
-    | to == Square 8 8 -> mkPosition pos snpa csw CanCastleNone wk (Just $ Square 7 8)
+    | to == Square 1 1 -> mkPosition pos snpb CanCastleNone csb (Just $ Square 3 1) bk
+    | to == Square 8 1 -> mkPosition pos snpb CanCastleNone csb (Just $ Square 7 1) bk
+    | to == Square 1 8 -> mkPosition pos snpb csw CanCastleNone wk (Just $ Square 3 8)
+    | to == Square 8 8 -> mkPosition pos snpb csw CanCastleNone wk (Just $ Square 7 8)
     | otherwise -> error "identified as castle, but does not make any sense"
 
 hash :: Square -> Word8

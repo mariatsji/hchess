@@ -33,18 +33,15 @@ streamBest pos depth =
           .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-  in maybe (Left (pos, getStatus bestWithinHorizon)) Right oneStep'
-   --in maybeToRight (pos, getStatus bestWithinHorizon) oneStep'
+  in maybe (Left (pos, determineStatus pos)) Right oneStep' -- TODO Left side is allready evaluated, man..
 
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
 edgeGreed !pos depth =
-  -- startEvaluation :: Evaluated
-  -- startEvaluation = evaluate' $! head $ expandHorizon 1 gh
   let bestWithinHorizon :: Evaluated
       bestWithinHorizon = foldr1 (swapForBetter (toPlay pos)) (evaluate' <$> expandHorizon depth pos)
       best = getPos bestWithinHorizon
       oneStep' = oneStep pos best
-   in maybe (Left (pos, getStatus bestWithinHorizon)) Right oneStep'
+   in maybe (Left (pos, determineStatus pos)) Right oneStep'
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
@@ -116,6 +113,6 @@ getStatus (Evaluated _ _ x) = x
 oneStep :: Position -> Position -> Maybe Position
 oneStep pos@(Position snpa gha _ _ _ _) (Position snpb ghb _ _ _ _) =
   let diff = length (snpb : ghb) - length (snpa : gha)
-      onemorelist = (drop (diff - 1) (snpb : ghb))
-  in (\snp -> mkPositionExpensive pos snp ) <$> listToMaybe onemorelist
+      onemorelist = drop (diff - 1) (snpb : ghb)
+  in if diff > 0 then mkPositionExpensive pos <$> listToMaybe onemorelist else Nothing
   
