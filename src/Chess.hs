@@ -367,7 +367,7 @@ doCastleLong :: Snapshot -> Color -> Snapshot
 doCastleLong pos c =
   replacePieceAt
     ( replacePieceAt
-        (removePieceAt (removePieceAt pos (kingPos c)) (shortRookPos c))
+        (removePieceAt (removePieceAt pos (kingPos c)) (longRookPos c))
         (Square 3 (homeRow c))
         (King c)
     )
