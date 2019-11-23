@@ -58,7 +58,7 @@ swapForBetter Black ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBS
     else bestSoFar
 
 expandHorizon :: Int -> Position -> Bunch Position
-expandHorizon 0 _ = undefined
+expandHorizon 0 _ = error "cannot expand horizon 0 steps"
 expandHorizon 1 !pos = positionTree pos
 expandHorizon n !pos = expandHorizon 1 pos >>= expandHorizon (n - 1)
 

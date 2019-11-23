@@ -107,6 +107,13 @@ spec = do
       let p = Move.parseMoves ["e2-e4", "e7-e5", "d2-d4", "e8-e7"]
       either (const CanCastleNone) castleStatusWhite p `shouldBe` CanCastleBoth
       either (const CanCastleBoth) castleStatusBlack p `shouldBe` CanCastleNone
+    it "does a short castle for black" $ do
+      let initMoves = ["e2-e4", "e7-e5", "g1-f3", "g8-f6", "f1-e2", "f8-e7", "O-O", "O-O"]
+          Right p1 = parseMoves initMoves
+      pieceAt p1 (Square 5 8) `shouldBe` Nothing
+      pieceAt p1 (Square 8 8) `shouldBe` Nothing
+      pieceAt p1 (Square 7 8) `shouldBe` Just (King Black)
+      pieceAt p1 (Square 6 8) `shouldBe` Just (Rook Black)
     it "does a long castle for black when the startpos is used" $ do
       let m1 = removePieceAt (m startPosition) (Square 2 8)
           m2 = removePieceAt m1 (Square 3 8)
@@ -247,4 +254,14 @@ spec = do
           Right p2 = parseMoves ["e2-e4", "e7-e5", "f1-c4"]
           themove = findMove (m p1) (m p2)
       themove `shouldBe` MovedPiece (Square 6 1) (Square 3 4)
+    it "knows black castle short" $ do
+      let initMoves = ["e2-e4", "e7-e5", "g1-f3", "g8-f6", "f1-e2", "f8-e7"]
+          Right p1 = parseMoves initMoves
+          Right p2 = parseMoves (initMoves <> ["O-O"])
+          Right p3 = parseMoves (initMoves <> ["O-O", "O-O"])
+          whiteCastle = findMove (m p1) (m p2)
+          blackCastle = findMove (m p2) (m p3)
+      whiteCastle `shouldBe` Castle (Square 5 1) (Square 8 1)
+      blackCastle `shouldBe` Castle (Square 5 8) (Square 8 8)
+
 

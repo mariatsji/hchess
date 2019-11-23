@@ -307,8 +307,6 @@ type KingPos = Color -> Square
 
 type RookPos = Color -> Square
 
-type PerformCastleF = Snapshot -> Color -> Snapshot
-
 castle :: Position -> Bunch Position
 castle pos =
   case toPlay pos of
@@ -330,7 +328,7 @@ castleLong :: Position -> Color -> [Position]
 castleLong pos color = castle' pos color kingPos longRookPos doCastleLong
 
 castle' ::
-  Position -> Color -> KingPos -> RookPos -> PerformCastleF -> [Position]
+  Position -> Color -> KingPos -> RookPos -> (Snapshot -> Color -> Snapshot) -> [Position]
 castle' pos color kingPosF rookPosF doCastleF =
   if pieceAt pos (kingPosF color) == Just (king color) -- must have a king at home
     && pieceAt pos (rookPosF color) -- must have a rook at home
@@ -358,7 +356,7 @@ doCastleShort :: Snapshot -> Color -> Snapshot
 doCastleShort pos c =
   replacePieceAt
     ( replacePieceAt
-        (removePieceAt (removePieceAt pos (Square 5 1)) (Square 8 1))
+        (removePieceAt (removePieceAt pos (kingPos c)) (shortRookPos c))
         (Square 7 (homeRow c))
         (King c)
     )
@@ -369,7 +367,7 @@ doCastleLong :: Snapshot -> Color -> Snapshot
 doCastleLong pos c =
   replacePieceAt
     ( replacePieceAt
-        (removePieceAt (removePieceAt pos (Square 5 1)) (Square 1 1))
+        (removePieceAt (removePieceAt pos (kingPos c)) (shortRookPos c))
         (Square 3 (homeRow c))
         (King c)
     )

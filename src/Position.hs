@@ -7,8 +7,8 @@ module Position where
 
 import Bunch
 import Control.DeepSeq (NFData)
-import Data.Maybe (fromMaybe)
 import Control.Monad.ST
+import Data.Maybe (fromJust, fromMaybe)
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
@@ -47,13 +47,38 @@ data Position
       }
   deriving (Eq, Show, Generic, NFData)
 
+data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Square Piece | Castle Square Square deriving (Eq, Show)
+
 mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Maybe Square -> Maybe Square -> Position
 mkPosition pos snp csW csB whiteKing' blackKing' =
   let newGH = m pos : gamehistory pos
    in pos {m = snp, gamehistory = newGH, castleStatusWhite = csW, castleStatusBlack = csB, whiteKing = whiteKing', blackKing = blackKing'}
 
 mkPositionExpensive :: Position -> Snapshot -> Position
-mkPositionExpensive pos snp = undefined --TODO
+mkPositionExpensive pos@(Position snpa _ csw csb wk bk) snpb = case findMove snpa snpb of
+  MovedPiece from to -> case snpa ?! hash from of
+    Just (King White) ->
+      mkPosition pos snpa CanCastleNone csb (fromJust (error "white king in move without to-square") to) bk
+    Just (King Black) ->
+      mkPosition pos snpa csw CanCastleNone wk (fromJust (error "black king in move without to-square") to)
+    _
+      | from == Square 1 1 && csw == CanCastleBoth -> mkPosition pos snpa CanCastleH csb wk bk
+      | from == Square 1 1 && csw == CanCastleA -> mkPosition pos snpa CanCastleNone csb wk bk
+      | from == Square 8 1 && csw == CanCastleBoth -> mkPosition pos snpa CanCastleA csb wk bk
+      | from == Square 8 1 && csw == CanCastleH -> mkPosition pos snpa CanCastleNone csb wk bk
+      | from == Square 1 8 && csb == CanCastleBoth -> mkPosition pos snpa csw CanCastleH wk bk
+      | from == Square 1 8 && csb == CanCastleA -> mkPosition pos snpa csw CanCastleNone wk bk
+      | from == Square 8 8 && csb == CanCastleBoth -> mkPosition pos snpa csw CanCastleA wk bk
+      | from == Square 8 8 && csb == CanCastleH -> mkPosition pos snpa csw CanCastleNone wk bk
+      | otherwise -> mkPosition pos snpa csw csb wk bk
+  Enpassant _ _ -> mkPosition pos snpb csw csb wk bk
+  Promotion _ _ -> mkPosition pos snpb csw csb wk bk
+  Castle _ to
+    | to == Square 1 1 -> mkPosition pos snpa CanCastleNone csb (Just $ Square 3 1) bk
+    | to == Square 8 1 -> mkPosition pos snpa CanCastleNone csb (Just $ Square 7 1) bk
+    | to == Square 1 8 -> mkPosition pos snpa csw CanCastleNone wk (Just $ Square 3 8)
+    | to == Square 8 8 -> mkPosition pos snpa csw CanCastleNone wk (Just $ Square 7 8)
+    | otherwise -> error "identified as castle, but does not make any sense"
 
 hash :: Square -> Word8
 hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
@@ -174,8 +199,6 @@ infixl 9 <$.>
 emptyBoard :: Position
 emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth Nothing Nothing
 
-data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Square Piece | Castle Square Square deriving (Eq, Show)
-
 findMove :: Snapshot -> Snapshot -> Move
 findMove a b =
   let changedSquaresAndPiece = (\t -> (unHash (fst t), snd t)) <$> a `diff` b
@@ -194,14 +217,14 @@ findMove a b =
 
 epfromSquare :: [(Square, Maybe Piece)] -> Square
 epfromSquare [] = error "could not determine epfromSquare"
-epfromSquare ((Square c r, mp) : xs)
+epfromSquare ((Square c r, _) : xs)
   | r == 4 = Square c r
   | r == 6 = Square c r
   | otherwise = epfromSquare xs
 
 eptoSquare :: [(Square, Maybe Piece)] -> Square
 eptoSquare [] = error "could not determine eptoSquare"
-eptoSquare ((Square c r, mp) : xs)
+eptoSquare ((Square c r, _) : xs)
   | r == 3 = Square c r
   | r == 7 = Square c r
   | otherwise = eptoSquare xs
@@ -215,14 +238,14 @@ twoPiecesOfSameColor l
 
 promfromSquare :: [(Square, Maybe Piece)] -> Square
 promfromSquare [] = error "could not determine promfromSquare"
-promfromSquare ((Square c r, mp) : xs)
+promfromSquare ((Square c r, _) : xs)
   | r == 2 = Square c r
   | r == 7 = Square c r
   | otherwise = promfromSquare xs
 
 promtoSquare :: [(Square, Maybe Piece)] -> Piece
 promtoSquare [] = error "could not determine promtoSquare"
-promtoSquare ((Square c r, mp) : xs)
+promtoSquare ((Square _ r, mp) : xs)
   | r == 1 = fromMaybe (error "expected white officer in promtosquare") mp
   | r == 8 = fromMaybe (error "expected black officer in promtosquare") mp
   | otherwise = promtoSquare xs

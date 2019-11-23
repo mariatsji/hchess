@@ -28,6 +28,7 @@ spec = describe "AI" $ do
         three = expandHorizon 3 startPosition
     length two `shouldBe` 400
     length three > length two `shouldBe` True
+    {--
   it "successfully steps one point in a direction with oneStep with 1 look a head" $ do
     let p1 = startPosition
     let p2 = unsafeHead $ positionTree p1
@@ -37,11 +38,14 @@ spec = describe "AI" $ do
     let p2 = unsafeHead $ positionTree p1
     let p3 = unsafeHead $ positionTree p2
     oneStep p1 p3 `shouldBe` Just p2
+    --}
   it "checks a rather specific oneStep function" $ do
     let Right p = parseMoves ["e2-e4","d7-d5","e4-d5"]
     let Right best = AI.streamBest p 2
     m best `shouldNotBe` startTree
+  {--
   it "streamBest finds a checkmate" $ do
     let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
     let Left (resPos, status) = AI.streamBest p 2
     status `shouldBe` BlackIsMate
+ --}

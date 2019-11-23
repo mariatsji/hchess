@@ -3,7 +3,6 @@
 module Tree where
 
 import Data.Bits
-import Data.List ((\\))
 import Data.Word
 import Control.DeepSeq
 import GHC.Generics
