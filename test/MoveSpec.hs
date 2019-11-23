@@ -276,5 +276,5 @@ spec = do
       let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4"]
           Right p2 = parseMove "b7-a8R" p1
           themove = findMove (m p1) (m p2)
-      themove `shouldBe` Promotion (Square 1 8) (Rook White)
+      themove `shouldBe` Promotion (Square 2 7) (Rook White)
 

@@ -8,7 +8,7 @@ module Position where
 import Bunch
 import Control.DeepSeq (NFData)
 import Control.Monad.ST
-import Data.Maybe (fromJust, fromMaybe)
+import Data.Maybe (fromJust, fromMaybe, isNothing)
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
@@ -211,8 +211,8 @@ findMove a b =
           | Square 1 8 `elem` changedSquares -> Castle (Square 5 8) (Square 1 8)
           | otherwise -> error "could not determine position diff of length 4 that does not seem to be a castle"
         3 -> Enpassant (epfromSquare changedSquaresAndPiece) (eptoSquare changedSquaresAndPiece)
-        2 | twoPiecesOfSameColor changedSquaresAndPiece -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece)
-        2 -> MovedPiece (changedSquares !! 1) (head changedSquares)
+        2 | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece)
+          | otherwise -> MovedPiece (changedSquares !! 1) (head changedSquares)
         _ -> error "could not determine changed position when diff length not 2,3,4"
 
 epfromSquare :: [(Square, Maybe Piece)] -> Square
@@ -229,12 +229,12 @@ eptoSquare ((Square c r, _) : xs)
   | r == 7 = Square c r
   | otherwise = eptoSquare xs
 
-twoPiecesOfSameColor :: [(Square, Maybe Piece)] -> Bool
-twoPiecesOfSameColor l
-  | length l == 2 =
-    let colors = fmap (\(_, mp) -> colr <$> mp) l
-     in colors == [Just White, Just White] || colors == [Just Black, Just Black]
-  | otherwise = error "could not check two pieces of same color since list length /= 2"
+pawnMovedIn :: [(Square, Maybe Piece)] -> Snapshot -> Snapshot -> Bool
+pawnMovedIn [] _ _ = False
+pawnMovedIn ((s@(Square _ r), mp) : xs) from to
+  | r == 7 && isNothing mp = from ?! hash s == Just (Pawn White)
+  | r == 2 && isNothing mp = from ?! hash s == Just (Pawn Black)
+  | otherwise = pawnMovedIn xs from to
 
 promfromSquare :: [(Square, Maybe Piece)] -> Square
 promfromSquare [] = error "could not determine promfromSquare"
