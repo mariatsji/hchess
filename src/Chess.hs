@@ -232,9 +232,9 @@ promoteTo c pos p =
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
-  if r == 8 && p2 == Pawn White then (s, p1) else (s, Pawn White)
+  if r == 8 && p2 == Pawn White then (s, p1) else (s, p2)
 prom Black p1 (s@(Square _ r), p2) =
-  if r == 1 && p2 == Pawn Black then (s, p1) else (s, Pawn Black)
+  if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
 
 -- optimization, only check for promotions with pending pawns
 promoteBindFriendly :: Color -> Position -> Bunch Position

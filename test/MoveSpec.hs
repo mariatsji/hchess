@@ -85,6 +85,10 @@ spec = do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 8) (Pawn White)
       let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8))
       length t `shouldBe` (4 :: Int)
+    it "does not change color on black pawns on the board when white promotes to a rook" $ do
+      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4", "b7-a8R"]
+      pieceAt p1 (Square 1 4) `shouldBe` Just (Pawn Black)
+      pieceAt p1 (Square 1 8) `shouldBe` Just (Rook White)
     it "leaves unpromotable boards alone for White" $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 7) (Pawn White)
       let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8))
@@ -254,7 +258,7 @@ spec = do
           Right p2 = parseMoves ["e2-e4", "e7-e5", "f1-c4"]
           themove = findMove (m p1) (m p2)
       themove `shouldBe` MovedPiece (Square 6 1) (Square 3 4)
-    it "knows black castle short" $ do
+    it "knows black castle short between two snapshots" $ do
       let initMoves = ["e2-e4", "e7-e5", "g1-f3", "g8-f6", "f1-e2", "f8-e7"]
           Right p1 = parseMoves initMoves
           Right p2 = parseMoves (initMoves <> ["O-O"])
@@ -263,5 +267,14 @@ spec = do
           blackCastle = findMove (m p2) (m p3)
       whiteCastle `shouldBe` Castle (Square 5 1) (Square 8 1)
       blackCastle `shouldBe` Castle (Square 5 8) (Square 8 8)
-
+    it "knows an an passant move from black between from snapshots" $ do
+      let Right p1 = parseMoves ["e2-e4", "a7-a5", "f1-b5", "a5-a4", "b2-b4"]
+          Right p2 = parseMoves ["e2-e4", "a7-a5", "f1-b5", "a5-a4", "b2-b4", "a4-b3"]
+          themove = findMove (m p1) (m p2)
+      themove `shouldBe` Enpassant (Square 1 4) (Square 2 3)
+    it "knows a promotion move for white between two snapshots" $ do
+      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4"]
+          Right p2 = parseMove "b7-a8R" p1
+          themove = findMove (m p1) (m p2)
+      themove `shouldBe` Promotion (Square 1 8) (Rook White)
 
