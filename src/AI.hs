@@ -45,14 +45,14 @@ edgeGreed !pos depth =
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
-swapForBetter White ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBSF _) =
-  if scorePot > scoreBSF
-    then ePot
-    else bestSoFar
-swapForBetter Black ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBSF _) =
-  if scorePot < scoreBSF
-    then ePot
-    else bestSoFar
+swapForBetter White ePot@(Evaluated _ scorePot statusPot) bestSoFar@(Evaluated _ scoreBSF statusBSF)
+  | statusBSF == BlackIsMate = bestSoFar
+  | scorePot > scoreBSF = ePot
+  | otherwise = bestSoFar
+swapForBetter Black ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBSF statusBSF)
+  | statusBSF == WhiteIsMate = bestSoFar
+  | scorePot < scoreBSF = ePot
+  | otherwise = bestSoFar
 
 expandHorizon :: Int -> Position -> Bunch Position
 expandHorizon 0 _ = error "cannot expand horizon 0 steps"

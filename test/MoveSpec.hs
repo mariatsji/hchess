@@ -6,6 +6,7 @@ import Control.Exception (evaluate)
 import Data.Either
 import qualified Data.Map.Lazy as Map
 import Data.Maybe (isNothing)
+import Data.Foldable
 import Move
 import Position
 import Printer
@@ -290,3 +291,13 @@ spec = do
     it "finds epfromsquare and eptosquare" $ do
       epfromSquare [(Square 5 5, Nothing), (Square 6 5, Nothing), (Square 6 6, Just (Pawn White))] `shouldBe` Square 5 5
       eptoSquare [(Square 5 5, Nothing), (Square 6 5, Nothing), (Square 6 6, Just (Pawn White))] `shouldBe` Square 6 6
+    it "finds promotions in positionTree" $ do
+      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4"]
+          Right p2 = parseMove "b7-a8R" p1
+          Right p3 = parseMove "b7-a8Q" p1
+          Right p4 = parseMove "b7-a8B" p1
+          Right p5 = parseMove "b7-a8K" p1
+      p2 `elem` positionTree p1 `shouldBe` True
+      p3 `elem` positionTree p1 `shouldBe` True
+      p4 `elem` positionTree p1 `shouldBe` True
+      p5 `elem` positionTree p1 `shouldBe` True

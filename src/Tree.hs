@@ -52,16 +52,6 @@ searchIdx tree' idxPred piecePred = {-# SCC "Tree.searchIdx" #-} go tree' idxPre
         go (Node l r) ip pp path = {-# SCC "Tree.searchIdx.go.Node" #-} go l ip pp (False : path) <> go r ip pp (True : path)
 {-# INLINE searchIdx #-}
 
--- slooooow
--- The two predicates are ANDed together - one based on Square and one based on Maybe Piece (could be smashed into one predicate, couldn't it?)
-searchIdx2 :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
-searchIdx2 tree' idxPred piecePred = {-# SCC "Tree.searchIdx2" #-}
-  filter idxPred [0 .. 63]
-  >>= ( \i ->
-          let mp = tree' ?! i
-            in [(i, mp) | piecePred mp])
-{-# INLINE searchIdx2 #-}
-
 bits6toNum :: [Bool] -> Word8
 bits6toNum bits = {-# SCC "Tree.toNum" #-} go bits 5 0
   where go :: [Bool] -> Word8 -> Word8 -> Word8
