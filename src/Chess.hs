@@ -141,8 +141,7 @@ toPlay :: Position -> Color
 toPlay pos = if whiteToPlay pos then White else Black
 
 positionTree :: Position -> Bunch Position
-positionTree pos =
-  filter' (\p -> not $ isInCheck p (toPlay pos)) $ positionTreeIgnoreCheck pos -- TODO MAJOR isInCheck calls positionsPrPiece, and so does positionTreeIgnoreCheck!
+positionTree pos = positionTreeIgnoreCheck pos >>= (\p -> if isInCheck p (toPlay pos) then emptyBunch else singleton p) -- TODO MAJOR isInCheck calls positionsPrPiece, and so does positionTreeIgnoreCheck!
 
 positionTreeIgnoreCheck :: Position -> Bunch Position
 positionTreeIgnoreCheck pos =

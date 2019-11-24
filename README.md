@@ -15,7 +15,7 @@
     time stack exec --work-dir=.stackprofile -- hchess-bench-exe +RTS -N8 -hc -p -s -K100M
 
     less hchess-profiled.prof
-    hp2pretty ps hchess-profiled.hp
+    hp2pretty hchess-profiled.hp
     open hchess-profiled.svg
 
 # profile with threadscope
@@ -27,11 +27,3 @@
 
     stack bench
     
-# todo
-    
-    - Writer Monad to append Pgn in Move.hs
-    - refactors
-    - quickcheck properties to searched trees
-    - chose the shorter path to same evaluation
-    - memoization
-    - eval/search data structure
