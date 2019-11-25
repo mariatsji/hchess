@@ -42,7 +42,7 @@ gameLoopMM pos whiteDepth blackDepth = do
         if toPlay pos == White
           then whiteDepth
           else blackDepth
-  case AI.streamBest pos depth of
+  case AI.edgeGreed pos depth of
     Right pos' -> do
       tell [findMove (m pos) (m pos')]
       liftIO $ Printer.pretty pos'
@@ -50,7 +50,7 @@ gameLoopMM pos whiteDepth blackDepth = do
     Left (pos', status) -> do
       liftIO $ print status
       liftIO $ Printer.pretty pos'
-      liftIO exitSuccess
+      pure ()
 
 gameLoopHM :: Position -> Int -> IO ()
 gameLoopHM pos depth = do
@@ -63,7 +63,7 @@ gameLoopHM pos depth = do
       Printer.pretty newPos
       let status = determineStatus newPos
       if status == BlackToPlay
-        then case AI.streamBest newPos depth of
+        then case AI.edgeGreed newPos depth of
           Right newPos2 -> do
             Printer.pretty newPos2
             gameLoopHM newPos2 depth

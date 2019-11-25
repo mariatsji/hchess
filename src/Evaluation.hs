@@ -5,6 +5,7 @@
 module Evaluation
   ( Evaluated (..),
     evaluate,
+    getPosition,
     evaluate',
     evaluate'',
     pawnAdvancement,
@@ -25,6 +26,9 @@ data Evaluated
       {-# UNPACK #-} !Float
       !Status
   deriving (Eq, Show, Generic, NFData)
+
+getPosition :: Evaluated -> Position
+getPosition (Evaluated p _ _) = p
 
 evaluate' :: Position -> Evaluated
 evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)

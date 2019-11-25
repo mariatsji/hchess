@@ -5,7 +5,6 @@ module AI
   ( focused',
     focused,
     edgeGreed,
-    streamBest,
     highestSoFar,
     expandHorizon,
     swapForBetter,
@@ -15,33 +14,27 @@ where
 
 import Bunch
 import Chess
-import Conduit
 import Control.Monad
-import Data.Maybe (listToMaybe)
+import Data.Maybe (listToMaybe, fromMaybe)
 import Data.List
 import Data.Ord
 import Evaluation
 import Position
 import Prelude hiding (foldr)
 
-streamBest :: Position -> Int -> Either (Position, Status) Position
-streamBest pos depth =
-  let bestWithinHorizon =
-        runConduitPure
-          $ yieldMany (unBunch $ expandHorizon depth pos)
-          .| mapC evaluate'
-          .| foldlC (swapForBetter (toPlay pos)) (evaluate' pos)
-      best = getPos bestWithinHorizon
-      oneStep' = oneStep pos best
-  in maybe (Left (pos, determineStatus pos)) Right oneStep' -- TODO Left side is allready evaluated, man..
-
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
 edgeGreed !pos depth =
-  let bestWithinHorizon :: Evaluated
-      bestWithinHorizon = foldr1 (swapForBetter (toPlay pos)) (evaluate' <$> expandHorizon depth pos)
-      best = getPos bestWithinHorizon
-      oneStep' = oneStep pos best
-   in maybe (Left (pos, determineStatus pos)) Right oneStep'
+  let color = toPlay pos
+      best =
+       foldr
+        (
+          \potential bestsofar -> 
+          swapForBetter color (evaluate' potential) bestsofar
+        )
+        (evaluate' pos)
+        (expandHorizon depth pos)
+  in maybe (Left (pos, determineStatus pos)) Right (oneStep pos (getPosition best))
+  
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
