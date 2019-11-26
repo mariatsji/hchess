@@ -1,5 +1,9 @@
 import AI
 import Chess
 import Position
+import Printer
 
-main = print $ length $ expandHorizon 3 startPosition
+main = do
+  let Right best = edgeGreed startPosition 3
+  pretty best
+          

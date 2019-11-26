@@ -301,3 +301,10 @@ spec = do
       p3 `elem` positionTree p1 `shouldBe` True
       p4 `elem` positionTree p1 `shouldBe` True
       p5 `elem` positionTree p1 `shouldBe` True
+    it "finds a walk in promotion, not just a take in" $ do
+      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "b8-a6"]
+          Right p2 = parseMove "b7-b8K" p1
+          themove = findMove (m p1) (m p2)
+      pieceAt p2 (Square 2 8) `shouldBe` Just (Knight White)
+      themove `shouldBe` Promotion (Square 2 7) (Knight White)
+      
