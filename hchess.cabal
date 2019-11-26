@@ -22,7 +22,6 @@ library
                       ,AI
                       ,Position
                       ,Tree
-                      ,Bunch
                       ,GameLoop
   build-depends:       base >= 4.7 && < 5
                       ,utf8-string

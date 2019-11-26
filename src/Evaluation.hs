@@ -7,13 +7,11 @@ module Evaluation
     evaluate,
     getPosition,
     evaluate',
-    evaluate'',
     pawnAdvancement,
-    toGH
-    )
+    toGH,
+  )
 where
 
-import Bunch
 import Chess
 import Control.DeepSeq
 import GHC.Generics (Generic)
@@ -32,9 +30,6 @@ getPosition (Evaluated p _ _) = p
 
 evaluate' :: Position -> Evaluated
 evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)
-
-evaluate'' :: Bunch Position -> Bunch Evaluated
-evaluate'' = fmap evaluate'
 
 toGH :: Evaluated -> (Status, Position)
 toGH e =
@@ -124,7 +119,7 @@ r' n = fromIntegral n :: Float
 
 -- (whitepieces, blackpieces)
 countPieces :: Position -> Float
-countPieces pos = foldl (\acc (_,mp) -> acc + maybe 0 valueOf mp) 0.0 (toList' (m pos))
+countPieces pos = foldl (\acc (_, mp) -> acc + maybe 0 valueOf mp) 0.0 (toList' (m pos))
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = (if c == Black then (-1) else 1) * 1.0

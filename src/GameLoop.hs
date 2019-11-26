@@ -2,8 +2,8 @@ module GameLoop where
 
 import AI
 import Chess
-import Control.Monad.Trans.Writer
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Writer
 import Move
 import Position
 import Printer

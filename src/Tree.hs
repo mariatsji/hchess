@@ -1,10 +1,11 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+
 module Tree where
 
+import Control.DeepSeq
 import Data.Bits
 import Data.Word
-import Control.DeepSeq
 import GHC.Generics
 
 data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Eq, Show, Generic, NFData)
@@ -44,15 +45,17 @@ search (Node l r) pred' = search l pred' <> search r pred'
 -- The two predicates are ANDed together - one based on Square and one based on Maybe Piece (could be smashed into one predicate, couldn't it?)
 searchIdx :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
 searchIdx tree' idxPred piecePred = go tree' idxPred piecePred []
-  where go :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
-        go (Leaf x) ip pp path = [(bits6toNum path, x) | ip (bits6toNum path) && pp x]
-        go (Node l r) ip pp path = go l ip pp (False : path) <> go r ip pp (True : path)
+  where
+    go :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
+    go (Leaf x) ip pp path = [(bits6toNum path, x) | ip (bits6toNum path) && pp x]
+    go (Node l r) ip pp path = go l ip pp (False : path) <> go r ip pp (True : path)
 
 bits6toNum :: [Bool] -> Word8
 bits6toNum bits = go bits 5 0
-  where go :: [Bool] -> Word8 -> Word8 -> Word8
-        go (b:bs) pos acc = (if b then 2^pos else 0) + go bs (pred pos) acc 
-        go [] _ acc = acc
+  where
+    go :: [Bool] -> Word8 -> Word8 -> Word8
+    go (b : bs) pos acc = (if b then 2 ^ pos else 0) + go bs (pred pos) acc
+    go [] _ acc = acc
 
 empty64 :: a -> Tree a
 empty64 = go 6
@@ -66,12 +69,12 @@ fromList l =
   foldl
     ( \tree i ->
         set tree i (l !! fromIntegral i)
-      )
+    )
     (empty64 (head l))
     [0 .. 63]
 
 toList :: Tree a -> [a]
-toList tree = fmap (tree ?!) [0..63] -- todo Ttraverse tree directly
+toList tree = fmap (tree ?!) [0 .. 63] -- todo Ttraverse tree directly
 
 diff :: Eq a => Tree a -> Tree a -> [(Word8, a)]
 diff a b = searchIdx b (\w8 -> a ?! w8 /= b ?! w8) (const True)

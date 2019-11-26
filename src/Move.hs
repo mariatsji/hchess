@@ -4,8 +4,8 @@ module Move
   ( parseMove,
     parseMoves,
     parseFrom,
-    parseTo
-    )
+    parseTo,
+  )
 where
 
 import Chess

@@ -1,6 +1,5 @@
 module MoveSpec where
 
-import Bunch
 import Chess
 import Control.Exception (evaluate)
 import Data.Either
@@ -93,12 +92,12 @@ spec = do
     it "leaves unpromotable boards alone for White" $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 7) (Pawn White)
       let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8))
-      t `shouldBe` Bunch [Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8)]
+      t `shouldBe` [Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8)]
     it "promotes passed pawns for Black in the position tree" $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 2) (Pawn Black)
           p1 = Position m1 [m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8)
       let t = positionTree p1
-      pieceAt (unsafeHead t) (Square 5 1) `shouldBe` Just (Queen Black)
+      pieceAt (head t) (Square 5 1) `shouldBe` Just (Queen Black)
       length t `shouldBe` (4 :: Int)
     it "allows castle both sides for white after opening move" $ do
       let p = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
@@ -134,7 +133,7 @@ spec = do
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
       let legals = positionTree p
-      let kingMoves = filter' (\p -> isNothing (pieceAt p (Square 5 1))) legals
+      let kingMoves = filter (\p -> isNothing (pieceAt p (Square 5 1))) legals
       length kingMoves `shouldBe` (2 :: Int)
     it "parses a long castle for white" $ do
       let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]
@@ -174,7 +173,7 @@ spec = do
                 (Square 4 7, Square 4 6)
               ]
       let t = positionTree p
-      let kingMoves = filter' (\p -> isNothing (pieceAt p (Square 5 1))) t
+      let kingMoves = filter (\p -> isNothing (pieceAt p (Square 5 1))) t
       length kingMoves `shouldBe` (3 :: Int)
     it "finds two en passant moves for white" $ do
       let p =
@@ -190,9 +189,9 @@ spec = do
                 (Square 4 7, Square 4 5)
               ]
       let t = positionTree p
-      let cPawnMoves = filter' (\p -> isNothing (pieceAt p (Square 3 5))) t
+      let cPawnMoves = filter (\p -> isNothing (pieceAt p (Square 3 5))) t
       length cPawnMoves `shouldBe` (2 :: Int)
-      let ePawnMoves = filter' (\p -> isNothing (pieceAt p (Square 5 5))) t
+      let ePawnMoves = filter (\p -> isNothing (pieceAt p (Square 5 5))) t
       length ePawnMoves `shouldBe` (2 :: Int)
     it "counts occurrences of a position in a game history" $ do
       let p =
@@ -240,19 +239,18 @@ spec = do
       let moves = ["e2-e4", "a7-a5", "e4-e5", "a5-a4", "e5-e6", "a4-a3", "b2-b3"]
       let p = Move.parseMoves moves
       let t = positionTree (fromRight startPosition p)
-      let bPawnMoves = filter' (\p -> isNothing (pieceAt p (Square 1 3))) t
+      let bPawnMoves = filter (\p -> isNothing (pieceAt p (Square 1 3))) t
       length bPawnMoves `shouldBe` (0 :: Int)
     it "records gamehistory correctly" $ do
       let p1 = startPosition
-      let p2 = unsafeHead $ positionTree startPosition
+      let p2 = head $ positionTree startPosition
       head (gamehistory p2) `shouldBe` m p1
     it "updates the black king position when moving king" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "e8-e7"]
       blackKing p `shouldBe` Just (Square 5 7)
     it "finds an empty position tree for black when black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
-      let p' = unBunch (positionTree p)
-      length p' `shouldBe` 0
+      length (positionTree p) `shouldBe` 0
     it "realizes black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
       isCheckMate p `shouldBe` True

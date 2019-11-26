@@ -24,8 +24,9 @@ prettyEs = mapM_ prettyE
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
 rowify pos = reverse $ sortBy colSort <$> groupWith (\(Square _ r, _) -> r) (toList' (m pos))
-  where colSort :: (Square, Maybe Piece) -> (Square, Maybe Piece) -> Ordering
-        colSort (s1, _) (s2, _) = compare s1 s2
+  where
+    colSort :: (Square, Maybe Piece) -> (Square, Maybe Piece) -> Ordering
+    colSort (s1, _) (s2, _) = compare s1 s2
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =

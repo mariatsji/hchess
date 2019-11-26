@@ -3,7 +3,6 @@
 
 module Chess where
 
-import Bunch
 import Control.DeepSeq
 import Data.List
 import Data.Maybe
@@ -55,11 +54,11 @@ movePiece pos@(Position m' _ _ _ wk bk) from@(Square fc _) to@(Square tc tr)
           Black -> mkNewCastleStatus pos Black from
           White -> castleStatusBlack pos
         newWhiteKing
-          | pieceAt pos to == Just (King White) = Nothing 
+          | pieceAt pos to == Just (King White) = Nothing
           | pieceAt pos from == Just (King White) = Just to
           | otherwise = wk
         newBlackKing
-          | pieceAt pos to == Just (King Black) = Nothing 
+          | pieceAt pos to == Just (King Black) = Nothing
           | pieceAt pos from == Just (King Black) = Just to
           | otherwise = bk
      in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newWhiteKing newBlackKing
@@ -113,9 +112,6 @@ finalDestinationNotOccupiedBySelf :: Position -> Square -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos f t =
   fmap colr (pieceAt pos t) /= fmap colr (pieceAt pos f)
 
--- let pieces = unBunch $ snd <$> searchForPieces pos (\s -> s == f || s == t) (const True)
--- in length pieces == 2 && colr (head pieces) == colr (pieces !! 1)
-
 enemyAt :: Position -> Square -> Square -> Bool
 enemyAt pos f t =
   fmap (succ' . colr) (pieceAt pos t) == fmap colr (pieceAt pos f)
@@ -140,43 +136,41 @@ whiteToPlay = even . length . gamehistory
 toPlay :: Position -> Color
 toPlay pos = if whiteToPlay pos then White else Black
 
-positionTree :: Position -> Bunch Position
-positionTree pos = positionTreeIgnoreCheck pos >>= (\p -> if isInCheck p (toPlay pos) then emptyBunch else singleton p) -- TODO MAJOR isInCheck calls positionsPrPiece, and so does positionTreeIgnoreCheck!
+positionTree :: Position -> [Position]
+positionTree pos = positionTreeIgnoreCheck pos >>= (\p -> if isInCheck p (toPlay pos) then [] else [p]) -- TODO MAJOR isInCheck calls positionsPrPiece, and so does positionTreeIgnoreCheck!
 
-positionTreeIgnoreCheck :: Position -> Bunch Position
+positionTreeIgnoreCheck :: Position -> [Position]
 positionTreeIgnoreCheck pos =
   let c = toPlay pos
    in (searchForPieces pos (const True) (\p -> colr p == c) >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
 
-positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> Bunch Position
+positionTreeIgnoreCheckPromotionsCastle :: Position -> Color -> [Position]
 positionTreeIgnoreCheckPromotionsCastle pos c = searchForPieces pos (const True) (\p -> colr p == c) >>= positionsPrPiece pos
 
-positionsPrPiece :: Position -> (Square, Piece) -> Bunch Position
+positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos@(Position snp _ _ _ _ _) (s, p) = case p of
   Pawn _ ->
-    Bunch $
-      map
-        ( \t -> case snd t of
-            Nothing -> movePiece pos s (fst t)
-            Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
-        )
-        (filter (canGoThere pos s . fst) $ toSquaresPawn pos s)
+    map
+      ( \t -> case snd t of
+          Nothing -> movePiece pos s (fst t)
+          Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
+      )
+      (filter (canGoThere pos s . fst) $ toSquaresPawn pos s)
   Knight _ ->
-    Bunch $
-      fmap
-        (movePiece pos s)
-        (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
+    fmap
+      (movePiece pos s)
+      (filter (finalDestinationNotOccupiedBySelf pos s) $ toSquaresKnight s)
   Bishop _ ->
-    Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
+    fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
   Rook _ ->
-    Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresRook s)
+    fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresRook s)
   Queen _ ->
-    Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
+    fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
   King _ ->
-    Bunch $ fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
+    fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
-toSquaresPawn :: Position -> Square-> [(Square, Maybe Square)]
+toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]
 toSquaresPawn pos s@(Square _ r)
   | toPlay pos == White =
     filter insideBoard' $
@@ -225,9 +219,9 @@ maybePromote c pos p = [promoteTo c pos p | canPromote c pos p]
 -- promote one position
 promoteTo :: Color -> Position -> Piece -> Position
 promoteTo c pos p =
-  let allPieces = searchForPieces pos (const True) (const True) -- Bunch (Square, Piece)
+  let allPieces = searchForPieces pos (const True) (const True)
       listPromoted = fmap (prom c p) allPieces
-   in mkPosition pos (fromList' (unBunch listPromoted)) (castleStatusWhite pos) (castleStatusBlack pos) (whiteKing pos) (blackKing pos)
+   in mkPosition pos (fromList' listPromoted) (castleStatusWhite pos) (castleStatusBlack pos) (whiteKing pos) (blackKing pos)
 
 prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
 prom White p1 (s@(Square _ r), p2) =
@@ -236,12 +230,11 @@ prom Black p1 (s@(Square _ r), p2) =
   if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
 
 -- optimization, only check for promotions with pending pawns
-promoteBindFriendly :: Color -> Position -> Bunch Position
+promoteBindFriendly :: Color -> Position -> [Position]
 promoteBindFriendly c pos =
-  Bunch $
-    if Just (Pawn c) `elem` [pieceAt pos (Square col (promoteRow c)) | col <- [1 .. 8]]
-      then promoteBindFriendly' c pos
-      else [pos]
+  if Just (Pawn c) `elem` [pieceAt pos (Square col (promoteRow c)) | col <- [1 .. 8]]
+    then promoteBindFriendly' c pos
+    else [pos]
 
 -- same pos or all four
 promoteBindFriendly' :: Color -> Position -> [Position]
@@ -306,19 +299,19 @@ type KingPos = Color -> Square
 
 type RookPos = Color -> Square
 
-castle :: Position -> Bunch Position
+castle :: Position -> [Position]
 castle pos =
   case toPlay pos of
     White -> case castleStatusWhite pos of
-      CanCastleNone -> Bunch []
-      CanCastleBoth -> Bunch $ castleShort pos White <> castleLong pos White
-      CanCastleA -> Bunch $ castleLong pos White
-      CanCastleH -> Bunch $ castleShort pos White
+      CanCastleNone -> []
+      CanCastleBoth -> castleShort pos White <> castleLong pos White
+      CanCastleA -> castleLong pos White
+      CanCastleH -> castleShort pos White
     Black -> case castleStatusBlack pos of
-      CanCastleNone -> Bunch []
-      CanCastleBoth -> Bunch $ castleShort pos Black <> castleLong pos Black
-      CanCastleA -> Bunch $ castleLong pos Black
-      CanCastleH -> Bunch $ castleShort pos Black
+      CanCastleNone -> []
+      CanCastleBoth -> castleShort pos Black <> castleLong pos Black
+      CanCastleA -> castleLong pos Black
+      CanCastleH -> castleShort pos Black
 
 castleShort :: Position -> Color -> [Position]
 castleShort pos color = castle' pos color kingPos shortRookPos doCastleShort

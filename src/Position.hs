@@ -5,7 +5,6 @@
 
 module Position where
 
-import Bunch
 import Control.DeepSeq (NFData)
 import Control.Monad.ST
 import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe)
@@ -171,8 +170,8 @@ replacePieceAt snp square piece = set snp (hash square) (pure piece)
 pieceAt' :: Snapshot -> Square -> Maybe Piece
 pieceAt' snp s = snp ?! hash s
 
-searchForPieces :: Position -> (Square -> Bool) -> (Piece -> Bool) -> Bunch (Square, Piece)
-searchForPieces pos squarePred piecePred = Bunch $ catSndMaybes $ unHash <$.> searchIdx (m pos) (squarePred . unHash) (maybe False piecePred)
+searchForPieces :: Position -> (Square -> Bool) -> (Piece -> Bool) -> [(Square, Piece)]
+searchForPieces pos squarePred piecePred = catSndMaybes $ unHash <$.> searchIdx (m pos) (squarePred . unHash) (maybe False piecePred)
 
 fromList' :: [(Square, Piece)] -> Snapshot
 fromList' = foldl (\tree (s, p) -> set tree (hash s) (pure p)) (empty64 Nothing)
