@@ -11,6 +11,7 @@ where
 
 import Chess
 import Control.Monad
+import Control.Parallel
 import Data.List
 import Data.Maybe (listToMaybe)
 import Data.Ord
@@ -24,6 +25,7 @@ edgeGreed !pos depth =
       best =
         foldr
           ( \potential bestsofar ->
+              potential `seq` bestsofar `seq`
               swapForBetter color (evaluate' potential) bestsofar
           )
           (evaluate' pos)
@@ -43,8 +45,15 @@ swapForBetter Black ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBS
 
 expandHorizon :: Int -> Position -> [Position]
 expandHorizon 0 _ = error "cannot expand horizon 0 steps"
-expandHorizon 1 !pos = positionTree pos
-expandHorizon n !pos = expandHorizon 1 pos >>= expandHorizon (n - 1)
+expandHorizon 1 pos = positionTree pos
+expandHorizon n pos = let expanded = expandHorizon 1 pos
+  in case expanded of
+    [] -> []
+    [x,y] -> let first = expandHorizon (n - 1) x
+                 second = expandHorizon (n - 1) y
+              in first `pseq` second
+    (x:xs) -> let first = expandHorizon (n - 1) x
+              in first `par` first <> (xs >>= expandHorizon (n - 1))
 
 oneStep :: Position -> Position -> Maybe Position
 oneStep pos@(Position snpa gha _ _ _ _) (Position snpb ghb _ _ _ _) =
