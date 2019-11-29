@@ -17,6 +17,10 @@ import Tree
 data Color = White | Black
   deriving (Eq, Ord, Enum, Show, Generic, NFData)
 
+next :: Color -> Color
+next White = Black
+next Black = White
+
 data Piece
   = Pawn !Color
   | Knight !Color
@@ -43,7 +47,8 @@ data Position
         castleStatusWhite :: CastleStatus,
         castleStatusBlack :: CastleStatus,
         whiteKing :: Maybe Square,
-        blackKing :: Maybe Square
+        blackKing :: Maybe Square,
+        toPlay :: Color
       }
   deriving (Eq, Show, Generic, NFData)
 
@@ -52,10 +57,10 @@ data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Squar
 mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Maybe Square -> Maybe Square -> Position
 mkPosition pos snp csW csB whiteKing' blackKing' =
   let newGH = m pos : gamehistory pos
-   in pos {m = snp, gamehistory = newGH, castleStatusWhite = csW, castleStatusBlack = csB, whiteKing = whiteKing', blackKing = blackKing'}
+   in pos {m = snp, gamehistory = newGH, castleStatusWhite = csW, castleStatusBlack = csB, whiteKing = whiteKing', blackKing = blackKing', toPlay = next (toPlay pos)}
 
 mkPositionExpensive :: Position -> Snapshot -> Position
-mkPositionExpensive pos@(Position snpa _ csw csb wk bk) snpb = case findMove snpa snpb of
+mkPositionExpensive pos@(Position snpa _ csw csb wk bk _) snpb = case findMove snpa snpb of
   MovedPiece from to -> case snpa ?! hash from of
     Just (King White) ->
       mkPosition pos snpb CanCastleNone csb (Just to) bk
@@ -103,7 +108,8 @@ startPosition = Position
     castleStatusWhite = CanCastleBoth,
     castleStatusBlack = CanCastleBoth,
     whiteKing = Just (Square 5 1),
-    blackKing = Just (Square 5 8)
+    blackKing = Just (Square 5 8),
+    toPlay = White
   }
 
 startTree :: Snapshot
@@ -197,7 +203,7 @@ infixl 9 <$.>
 {-# INLINE (<$.>) #-}
 
 emptyBoard :: Position
-emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth Nothing Nothing
+emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth Nothing Nothing White
 
 findMove :: Snapshot -> Snapshot -> Move
 findMove a b =

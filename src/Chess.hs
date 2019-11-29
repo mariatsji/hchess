@@ -37,7 +37,7 @@ squareTo :: Square -> Int -> Int -> Square
 squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos@(Position m' _ _ _ wk bk) from@(Square fc _) to@(Square tc tr)
+movePiece pos@(Position m' _ _ _ wk bk tp) from@(Square fc _) to@(Square tc tr)
   | pieceAt pos from == Just (Pawn White) && (fc /= tc) && vacantAt pos to =
     let newSnapshot =
           movePiece' (removePieceAt m' (Square tc (tr - 1))) from to
@@ -48,10 +48,10 @@ movePiece pos@(Position m' _ _ _ wk bk) from@(Square fc _) to@(Square tc tr)
      in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos) wk bk
   | otherwise =
     let newSnapshot = movePiece' m' from to
-        newCastleStatusWhite = case toPlay pos of
+        newCastleStatusWhite = case tp of
           White -> mkNewCastleStatus pos White from
           Black -> castleStatusWhite pos
-        newCastleStatusBlack = case toPlay pos of
+        newCastleStatusBlack = case tp of
           Black -> mkNewCastleStatus pos Black from
           White -> castleStatusBlack pos
         newWhiteKing
@@ -131,9 +131,6 @@ makeMoves = foldl (\p x -> uncurry (movePiece p) x)
 pieceAt :: Position -> Square -> Maybe Piece
 pieceAt pos = pos `seq` pieceAt' (m pos)
 
-toPlay :: Position -> Color
-toPlay !pos = if (even . length . gamehistory) pos then White else Black
-
 positionTree :: Position -> [Position]
 positionTree pos = positionTreeIgnoreCheck pos >>= (\p -> if isInCheck p (toPlay pos) then [] else [p]) -- TODO MAJOR isInCheck calls positionsPrPiece, and so does positionTreeIgnoreCheck!
 
@@ -143,7 +140,7 @@ positionTreeIgnoreCheck !pos =
    in (searchForPieces pos (const True) (\p -> colr p == c) >>= positionsPrPiece pos >>= promoteBindFriendly c) <> castle pos
 
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
-positionsPrPiece pos@(Position snp _ _ _ _ _) (s, p) = case p of
+positionsPrPiece pos@(Position snp _ _ _ _ _ _) (s, p) = case p of
   Pawn _ ->
     map
       ( \t -> case snd t of
@@ -186,7 +183,7 @@ toSquaresPawn pos s@(Square _ r)
 
 -- en passant
 enPassant :: Position -> Square -> Bool
-enPassant (Position _ [] _ _ _ _) _ = False
+enPassant (Position _ [] _ _ _ _ _) _ = False
 enPassant !pos !s@(Square c r)
   | toPlay pos == White =
     (r == 5) && pieceAt pos s == Just (Pawn Black) && jumpedHereJustNow pos s
@@ -456,10 +453,10 @@ isDraw :: Position -> Bool
 isDraw pos = isPatt pos || threefoldrepetition pos
 
 threefoldrepetition :: Position -> Bool
-threefoldrepetition (Position m' gh _ _ _ _) = length (filter (== m') gh) > 1
+threefoldrepetition (Position m' gh _ _ _ _ _) = length (filter (== m') gh) > 1
 
 eqPosition :: Position -> Position -> Bool
-eqPosition (Position m1 _ _ _ _ _) (Position m2 _ _ _ _ _) = m1 == m2
+eqPosition (Position m1 _ _ _ _ _ _) (Position m2 _ _ _ _ _ _) = m1 == m2
 
 isPatt :: Position -> Bool
 isPatt pos = not (isInCheck pos (toPlay pos)) && null (positionTree pos)

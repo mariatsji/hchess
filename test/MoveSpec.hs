@@ -62,7 +62,7 @@ spec = do
       let p1 = replacePieceAt (m emptyBoard) (Square 8 8) (King Black)
       let p2 = replacePieceAt p1 (Square 5 1) (King White)
       let p3 = replacePieceAt p2 (Square 8 7) (Pawn White)
-      let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], castleStatusWhite = CanCastleBoth, castleStatusBlack = CanCastleBoth, whiteKing = Just (Square 5 1), blackKing = Just (Square 8 8)}
+      let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], castleStatusWhite = CanCastleBoth, castleStatusBlack = CanCastleBoth, whiteKing = Just (Square 5 1), blackKing = Just (Square 8 8), toPlay = Black}
       length t `shouldBe` (3 :: Int)
     it "knows that white is in check" $ do
       let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
@@ -76,14 +76,14 @@ spec = do
       isInCheck p (toPlay p) `shouldBe` (False :: Bool)
     it "promotes pawns for Black " $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 8 1) (Pawn Black)
-      let p2 = promote Black (Position m1 [m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8))
+      let p2 = promote Black (Position m1 [m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) Black)
       pieceAt (head p2) (Square 8 1) `shouldBe` Just (Queen Black)
       pieceAt (head $ tail p2) (Square 8 1) `shouldBe` Just (Rook Black)
       pieceAt (head $ tail $ tail p2) (Square 8 1) `shouldBe` Just (Bishop Black)
       pieceAt (last p2) (Square 8 1) `shouldBe` Just (Knight Black)
     it "finds promotion positions for White" $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 8) (Pawn White)
-      let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8))
+      let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) White)
       length t `shouldBe` (4 :: Int)
     it "does not change color on black pawns on the board when white promotes to a rook" $ do
       let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4", "b7-a8R"]
@@ -91,11 +91,11 @@ spec = do
       pieceAt p1 (Square 1 8) `shouldBe` Just (Rook White)
     it "leaves unpromotable boards alone for White" $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 7) (Pawn White)
-      let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8))
-      t `shouldBe` [Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8)]
+      let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) White)
+      t `shouldBe` [Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) White]
     it "promotes passed pawns for Black in the position tree" $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 2) (Pawn Black)
-          p1 = Position m1 [m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8)
+          p1 = Position m1 [m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) Black
       let t = positionTree p1
       pieceAt (head t) (Square 5 1) `shouldBe` Just (Queen Black)
       length t `shouldBe` (4 :: Int)
@@ -122,7 +122,7 @@ spec = do
       let m1 = removePieceAt (m startPosition) (Square 2 8)
           m2 = removePieceAt m1 (Square 3 8)
           m3 = removePieceAt m2 (Square 4 8)
-          p = Position m3 [m2, m1, m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8)
+          p = Position m3 [m2, m1, m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) Black
           c = castleLong p Black
       length c `shouldBe` (1 :: Int)
       pieceAt (head c) (Square 3 8) `shouldBe` Just (King Black)
