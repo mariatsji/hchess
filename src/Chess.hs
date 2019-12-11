@@ -132,7 +132,7 @@ pieceAt :: Position -> Square -> Maybe Piece
 pieceAt pos = pos `seq` pieceAt' (m pos)
 
 positionTree :: Position -> [Position]
-positionTree pos = positionTreeIgnoreCheck pos >>= (\p -> if isInCheck p (toPlay pos) then [] else [p]) -- TODO MAJOR isInCheck calls positionsPrPiece, and so does positionTreeIgnoreCheck!
+positionTree pos = positionTreeIgnoreCheck pos >>= (\p -> [p | not (isInCheck p (toPlay pos))])
 
 positionTreeIgnoreCheck :: Position -> [Position]
 positionTreeIgnoreCheck !pos =
@@ -184,7 +184,7 @@ toSquaresPawn pos s@(Square _ r)
 -- en passant
 enPassant :: Position -> Square -> Bool
 enPassant (Position _ [] _ _ _ _ _) _ = False
-enPassant !pos !s@(Square c r)
+enPassant !pos s@(Square c r)
   | toPlay pos == White =
     (r == 5) && pieceAt pos s == Just (Pawn Black) && jumpedHereJustNow pos s
   | otherwise =

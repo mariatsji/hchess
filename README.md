@@ -18,6 +18,12 @@
     hp2pretty hchess-profiled.hp
     open hchess-profiled.svg
 
+
+## Retainer profiling
+
+    hchess-profiled +RTS -hc -L80 -hbvoid
+    hp2pretty hchess-profiled.hp && open hchess-profiled.svg
+
 # profile with threadscope
 
     stack build --profile && \
