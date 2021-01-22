@@ -1,10 +1,12 @@
-resolver: lts-14.1
+resolver: nightly-2021-01-20
 
 packages:
 - .
 
+nix:
+  enable: true
+  pure: false
 extra-deps:
-- ghc-datasize-0.2.1@sha256:a4885648ac788e20b6ad05c677ddaac38802499916e84e9133997891b2819440,1134
 
 flags: {}
 
