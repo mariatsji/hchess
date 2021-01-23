@@ -28,7 +28,11 @@ getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
 
 evaluate' :: Position -> Evaluated
-evaluate' gh = Evaluated gh (evaluateGH gh) (determineStatus gh)
+evaluate' gh = case determineStatus gh of
+  WhiteIsMate -> Evaluated gh (-10000.0) WhiteIsMate
+  BlackIsMate -> Evaluated gh 10000.0 BlackIsMate
+  Remis -> Evaluated gh 0 Remis
+  playOn -> Evaluated gh (evaluate gh) playOn
 
 toGH :: Evaluated -> (Status, Position)
 toGH e =
@@ -44,12 +48,6 @@ evaluate p =
       develp = development squares
       safeK = safeKing p
    in whiteSurplus + pawnAdv + develp + safeK
-
-evaluateGH :: Position -> Float
-evaluateGH gh
-  | isCheckMate gh && (toPlay gh == White) = -10000.0
-  | isCheckMate gh && (toPlay gh == Black) = 10000.0
-  | otherwise = evaluate gh
 
 safeKing :: Position -> Float
 safeKing p

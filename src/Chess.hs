@@ -129,7 +129,7 @@ makeMoves = foldl (uncurry . movePiece)
 
 -- CAF now? would be nice
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt pos = pos `seq` pieceAt' (m pos)
+pieceAt = pieceAt' . m
 
 positionTree :: Position -> [Position]
 positionTree pos = positionTreeIgnoreCheck pos >>= (\p -> [p | not (isInCheck p (toPlay pos))])
