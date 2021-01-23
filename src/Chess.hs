@@ -448,11 +448,11 @@ isInCheck pos Black =
           checkByKing = any ((Just (King White) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare)
        in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
 
-isCheckMate :: Position -> Bool
-isCheckMate pos = isInCheck pos (toPlay pos) && null (positionTree pos)
+isCheckMate :: Position -> [Position] -> Bool
+isCheckMate pos positiontree = isInCheck pos (toPlay pos) && null positiontree
 
-isDraw :: Position -> Bool
-isDraw pos = isPatt pos || threefoldrepetition pos
+isDraw :: Position -> [Position] -> Bool
+isDraw pos ptree = isPatt pos ptree || threefoldrepetition pos
 
 threefoldrepetition :: Position -> Bool
 threefoldrepetition (Position m' gh _ _ _ _ _) = length gh > 5 && length (filter (== m') gh) > 1
@@ -460,13 +460,14 @@ threefoldrepetition (Position m' gh _ _ _ _ _) = length gh > 5 && length (filter
 eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _ _ _ _ _ _) (Position m2 _ _ _ _ _ _) = m1 == m2
 
-isPatt :: Position -> Bool
-isPatt pos = not (isInCheck pos (toPlay pos)) && null (positionTree pos)
+isPatt :: Position -> [Position] -> Bool
+isPatt pos positiontree = not (isInCheck pos (toPlay pos)) && null positiontree
 
 determineStatus :: Position -> Status
 determineStatus pos
-  | toPlay pos == White && isCheckMate pos = WhiteIsMate
-  | isCheckMate pos = BlackIsMate
-  | isDraw pos = Remis
+  | toPlay pos == White && isCheckMate pos ptree = WhiteIsMate
+  | isCheckMate pos ptree = BlackIsMate
+  | isDraw pos ptree = Remis
   | toPlay pos == White = WhiteToPlay
   | otherwise = BlackToPlay
+  where ptree = positionTree pos
