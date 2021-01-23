@@ -253,7 +253,8 @@ spec = do
       length (positionTree p) `shouldBe` 0
     it "realizes black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
-      isCheckMate p `shouldBe` True
+          ptree = positionTree p
+      isCheckMate p ptree `shouldBe` True
     it "determines status of a checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
       determineStatus p `shouldBe` BlackIsMate
