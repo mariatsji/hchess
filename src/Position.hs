@@ -9,6 +9,7 @@ module Position where
 
 import Control.DeepSeq (NFData)
 import Control.Monad.ST
+import Data.Bifunctor (first)
 import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe)
 import Data.STRef
 import Data.Word
@@ -197,7 +198,7 @@ catSndMaybes l =
 {-# INLINE catSndMaybes #-}
 
 (<$.>) :: Functor f => (a -> b) -> f (a, c) -> f (b, c)
-(<$.>) f = fmap (\(a', c') -> (f a', c'))
+(<$.>) f = fmap (first f)
 
 infixl 9 <$.>
 

@@ -1,2 +1,2 @@
 #!/bin/bash
-ghcid -c "./stackw repl --ghc-options -Wall" --restart=hchess.cabal
+ghcid -c "stack repl --ghc-options -Wall" --restart=hchess.cabal

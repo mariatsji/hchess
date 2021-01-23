@@ -125,7 +125,7 @@ vacantAt :: Position -> Square -> Bool
 vacantAt pos t = isNothing $ pieceAt pos t
 
 makeMoves :: Position -> [(Square, Square)] -> Position
-makeMoves = foldl (\p x -> uncurry (movePiece p) x)
+makeMoves = foldl (uncurry . movePiece)
 
 -- CAF now? would be nice
 pieceAt :: Position -> Square -> Maybe Piece

@@ -1,2 +1,5 @@
 cradle:
   stack:
+    - path: "./"
+      component: "hchess:exe:hchess"
+

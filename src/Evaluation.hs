@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedLists #-}
 
 module Evaluation
   ( Evaluated (..),
@@ -38,9 +37,11 @@ toGH e =
 
 evaluate :: Position -> Float
 evaluate p =
-  let whiteSurplus = countPieces p
-      pawnAdv = pawnAdvancement p
-      develp = development p
+  let mpos = m p
+      squares = toList' mpos
+      whiteSurplus = countPieces squares
+      pawnAdv = pawnAdvancement squares
+      develp = development squares
       safeK = safeKing p
    in whiteSurplus + pawnAdv + develp + safeK
 
@@ -66,8 +67,8 @@ safeKing p
     -0.1
   | otherwise = 0.0
 
-development :: Position -> Float
-development pos = sum $ fmap scoreOfficerDevelopment (toList' (m pos))
+development :: [(Square, Maybe Piece)] -> Float
+development squares = sum $ fmap scoreOfficerDevelopment squares
 
 scoreOfficerDevelopment :: (Square, Maybe Piece) -> Float
 scoreOfficerDevelopment (_, Nothing) = 0.0
@@ -97,8 +98,8 @@ scoreOfficerDevelopment (Square _ row, Just (Rook Black)) =
     else (-0.05)
 scoreOfficerDevelopment _ = 0.0
 
-pawnAdvancement :: Position -> Float
-pawnAdvancement pos = sum $ fmap pawnPosValue (toList' (m pos))
+pawnAdvancement :: [(Square, Maybe Piece)] -> Float
+pawnAdvancement squares = sum $ fmap pawnPosValue squares
 
 pawnPosValue :: (Square, Maybe Piece) -> Float
 pawnPosValue (_, Nothing) = 0.00
@@ -118,8 +119,8 @@ r' :: Int -> Float
 r' n = fromIntegral n :: Float
 
 -- (whitepieces, blackpieces)
-countPieces :: Position -> Float
-countPieces pos = foldl (\acc (_, mp) -> acc + maybe 0 valueOf mp) 0.0 (toList' (m pos))
+countPieces :: [(Square, Maybe Piece)] -> Float
+countPieces squares = foldl (\acc (_, mp) -> acc + maybe 0 valueOf mp) 0.0 squares
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = (if c == Black then (-1) else 1) * 1.0

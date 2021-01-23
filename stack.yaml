@@ -1,11 +1,12 @@
 resolver: nightly-2021-01-20
-
+local-bin-path: ./bin
 packages:
 - .
 
 nix:
   enable: true
   pure: false
+  packages: [ libiconv zlib ]
 extra-deps:
 
 flags: {}
