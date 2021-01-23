@@ -429,21 +429,23 @@ isInCheck pos White =
   case whiteKing pos of
     Nothing -> False
     Just kingSquare ->
-      let checkByPawn = pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
-          checkByKnight = any (\s -> pieceAt pos s == Just (Knight Black)) $ filter (canGoThere pos kingSquare) (toSquaresKnight kingSquare)
-          checkByRookQueen = any (\s -> pieceAt pos s `elem` [Just (Rook Black), Just (Queen Black)]) $ filter (canGoThere pos kingSquare) (toSquaresRook kingSquare)
-          checkByBishopQueen = any (\s -> pieceAt pos s `elem` [Just (Bishop Black), Just (Queen Black)]) $ filter (canGoThere pos kingSquare) (toSquaresBishop kingSquare)
-          checkByKing = any (\s -> pieceAt pos s == Just (King Black)) $ filter (canGoThere pos kingSquare) (toSquaresKing kingSquare)
+      let cangothere = canGoThere pos kingSquare
+          checkByPawn = pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
+          checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKnight kingSquare)
+          checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
+          checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
+          checkByKing = any ((Just (King Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare) -- todo move this check to canGoThere.. case I am a King piece -> check if causes check, else ..
        in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
 isInCheck pos Black =
   case blackKing pos of
     Nothing -> False
     Just kingSquare ->
-      let checkByPawn = pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
-          checkByKnight = any (\s -> pieceAt pos s == Just (Knight White)) $ toSquaresKnight kingSquare
-          checkByRookQueen = any (\s -> pieceAt pos s `elem` [Just (Rook White), Just (Queen White)]) $ filter (canGoThere pos kingSquare) (toSquaresRook kingSquare)
-          checkByBishopQueen = any (\s -> pieceAt pos s `elem` [Just (Bishop White), Just (Queen White)]) $ filter (canGoThere pos kingSquare) (toSquaresBishop kingSquare)
-          checkByKing = any (\s -> pieceAt pos s == Just (King White)) $ filter (canGoThere pos kingSquare) (toSquaresKing kingSquare)
+      let cangothere = canGoThere pos kingSquare
+          checkByPawn = pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
+          checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight kingSquare
+          checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
+          checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
+          checkByKing = any ((Just (King White) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare)
        in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
 
 isCheckMate :: Position -> Bool
@@ -453,7 +455,7 @@ isDraw :: Position -> Bool
 isDraw pos = isPatt pos || threefoldrepetition pos
 
 threefoldrepetition :: Position -> Bool
-threefoldrepetition (Position m' gh _ _ _ _ _) = length (filter (== m') gh) > 1
+threefoldrepetition (Position m' gh _ _ _ _ _) = length gh > 5 && length (filter (== m') gh) > 1
 
 eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _ _ _ _ _ _) (Position m2 _ _ _ _ _ _) = m1 == m2
