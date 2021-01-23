@@ -7,7 +7,6 @@ module Evaluation
     getPosition,
     evaluate',
     pawnAdvancement,
-    toGH,
   )
 where
 
@@ -27,17 +26,12 @@ data Evaluated
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
 
-evaluate' :: Position -> Evaluated
-evaluate' gh = case determineStatus gh of
+evaluate' :: Position -> Status -> Evaluated
+evaluate' gh status = case status of
   WhiteIsMate -> Evaluated gh (-10000.0) WhiteIsMate
   BlackIsMate -> Evaluated gh 10000.0 BlackIsMate
   Remis -> Evaluated gh 0 Remis
   playOn -> Evaluated gh (evaluate gh) playOn
-
-toGH :: Evaluated -> (Status, Position)
-toGH e =
-  let gh = (\(Evaluated x _ _) -> x) e
-   in (determineStatus gh, gh)
 
 evaluate :: Position -> Float
 evaluate p =

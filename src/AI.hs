@@ -21,16 +21,17 @@ import Prelude hiding (foldr)
 
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
 edgeGreed !pos depth =
-  let color = toPlay pos
+  let status = determineStatus pos
+      color = toPlay pos
       best =
         foldr
           ( \potential bestsofar ->
               potential `seq` bestsofar `seq`
-              swapForBetter color (evaluate' potential) bestsofar
+              swapForBetter color (evaluate' potential status) bestsofar
           )
-          (evaluate' pos)
+          (evaluate' pos status)
           (expandHorizon depth pos)
-   in maybe (Left (pos, determineStatus pos)) Right (oneStep pos (getPosition best))
+   in maybe (Left (pos, status)) Right (oneStep pos (getPosition best))
 
 -- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
 swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
