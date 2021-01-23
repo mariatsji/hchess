@@ -464,10 +464,11 @@ isPatt :: Position -> [Position] -> Bool
 isPatt pos positiontree = not (isInCheck pos (toPlay pos)) && null positiontree
 
 determineStatus :: Position -> Status
-determineStatus pos
-  | toPlay pos == White && isCheckMate pos ptree = WhiteIsMate
-  | isCheckMate pos ptree = BlackIsMate
-  | isDraw pos ptree = Remis
-  | toPlay pos == White = WhiteToPlay
-  | otherwise = BlackToPlay
-  where ptree = positionTree pos
+determineStatus pos =
+  let ptree = positionTree pos
+  in
+    if toPlay pos == White && isCheckMate pos ptree then WhiteIsMate
+    else if isCheckMate pos ptree then BlackIsMate
+    else if isDraw pos ptree then Remis
+    else if toPlay pos == White then WhiteToPlay
+    else BlackToPlay
