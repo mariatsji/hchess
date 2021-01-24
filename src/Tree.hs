@@ -30,7 +30,6 @@ set (Node !l !r) i y =
    in if testBit i 0
         then Node l (set r newI y)
         else Node (set l newI y) r
-{-# INLINE set #-}
 
 (?!) :: Tree a -> Word8 -> a
 (?!) (Leaf !x) _ = x
@@ -38,14 +37,12 @@ set (Node !l !r) i y =
   if testBit i 0
     then r ?! shift i (-1)
     else l ?! shift i (-1)
-{-# INLINE (?!) #-}
 
 infixr 9 ?!
 
 search :: Tree a -> (a -> Bool) -> [a]
 search (Leaf !x) pred' = [x | pred' x]
 search (Node !l !r) pred' = search l pred' <> search r pred'
-{-# INLINE search #-}
 
 -- The two predicates are ANDed together - one based on Square and one based on Maybe Piece (could be smashed into one predicate, couldn't it?)
 searchIdx :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
@@ -54,7 +51,6 @@ searchIdx !tree' !idxPred !piecePred = go tree' idxPred piecePred []
     go :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
     go (Leaf !x) !ip !pp !path = [(bits6toNum path, x) | ip (bits6toNum path) && pp x]
     go (Node !l !r) !ip !pp !path = go l ip pp (False : path) <> go r ip pp (True : path)
-{-# INLINE searchIdx #-}
 
 bits6toNum :: [Bool] -> Word8
 bits6toNum [a,b,c,d,e,f] = getSum $
@@ -64,7 +60,7 @@ bits6toNum [a,b,c,d,e,f] = getSum $
   ( if c then Sum 8 else Sum 0 ) <>
   ( if b then Sum 16 else Sum 0 ) <>
   ( if a then Sum 32 else Sum 0 )
-{-# INLINE bits6toNum #-}
+bits6toNum x = error $ "Cannot consider " <> show x <> " as 6 bits" 
 
 bits6toNum' :: [Bool] -> Word8
 bits6toNum' !bits = go bits 5 0
@@ -72,7 +68,6 @@ bits6toNum' !bits = go bits 5 0
     go :: [Bool] -> Word8 -> Word8 -> Word8
     go (b : bs) !pos !acc = (if b then 2 ^ pos else 0) + go bs (pred pos) acc
     go [] _ !acc = acc
-{-# INLINE bits6toNum' #-}
 
 empty64 :: a -> Tree a
 empty64 = go 6
@@ -80,7 +75,6 @@ empty64 = go 6
     go :: Word8 -> a -> Tree a
     go 0 !x = Leaf x
     go !n !x = Node (go (n - 1) x) (go (n - 1) x)
-{-# INLINE empty64 #-}
 
 fromList :: [a] -> Tree a -- 64 Leafs.. sorry mac, that's what you get - this is chess
 fromList !l =
@@ -90,12 +84,9 @@ fromList !l =
     )
     (empty64 (head l))
     [0 .. 63]
-{-# INLINE fromList #-}
 
 toList :: Tree a -> [a]
 toList !tree = fmap (tree ?!) [0 .. 63] -- todo Ttraverse tree directly
-{-# INLINE toList #-}
 
 diff :: Eq a => Tree a -> Tree a -> [(Word8, a)]
 diff !a !b = searchIdx b (\w8 -> a ?! w8 /= b ?! w8) (const True)
-{-# INLINE diff #-}
