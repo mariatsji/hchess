@@ -3,7 +3,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE StrictData #-}
 
 module Position where
 
@@ -89,11 +88,9 @@ mkPositionExpensive pos@(Position snpa _ csw csb wk bk _) snpb = case findMove s
 
 hash :: Square -> Word8
 hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
-{-# INLINE hash #-}
 
 unHash :: Word8 -> Square
 unHash i = Square ((fromIntegral i `rem` 8) + 1) ((fromIntegral i `quot` 8) + 1)
-{-# INLINE unHash #-}
 
 colr :: Piece -> Color
 colr (Pawn c) = c
@@ -195,14 +192,11 @@ catSndMaybes l =
             (a, Just s) -> [(a, s)]
             _ -> []
         )
-{-# INLINE catSndMaybes #-}
 
 (<$.>) :: Functor f => (a -> b) -> f (a, c) -> f (b, c)
-(<$.>) f = fmap (first f)
+(<$.>) = fmap . first
 
 infixl 9 <$.>
-
-{-# INLINE (<$.>) #-}
 
 emptyBoard :: Position
 emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth Nothing Nothing White

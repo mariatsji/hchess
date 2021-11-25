@@ -76,17 +76,5 @@ empty64 = go 6
     go 0 !x = Leaf x
     go !n !x = Node (go (n - 1) x) (go (n - 1) x)
 
-fromList :: [a] -> Tree a -- 64 Leafs.. sorry mac, that's what you get - this is chess
-fromList !l =
-  foldl
-    ( \tree i ->
-        set tree i (l !! fromIntegral i)
-    )
-    (empty64 (head l))
-    [0 .. 63]
-
-toList :: Tree a -> [a]
-toList !tree = fmap (tree ?!) [0 .. 63] -- todo Ttraverse tree directly
-
 diff :: Eq a => Tree a -> Tree a -> [(Word8, a)]
 diff !a !b = searchIdx b (\w8 -> a ?! w8 /= b ?! w8) (const True)

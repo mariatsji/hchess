@@ -1,12 +1,10 @@
-resolver: nightly-2021-01-20
+resolver: lts-18.18
 local-bin-path: ./bin
 packages:
 - .
 
 nix:
-  enable: true
-  pure: false
-  packages: [ libiconv zlib ]
+  shell-file: shell.nix
 extra-deps:
 
 flags: {}
