@@ -2,7 +2,7 @@ let nixpkgs = import (fetchTarball https://github.com/nixos/nixpkgs/archive/0713
 
 in nixpkgs.haskell.lib.buildStackProject {
     LANG = "en_US.UTF-8";
-    ghc = nixpkgs.ghc8107;
+    ghc = nixpkgs.haskell.compiler.ghc8107;
     name = "hchess";
     buildInputs = [
         # Build-time system dependencies.
