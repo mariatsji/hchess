@@ -10,7 +10,6 @@ module Evaluation
 where
 
 import Chess
-import Control.DeepSeq
 import GHC.Generics (Generic)
 import Position
 
@@ -19,7 +18,7 @@ data Evaluated
       {-# UNPACK #-} !Position
       {-# UNPACK #-} !Float
       !Status
-  deriving (Eq, Show, Generic, NFData)
+  deriving (Eq, Show, Generic)
 
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p

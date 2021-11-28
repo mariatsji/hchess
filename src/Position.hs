@@ -6,7 +6,6 @@
 
 module Position where
 
-import Control.DeepSeq (NFData)
 import Control.Monad.ST
 import Data.Bifunctor (first)
 import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe)
@@ -16,7 +15,7 @@ import GHC.Generics (Generic)
 import Tree
 
 data Color = White | Black
-  deriving (Eq, Ord, Enum, Show, Generic, NFData)
+  deriving (Eq, Ord, Enum, Show, Generic)
 
 next :: Color -> Color
 next White = Black
@@ -29,17 +28,17 @@ data Piece
   | Rook !Color
   | Queen !Color
   | King !Color
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic)
 
 data Square
   = Square
       {-# UNPACK #-} !Int
       {-# UNPACK #-} !Int
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic)
 
 type Snapshot = Tree (Maybe Piece)
 
-data CastleStatus = CanCastleBoth | CanCastleA | CanCastleH | CanCastleNone deriving (Eq, Show, Generic, NFData)
+data CastleStatus = CanCastleBoth | CanCastleA | CanCastleH | CanCastleNone deriving (Eq, Show, Generic)
 
 data Position
   = Position
@@ -51,7 +50,7 @@ data Position
         blackKing :: Maybe Square,
         toPlay :: Color
       }
-  deriving (Eq, Show, Generic, NFData)
+  deriving (Eq, Show, Generic)
 
 data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Square Piece | Castle Square Square deriving (Eq, Show)
 

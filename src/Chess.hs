@@ -4,7 +4,6 @@
 
 module Chess where
 
-import Control.DeepSeq
 import Data.List
 import Data.Maybe
 import GHC.Generics (Generic)
@@ -17,7 +16,7 @@ data Status
   | Remis
   | WhiteIsMate
   | BlackIsMate
-  deriving (Eq, Ord, Show, Generic, NFData)
+  deriving (Eq, Ord, Show, Generic)
 
 board :: [Square]
 board = Square <$> [1 .. 8] <*> [1 .. 8]

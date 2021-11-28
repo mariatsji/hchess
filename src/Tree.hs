@@ -4,13 +4,12 @@
 
 module Tree where
 
-import Control.DeepSeq
 import Data.Bits
 import Data.Monoid
 import Data.Word
 import GHC.Generics
 
-data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Eq, Show, Generic, NFData)
+data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Eq, Show, Generic)
 
 instance Functor Tree where
   fmap f (Leaf !x) = Leaf (f x)
