@@ -32,7 +32,7 @@ set (Node !l !r) i y =
 
 (?!) :: Tree a -> Word8 -> a
 (?!) (Leaf !x) _ = x
-(?!) (Node !l !r) i =
+(?!) (Node !l !r) !i =
   if testBit i 0
     then r ?! shift i (-1)
     else l ?! shift i (-1)

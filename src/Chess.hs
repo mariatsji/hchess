@@ -88,7 +88,7 @@ mkNewCastleStatus pos Black from = case from of
   _ -> castleStatusBlack pos
 
 points :: Square -> Square -> [Square]
-points (Square c1 r1) (Square c2 r2) =
+points (Square !c1 !r1) (Square !c2 !r2) =
   let cline = line c1 c2
       rline = line r1 r2
    in if length cline > length rline
@@ -99,7 +99,7 @@ points (Square c1 r1) (Square c2 r2) =
             else uncurry Square <$> zip cline rline
   where
     line :: Int -> Int -> [Int]
-    line a b =
+    line !a !b =
       let step = if b > a then 1 else (-1)
        in [a + step, (a + step) + step .. b - step]
 
