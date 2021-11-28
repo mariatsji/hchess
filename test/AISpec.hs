@@ -2,14 +2,10 @@ module AISpec where
 
 import AI
 import Chess
-import Control.Exception (evaluate)
-import Data.Typeable
 import Evaluation
 import Move
 import Position
-import Printer
 import Test.Hspec
-import Test.QuickCheck
 
 spec :: Spec
 spec = describe "AI" $ do

@@ -62,15 +62,11 @@ library:
   - bytestring
   - containers
   - deepseq
-  - either
   - regex-tdfa
-  - profunctors
   - parallel
   - record-dot-preprocessor
   - transformers
-  - unordered-containers
   - utf8-string
-  - vector
 
 executables:
 
@@ -83,7 +79,7 @@ executables:
     - hchess
     - deepseq
 
-hchess-profiled:
+  hchess-profiled:
     main: Main.hs
     source-dirs: performance
     ghc-options: *exe-ghc-options

@@ -1,5 +1,4 @@
 import AI
-import Chess
 import Position
 import Printer
 

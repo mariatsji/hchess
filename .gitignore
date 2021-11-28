@@ -6,4 +6,4 @@
 *.ps
 *.eventlog
 *.aux
-
+bin/

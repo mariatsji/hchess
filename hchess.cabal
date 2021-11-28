@@ -60,16 +60,12 @@ library
     , bytestring
     , containers
     , deepseq
-    , either
     , parallel
-    , profunctors
     , record-dot-preprocessor
     , record-hasfield
     , regex-tdfa
     , transformers
-    , unordered-containers
     , utf8-string
-    , vector
   default-language: Haskell2010
 
 executable hchess
@@ -100,6 +96,38 @@ executable hchess
   build-depends:
       base
     , deepseq
+    , hchess
+    , record-dot-preprocessor
+    , record-hasfield
+  default-language: Haskell2010
+
+executable hchess-profiled
+  main-is: Main.hs
+  other-modules:
+      Paths_hchess
+  hs-source-dirs:
+      performance
+  default-extensions:
+      BlockArguments
+      DataKinds
+      DeriveAnyClass
+      DeriveGeneric
+      DerivingStrategies
+      DerivingVia
+      GeneralisedNewtypeDeriving
+      LambdaCase
+      OverloadedStrings
+      QuasiQuotes
+      RecordWildCards
+      ScopedTypeVariables
+      StandaloneDeriving
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeOperators
+  ghc-options: -O2 -fwarn-incomplete-patterns -fwarn-redundant-constraints -fwarn-unused-imports -fwarn-unused-packages -F -pgmF=record-dot-preprocessor -threaded -rtsopts "-with-rtsopts=-N2 -T"
+  build-depends:
+      base
     , hchess
     , record-dot-preprocessor
     , record-hasfield

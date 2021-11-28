@@ -6,11 +6,20 @@ cradle:
     - path: "app/Main.hs"
       component: "hchess:exe:hchess"
 
+    - path: "app/Paths_hchess.hs"
+      component: "hchess:exe:hchess"
+
     - path: "performance/Main.hs"
       component: "hchess:exe:hchess-profiled"
+
+    - path: "performance/Paths_hchess.hs"
+      component: "hchess:exe:hchess-profiled"
+
+    - path: "test"
+      component: "hchess:test:hchess-test"
 
     - path: "bench/Main.hs"
       component: "hchess:bench:hchess-bench"
 
-    - path: "test"
-      component: "hchess:test:hchess-test"
+    - path: "bench/Paths_hchess.hs"
+      component: "hchess:bench:hchess-bench"

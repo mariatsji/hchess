@@ -1,16 +1,12 @@
 module MoveSpec where
 
 import Chess
-import Control.Exception (evaluate)
 import Data.Either
-import qualified Data.Map.Lazy as Map
 import Data.Maybe (isNothing)
-import Data.Foldable
 import Move
 import Position
 import Printer
 import Test.Hspec
-import Test.QuickCheck
 
 spec :: Spec
 spec = do

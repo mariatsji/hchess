@@ -30,7 +30,7 @@ rowify pos = reverse $ sortBy colSort <$> groupWith (\(Square _ r, _) -> r) (toL
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =
-  UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row
+  UF.fromString $ foldr1 (\s a -> a ++ " " ++ s) $ fmap prettyPiece row
 
 prettyPiece :: (Square, Maybe Piece) -> String
 prettyPiece (Square c r, Nothing) =
