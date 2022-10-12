@@ -20,16 +20,6 @@
   (major1) == 4 && (major2) <  15 || \
   (major1) == 4 && (major2) == 15 && (minor) <= 1)
 #endif /* MIN_VERSION_base */
-/* package deepseq-1.4.5.0 */
-#ifndef VERSION_deepseq
-#define VERSION_deepseq "1.4.5.0"
-#endif /* VERSION_deepseq */
-#ifndef MIN_VERSION_deepseq
-#define MIN_VERSION_deepseq(major1,major2,minor) (\
-  (major1) <  1 || \
-  (major1) == 1 && (major2) <  4 || \
-  (major1) == 1 && (major2) == 4 && (minor) <= 5)
-#endif /* MIN_VERSION_deepseq */
 /* package hchess-0.1.0.0 */
 #ifndef VERSION_hchess
 #define VERSION_hchess "0.1.0.0"
@@ -40,16 +30,6 @@
   (major1) == 0 && (major2) <  1 || \
   (major1) == 0 && (major2) == 1 && (minor) <= 0)
 #endif /* MIN_VERSION_hchess */
-/* package record-dot-preprocessor-0.2.15 */
-#ifndef VERSION_record_dot_preprocessor
-#define VERSION_record_dot_preprocessor "0.2.15"
-#endif /* VERSION_record_dot_preprocessor */
-#ifndef MIN_VERSION_record_dot_preprocessor
-#define MIN_VERSION_record_dot_preprocessor(major1,major2,minor) (\
-  (major1) <  0 || \
-  (major1) == 0 && (major2) <  2 || \
-  (major1) == 0 && (major2) == 2 && (minor) <= 15)
-#endif /* MIN_VERSION_record_dot_preprocessor */
 /* package record-hasfield-1.0 */
 #ifndef VERSION_record_hasfield
 #define VERSION_record_hasfield "1.0"

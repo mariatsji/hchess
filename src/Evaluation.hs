@@ -15,9 +15,9 @@ import Position
 
 data Evaluated
   = Evaluated
-      {-# UNPACK #-} !Position
-      {-# UNPACK #-} !Float
-      !Status
+      Position
+      Float
+      Status
   deriving (Eq, Show, Generic)
 
 getPosition :: Evaluated -> Position

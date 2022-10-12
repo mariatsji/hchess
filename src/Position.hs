@@ -22,18 +22,18 @@ next White = Black
 next Black = White
 
 data Piece
-  = Pawn !Color
-  | Knight !Color
-  | Bishop !Color
-  | Rook !Color
-  | Queen !Color
-  | King !Color
+  = Pawn Color
+  | Knight Color
+  | Bishop Color
+  | Rook Color
+  | Queen Color
+  | King Color
   deriving (Eq, Ord, Show, Generic)
 
 data Square
   = Square
-      {-# UNPACK #-} !Int
-      {-# UNPACK #-} !Int
+      Int
+      Int
   deriving (Eq, Ord, Show, Generic)
 
 type Snapshot = Tree (Maybe Piece)
@@ -157,7 +157,7 @@ startBlackPieces =
   ]
 
 movePiece' :: Snapshot -> Square -> Square -> Snapshot
-movePiece' !snp from to = case snp ?! hash from of
+movePiece' snp from to = case snp ?! hash from of
   Nothing ->
     error $ "should be a piece at " <> show from <> " in pos " <> show snp
   (Just piece) -> runST $ do
@@ -167,20 +167,20 @@ movePiece' !snp from to = case snp ?! hash from of
     readSTRef pRef
 
 removePieceAt :: Snapshot -> Square -> Snapshot
-removePieceAt !snp s = set snp (hash s) Nothing
+removePieceAt snp s = set snp (hash s) Nothing
 
 replacePieceAt :: Snapshot -> Square -> Piece -> Snapshot
 replacePieceAt snp square piece = set snp (hash square) (pure piece)
 
 pieceAt' :: Snapshot -> Square -> Maybe Piece
-pieceAt' snp !s = snp ?! hash s
+pieceAt' snp s = snp ?! hash s
 
 searchForPieces :: Position -> (Square -> Bool) -> (Piece -> Bool) -> [(Square, Piece)]
 searchForPieces pos squarePred piecePred = catSndMaybes $ unHash <$.> searchIdx (m pos) (squarePred . unHash) (maybe False piecePred)
 
 fromList' :: [(Square, Piece)] -> Snapshot
 fromList' = foldr
-  (\(!s, !p) tree -> set tree (hash s) (pure p))
+  (\(s, p) tree -> set tree (hash s) (pure p))
   (empty64 Nothing)
 
 toList' :: Snapshot -> [(Square, Maybe Piece)]

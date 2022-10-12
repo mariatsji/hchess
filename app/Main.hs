@@ -10,4 +10,3 @@ main = do
   putStrLn "q Quit"
   l <- getLine
   start l
-
