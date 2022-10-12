@@ -32,8 +32,6 @@ library
       Position
       Tree
       GameLoop
-  other-modules:
-      Paths_hchess
   hs-source-dirs:
       src
   default-extensions:
@@ -54,7 +52,6 @@ library
       TypeApplications
       TypeFamilies
       TypeOperators
-  ghc-options: -O1 -fwarn-incomplete-patterns -fwarn-redundant-constraints -fwarn-unused-imports -fwarn-unused-packages -F -pgmF=record-dot-preprocessor
   build-depends:
       base >=4.7 && <5
     , bytestring
@@ -67,10 +64,19 @@ library
     , utf8-string
   default-language: Haskell2010
 
-executable hchess
+executable hchess-profiled
   main-is: Main.hs
-  other-modules:
-      Paths_hchess
+  ghc-options:
+    -O1
+    -fwarn-incomplete-patterns
+    -fwarn-redundant-constraints
+    -fwarn-unused-imports
+    -fwarn-unused-packages
+    -F -pgmF=record-dot-preprocessor
+    -threaded
+    -prof
+    -fprof-auto
+    "-with-rtsopts=-N4 -p -s -h -i0.1"
   hs-source-dirs:
       app
   default-extensions:
@@ -91,7 +97,44 @@ executable hchess
       TypeApplications
       TypeFamilies
       TypeOperators
-  ghc-options: -O1 -fwarn-incomplete-patterns -fwarn-redundant-constraints -fwarn-unused-imports -fwarn-unused-packages -F -pgmF=record-dot-preprocessor -threaded -rtsopts "-with-rtsopts=-N2 -T"
+  build-depends:
+      base
+    , hchess
+    , record-hasfield
+  default-language: Haskell2010
+
+executable hchess
+  main-is: Main.hs
+  ghc-options:
+    -O1
+    -fwarn-incomplete-patterns
+    -fwarn-redundant-constraints
+    -fwarn-unused-imports
+    -fwarn-unused-packages
+    -F -pgmF=record-dot-preprocessor
+    -threaded
+    -fprof-auto
+    "-with-rtsopts=-N4"
+  hs-source-dirs:
+      app
+  default-extensions:
+      BlockArguments
+      DataKinds
+      DeriveAnyClass
+      DeriveGeneric
+      DerivingStrategies
+      DerivingVia
+      GeneralisedNewtypeDeriving
+      LambdaCase
+      OverloadedStrings
+      QuasiQuotes
+      RecordWildCards
+      ScopedTypeVariables
+      StandaloneDeriving
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeOperators
   build-depends:
       base
     , hchess
@@ -104,7 +147,6 @@ test-suite hchess-test
   other-modules:
       AISpec
       MoveSpec
-      Paths_hchess
   hs-source-dirs:
       test
   default-extensions:
@@ -125,7 +167,6 @@ test-suite hchess-test
       TypeApplications
       TypeFamilies
       TypeOperators
-  ghc-options: -O2 -fwarn-incomplete-patterns -fwarn-redundant-constraints -fwarn-unused-imports -fwarn-unused-packages -F -pgmF=record-dot-preprocessor
   build-depends:
     base
     , hchess
