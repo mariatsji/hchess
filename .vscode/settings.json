@@ -1,24 +1,4 @@
 {
-  "files.autoSave": "afterDelay",
-  "files.associations": {"*.hs": "haskell"},
-  "window.title": "Purely functional${separator}${dirty}${activeEditorShort}${separator}${rootName}${separator}${appName}",
-  "files.defaultLanguage": "haskell",
-  "files.exclude": {
-      "**/.git": true,
-      "**/.DS_Store": true,
-      "**/.idea": true,
-      "**/.stack-work":true
-  },
-  "[haskell]": {
-    "editor.tabSize": 2,
-    "editor.acceptSuggestionOnEnter":"off",
-    "editor.formatOnSave": false,
-    "editor.quickSuggestions": {
-      "other": true,
-      "comments": false,
-      "strings": false
-    },
-  },
-  "editor.autoClosingBrackets": false,
-  "haskero.intero.stackPath": "./stackw",
+  "nixEnvSelector.suggestion": false,
+  "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix"
 }

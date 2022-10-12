@@ -1,7 +1,0 @@
-{
-	"recommendations": [
-		"haskell.haskell",
-                "lunaryorn.hlint",
-                "sjurmillidahl.ormolu-vscode"
-	]
-}
