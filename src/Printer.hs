@@ -9,15 +9,15 @@ import Position
 
 pretty :: Position -> IO ()
 pretty pos = do
-  mapM_ UP.putStrLn $ prettyRow <$> rowify pos
-  putStrLn "-"
-  return ()
+    mapM_ UP.putStrLn $ prettyRow <$> rowify pos
+    putStrLn "-"
+    return ()
 
 prettyE :: Evaluated -> IO ()
 prettyE (Evaluated gh score status) = do
-  pretty gh
-  putStrLn $ "score : " ++ show score
-  putStrLn $ "status : " ++ show status
+    pretty gh
+    putStrLn $ "score : " ++ show score
+    putStrLn $ "status : " ++ show status
 
 prettyEs :: [Evaluated] -> IO ()
 prettyEs = mapM_ prettyE
@@ -30,13 +30,13 @@ rowify pos = reverse $ sortBy colSort <$> groupWith (\(Square _ r, _) -> r) (toL
 
 prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
 prettyRow row =
-  UF.fromString $ foldr1 (\s a -> a ++ " " ++ s) $ fmap prettyPiece row
+    UF.fromString $ foldr1 (\s a -> a ++ " " ++ s) $ fmap prettyPiece row
 
 prettyPiece :: (Square, Maybe Piece) -> String
 prettyPiece (Square c r, Nothing) =
-  if even (c + r)
-    then "▯"
-    else " "
+    if even (c + r)
+        then "▯"
+        else " "
 prettyPiece (_, Just (Pawn White)) = "♙"
 prettyPiece (_, Just (Knight White)) = "♘"
 prettyPiece (_, Just (Bishop White)) = "♗"

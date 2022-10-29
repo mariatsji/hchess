@@ -1,5 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Tree where
@@ -12,30 +10,30 @@ import GHC.Generics
 data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Eq, Show, Generic)
 
 instance Functor Tree where
-  fmap f (Leaf x) = Leaf (f x)
-  fmap f (Node x y) = Node (fmap f x) (fmap f y)
+    fmap f (Leaf x) = Leaf (f x)
+    fmap f (Node x y) = Node (fmap f x) (fmap f y)
 
 instance Semigroup (Tree a) where
-  (<>) = Node
+    (<>) = Node
 
 instance Foldable Tree where
-  foldr f b (Leaf a) = f a b
-  foldr f b (Node t1 t2) = foldr f (foldr f b t2) t1
+    foldr f b (Leaf a) = f a b
+    foldr f b (Node t1 t2) = foldr f (foldr f b t2) t1
 
 set :: Tree a -> Word8 -> a -> Tree a
 set (Leaf _) _ y = Leaf y
 set (Node l r) i y =
-  let newI = shift i (-1)
-   in if testBit i 0
-        then Node l (set r newI y)
-        else Node (set l newI y) r
+    let newI = shift i (-1)
+     in if testBit i 0
+            then Node l (set r newI y)
+            else Node (set l newI y) r
 
 (?!) :: Tree a -> Word8 -> a
 (?!) (Leaf x) _ = x
 (?!) (Node l r) i =
-  if testBit i 0
-    then r ?! shift i (-1)
-    else l ?! shift i (-1)
+    if testBit i 0
+        then r ?! shift i (-1)
+        else l ?! shift i (-1)
 
 infixr 9 ?!
 
@@ -52,14 +50,15 @@ searchIdx tree' idxPred piecePred = go tree' idxPred piecePred []
     go (Node l r) ip pp path = go l ip pp (False : path) <> go r ip pp (True : path)
 
 bits6toNum :: [Bool] -> Word8
-bits6toNum [a,b,c,d,e,f] = getSum $
-  ( if f then Sum 1 else Sum 0 ) <>
-  ( if e then Sum 2 else Sum 0 ) <>
-  ( if d then Sum 4 else Sum 0 ) <>
-  ( if c then Sum 8 else Sum 0 ) <>
-  ( if b then Sum 16 else Sum 0 ) <>
-  ( if a then Sum 32 else Sum 0 )
-bits6toNum x = error $ "Cannot consider " <> show x <> " as 6 bits" 
+bits6toNum [a, b, c, d, e, f] =
+    getSum $
+        (if f then Sum 1 else Sum 0)
+            <> (if e then Sum 2 else Sum 0)
+            <> (if d then Sum 4 else Sum 0)
+            <> (if c then Sum 8 else Sum 0)
+            <> (if b then Sum 16 else Sum 0)
+            <> (if a then Sum 32 else Sum 0)
+bits6toNum x = error $ "Cannot consider " <> show x <> " as 6 bits"
 
 bits6toNum' :: [Bool] -> Word8
 bits6toNum' bits = go bits 5 0

@@ -1,41 +1,39 @@
-{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Evaluation
-  ( Evaluated (..),
+module Evaluation (
+    Evaluated (..),
     evaluate,
     getPosition,
     evaluate',
-  )
-where
+) where
 
 import Chess
 import GHC.Generics (Generic)
 import Position
 
 data Evaluated
-  = Evaluated
-      Position
-      Float
-      Status
-  deriving (Eq, Show, Generic)
+    = Evaluated
+        Position
+        Float
+        Status
+    deriving (Eq, Show, Generic)
 
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
 
 evaluate' :: Position -> Status -> Evaluated
 evaluate' gh status = case status of
-  WhiteIsMate -> Evaluated gh (-10000.0) WhiteIsMate
-  BlackIsMate -> Evaluated gh 10000.0 BlackIsMate
-  Remis -> Evaluated gh 0 Remis
-  playOn -> Evaluated gh (evaluate gh) playOn
+    WhiteIsMate -> Evaluated gh (-10000.0) WhiteIsMate
+    BlackIsMate -> Evaluated gh 10000.0 BlackIsMate
+    Remis -> Evaluated gh 0 Remis
+    playOn -> Evaluated gh (evaluate gh) playOn
 
 evaluate :: Position -> Float
 evaluate p =
-  foldr
-    evaluateSquarePiece
-    0.0
-    (toList' (m p))
+    foldr
+        evaluateSquarePiece
+        0.0
+        (toList' (m p))
 
 evaluateSquarePiece :: (Square, Maybe Piece) -> Float -> Float
 evaluateSquarePiece (_, Nothing) acc = acc
