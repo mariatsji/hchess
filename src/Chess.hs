@@ -86,20 +86,21 @@ mkNewCastleStatus pos Black from = case from of
     _ -> castleStatusBlack pos
 
 points :: Square -> Square -> [Square]
-points (Square c1 r1) (Square c2 r2) =
-    let cline = line c1 c2
-        rline = line r1 r2
-     in if length cline > length rline
-            then uncurry Square <$> zip cline (repeat r1)
-            else
-                if length rline > length cline
-                    then uncurry Square <$> zip (repeat c1) rline
-                    else uncurry Square <$> zip cline rline
-  where
-    line :: Int -> Int -> [Int]
-    line a b =
-        let step = if b > a then 1 else (-1)
-         in [a + step, (a + step) + step .. b - step]
+points (Square c1 r1) (Square c2 r2)
+    | c1 == c2 =
+        Square c1 <$> [min r1 r2 + 1 .. max r1 r2 - 1]
+    | r1 == r2 =
+        flip Square r1 <$> [min c1 c2 + 1 .. max c1 c2 - 1]
+    | otherwise =
+        let cs =
+                if c1 < c2
+                    then [c1 + 1 .. c2 - 1]
+                    else reverse [c2 + 1 .. c1 - 1]
+            rs =
+                if r1 < r2
+                    then [r1 + 1 .. r2 - 1]
+                    else reverse [r2 + 1 .. r1 - 1]
+         in uncurry Square <$> cs `zip` rs
 
 canGoThere :: Position -> Square -> Square -> Bool
 canGoThere pos from to =
