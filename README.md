@@ -14,4 +14,4 @@
 # start app with profiling
 
     nix-shell
-    cabal run hchess-profiled
+    ./profile.sh
