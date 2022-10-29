@@ -1,12 +1,11 @@
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Position where
 
 import Control.Monad.ST
 import Data.Bifunctor (first)
-import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe)
+import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe, catMaybes, mapMaybe)
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
@@ -195,12 +194,7 @@ toList' :: Snapshot -> [(Square, Maybe Piece)]
 toList' snp = unHash <$.> searchIdx snp (const True) (const True)
 
 catSndMaybes :: [(a, Maybe b)] -> [(a, b)]
-catSndMaybes l =
-    l
-        >>= ( \case
-                (a, Just s) -> [(a, s)]
-                _ -> []
-            )
+catSndMaybes = mapMaybe sequenceA
 
 (<$.>) :: Functor f => (a -> b) -> f (a, c) -> f (b, c)
 (<$.>) = fmap . first
