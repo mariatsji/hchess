@@ -46,7 +46,9 @@ searchIdx :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
 searchIdx tree' idxPred piecePred = go tree' idxPred piecePred []
   where
     go :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
-    go (Leaf x) ip pp path = [(bits6toNum path, x) | ip (bits6toNum path) && pp x]
+    go (Leaf x) ip pp path =
+        let bitify = bits6toNum path
+         in [(bitify, x) | pp x && ip bitify]
     go (Node l r) ip pp path = go l ip pp (False : path) <> go r ip pp (True : path)
 
 bits6toNum :: [Bool] -> Word8

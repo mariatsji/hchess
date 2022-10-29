@@ -10,6 +10,8 @@ module Evaluation (
 import Chess
 import GHC.Generics (Generic)
 import Position
+import Data.Foldable (foldl')
+import Data.Maybe (fromMaybe)
 
 data Evaluated
     = Evaluated
@@ -30,14 +32,9 @@ evaluate' gh status = case status of
 
 evaluate :: Position -> Float
 evaluate p =
-    foldr
-        evaluateSquarePiece
-        0.0
-        (toList' (m p))
-
-evaluateSquarePiece :: (Square, Maybe Piece) -> Float -> Float
-evaluateSquarePiece (_, Nothing) acc = acc
-evaluateSquarePiece (_, Just p) acc = acc + valueOf p
+    sum $ fmap
+      (maybe 0 valueOf)
+      (m p)
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = (if c == Black then (-1) else 1) * 1.0

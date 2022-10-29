@@ -14,4 +14,4 @@
 # start app with profiling
 
     nix-shell
-    ./profile.sh
+    ./prof.sh
