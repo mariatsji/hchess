@@ -23,17 +23,17 @@ import Position (
     Position (Position, toPlay),
     mkPositionExpensive,
  )
+import Data.Foldable (foldl')
 
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
 edgeGreed pos depth =
     let status = determineStatus pos
         color = toPlay pos
         best =
-            foldr
-                ( \potential bestsofar ->
-                    potential `seq`
-                        bestsofar `seq`
-                            swapForBetter color (evaluate' potential status) bestsofar
+            foldl'
+                ( \bestsofar potential ->
+                    potential `pseq` bestsofar `par`
+                    swapForBetter color (evaluate' potential status) bestsofar
                 )
                 (evaluate' pos status)
                 (expandHorizon depth pos)

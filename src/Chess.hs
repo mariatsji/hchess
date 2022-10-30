@@ -7,6 +7,7 @@ import Data.Maybe
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
+import Control.Parallel (pseq, par)
 
 data Status
     = WhiteToPlay
@@ -141,7 +142,7 @@ positionTreeIgnoreCheck pos =
         allPieceSquares = searchForPieces pos (const True) (\p -> colr p == c)
         prPiece = positionsPrPiece pos =<< allPieceSquares -- flipped
         castled = castle pos -- flipped
-     in prPiece <> castled
+     in prPiece `pseq` castled `par` prPiece <> castled
 
 -- flips toPlay, does promotions too
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]

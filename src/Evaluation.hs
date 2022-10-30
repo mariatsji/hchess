@@ -10,6 +10,8 @@ import Data.Foldable (foldl')
 import Data.Maybe (fromMaybe)
 import GHC.Generics (Generic)
 import Position
+import Control.Parallel (par)
+import GHC.Conc (pseq)
 
 data Evaluated
     = Evaluated
