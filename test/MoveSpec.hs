@@ -7,6 +7,7 @@ import Move
 import Position
 import Printer
 import Test.Hspec
+import qualified Debug.Trace as Debug
 
 spec :: Spec
 spec = do
@@ -29,6 +30,19 @@ spec = do
     it "finds 20 possible opening moves for white" $ do
       let tree = positionTree startPosition
       length tree `shouldBe` (20 :: Int)
+    it "flips toPlay in all positions in a positionTree" $ do
+      let tree = positionTree startPosition
+          toPlayBlack = filter ((== Black) . toPlay) tree
+      length toPlayBlack `shouldBe` length tree
+    it "flips toPlay in all positions when mate" $ do
+      let p1 = movePiece startPosition (Square 5 2) (Square 5 4)
+          p2 = movePiece p1 (Square 5 7) (Square 5 5)
+          p3 = movePiece p2 (Square 6 1) (Square 3 4)
+          p4 = movePiece p3 (Square 1 7) (Square 1 6)
+          p5 = movePiece p4 (Square 4 1) (Square 8 5)
+          p6 = movePiece p5 (Square 2 8) (Square 3 6)
+          p7 = movePiece p6 (Square 8 5) (Square 6 7) -- mate
+      toPlay p7 `shouldBe` Black
     it "parses a move text command" $ do
       let newP = Move.parseMove "e2-e4" startPosition
       newP `shouldSatisfy` isRight
@@ -40,7 +54,7 @@ spec = do
       let b = canGoThere startPosition (Square 5 2) (Square 5 4)
       b `shouldBe` (True :: Bool)
     it "knows when destination square is occupied by own color" $ do
-      let b = finalDestinationNotOccupiedBySelf startPosition (Square 1 1) (Square 1 2)
+      let b = finalDestinationNotOccupiedBySelf startPosition (Square 1 2)
       b `shouldBe` (False :: Bool)
     it "finds the correct traversed squares in a straight bishop-like move" $ do
       let squares = points (Square 5 3) (Square 7 5)
@@ -64,12 +78,12 @@ spec = do
       let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
-      isInCheck p (toPlay p) `shouldBe` (True :: Bool)
+      isInCheck White p `shouldBe` (True :: Bool)
     it "knows that white is not in check" $ do
       let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
-      isInCheck p (toPlay p) `shouldBe` (False :: Bool)
+      isInCheck White p `shouldBe` (False :: Bool)
     it "promotes pawns for Black " $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 8 1) (Pawn Black)
       let p2 = promote Black (Position m1 [m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) Black)
@@ -79,16 +93,12 @@ spec = do
       pieceAt (last p2) (Square 8 1) `shouldBe` Just (Knight Black)
     it "finds promotion positions for White" $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 8) (Pawn White)
-      let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) White)
+      let t = promote White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) White)
       length t `shouldBe` (4 :: Int)
     it "does not change color on black pawns on the board when white promotes to a rook" $ do
       let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4", "b7-a8R"]
       pieceAt p1 (Square 1 4) `shouldBe` Just (Pawn Black)
       pieceAt p1 (Square 1 8) `shouldBe` Just (Rook White)
-    it "leaves unpromotable boards alone for White" $ do
-      let m1 = replacePieceAt (m emptyBoard) (Square 5 7) (Pawn White)
-      let t = promoteBindFriendly White (Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) White)
-      t `shouldBe` [Position m1 [] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) White]
     it "promotes passed pawns for Black in the position tree" $ do
       let m1 = replacePieceAt (m emptyBoard) (Square 5 2) (Pawn Black)
           p1 = Position m1 [m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) Black
@@ -244,9 +254,10 @@ spec = do
     it "updates the black king position when moving king" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "e8-e7"]
       blackKing p `shouldBe` Just (Square 5 7)
-    it "finds an empty position tree for black when black is checkmate" $ do
+    it "has empty positionTree when black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
-      length (positionTree p) `shouldBe` 0
+          ptree = positionTree p
+      null ptree`shouldBe` True
     it "realizes black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
           ptree = positionTree p

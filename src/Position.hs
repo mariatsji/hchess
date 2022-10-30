@@ -30,8 +30,8 @@ data Piece
 
 data Square
     = Square
-        Int
-        Int
+        Int -- col
+        Int -- row
     deriving (Eq, Ord, Show, Generic)
 
 type Snapshot = Tree (Maybe Piece)
@@ -166,11 +166,9 @@ movePiece' :: Snapshot -> Square -> Square -> Snapshot
 movePiece' snp from to = case snp ?! hash from of
     Nothing ->
         error $ "should be a piece at " <> show from <> " in pos " <> show snp
-    (Just piece) -> runST $ do
-        pRef <- newSTRef (removePieceAt snp from)
-        without <- readSTRef pRef
-        writeSTRef pRef (replacePieceAt without to piece)
-        readSTRef pRef
+    (Just piece) ->
+        let without = removePieceAt snp from
+        in replacePieceAt without to piece
 
 removePieceAt :: Snapshot -> Square -> Snapshot
 removePieceAt snp s = set snp (hash s) Nothing
