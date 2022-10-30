@@ -63,7 +63,7 @@ movePiecePromote :: Position -> Square -> Square -> Piece -> Position
 movePiecePromote pos from toSquare promPiece =
     let newPos = movePiece pos from toSquare
         snap = m newPos
-    in newPos {m = replacePieceAt snap toSquare promPiece}
+     in newPos {m = replacePieceAt snap toSquare promPiece}
 
 mkNewCastleStatus :: Position -> Color -> Square -> CastleStatus
 mkNewCastleStatus pos White from = case from of
@@ -115,9 +115,10 @@ finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos to =
     null $ searchForPieces pos (== to) ((== toPlay pos) . colr)
 
-enemyAt :: Position -> Square -> Square -> Bool
-enemyAt pos f t =
-    fmap (succ' . colr) (pieceAt pos t) == fmap colr (pieceAt pos f)
+enemyAt :: Position -> Square -> Bool
+enemyAt pos to =
+    let enemyColor = next (toPlay pos)
+     in (colr <$> pieceAt pos to) == Just enemyColor
 
 succ' :: Color -> Color
 succ' White = Black
@@ -202,16 +203,16 @@ toSquaresPawn pos s@(Square _ r)
         filter insideBoard' $
             [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2]
                 <> [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1]
-                <> [(squareTo s (-1) 1, Nothing) | enemyAt pos s $ squareTo s (-1) 1]
-                <> [(squareTo s 1 1, Nothing) | enemyAt pos s $ squareTo s 1 1]
+                <> [(squareTo s (-1) 1, Nothing) | enemyAt pos $ squareTo s (-1) 1]
+                <> [(squareTo s 1 1, Nothing) | enemyAt pos $ squareTo s 1 1]
                 <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
                 <> [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
     | otherwise =
         filter insideBoard' $
             [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)]
                 <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
-                <> [(squareTo s (-1) (-1), Nothing) | enemyAt pos s $ squareTo s (-1) (-1)]
-                <> [(squareTo s 1 (-1), Nothing) | enemyAt pos s $ squareTo s 1 (-1)]
+                <> [(squareTo s (-1) (-1), Nothing) | enemyAt pos $ squareTo s (-1) (-1)]
+                <> [(squareTo s 1 (-1), Nothing) | enemyAt pos $ squareTo s 1 (-1)]
                 <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
                 <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
 
