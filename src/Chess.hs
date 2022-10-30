@@ -19,14 +19,6 @@ data Status
 board :: [Square]
 board = Square <$> [1 .. 8] <*> [1 .. 8]
 
-king :: Color -> Piece
-king White = King White
-king Black = King Black
-
-rook :: Color -> Piece
-rook White = Rook White
-rook Black = Rook Black
-
 squareTo :: Square -> Int -> Int -> Square
 squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
@@ -298,46 +290,46 @@ castle pos =
     case toPlay pos of
         White -> case castleStatusWhite pos of
             CanCastleNone -> []
-            CanCastleBoth -> castleShort pos White <> castleLong pos White
-            CanCastleA -> castleLong pos White
-            CanCastleH -> castleShort pos White
+            CanCastleBoth -> castleShort pos <> castleLong pos
+            CanCastleA -> castleLong pos
+            CanCastleH -> castleShort pos
         Black -> case castleStatusBlack pos of
             CanCastleNone -> []
-            CanCastleBoth -> castleShort pos Black <> castleLong pos Black
-            CanCastleA -> castleLong pos Black
-            CanCastleH -> castleShort pos Black
+            CanCastleBoth -> castleShort pos <> castleLong pos
+            CanCastleA -> castleLong pos
+            CanCastleH -> castleShort pos
 
-castleShort :: Position -> Color -> [Position]
-castleShort pos color = castle' pos color kingPos shortRookPos doCastleShort
+castleShort :: Position -> [Position]
+castleShort pos = castle' pos kingPos shortRookPos doCastleShort
 
-castleLong :: Position -> Color -> [Position]
-castleLong pos color = castle' pos color kingPos longRookPos doCastleLong
+castleLong :: Position -> [Position]
+castleLong pos = castle' pos kingPos longRookPos doCastleLong
 
--- todo color not necessary, it is in the position
 castle' ::
-    Position -> Color -> KingPos -> RookPos -> (Snapshot -> Color -> Snapshot) -> [Position]
-castle' pos color kingPosF rookPosF doCastleF =
-    if pieceAt pos (kingPosF color) == Just (king color) -- must have a king at home
-        && pieceAt pos (rookPosF color) -- must have a rook at home
-            == Just (rook color)
-        && vacantBetween pos (kingPosF color) (rookPosF color) -- must be vacant between king and rook
-        && ( not (isInCheck pos) -- must not be in check
-                && willNotPassCheck pos (kingPosF color) (rookPosF color) -- must not move through check
-           )
-        then
-            let newSnapshot = doCastleF (m pos) color
-                newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
-                newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
-                newKingPosWhite = case rookPosF color of
-                    Square 1 1 -> Just $ Square 3 1
-                    Square 8 1 -> Just $ Square 7 1
-                    _ -> whiteKing pos
-                newKingPosBlack = case rookPosF color of
-                    Square 1 8 -> Just $ Square 3 8
-                    Square 8 8 -> Just $ Square 7 8
-                    _ -> blackKing pos
-             in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newKingPosWhite newKingPosBlack]
-        else []
+    Position -> KingPos -> RookPos -> (Snapshot -> Color -> Snapshot) -> [Position]
+castle' pos kingPosF rookPosF doCastleF =
+    let color = toPlay pos
+     in if pieceAt pos (kingPosF color) == Just (King color) -- must have a king at home
+            && pieceAt pos (rookPosF color) -- must have a rook at home
+                == Just (Rook color)
+            && vacantBetween pos (kingPosF color) (rookPosF color) -- must be vacant between king and rook
+            && ( not (isInCheck pos) -- must not be in check
+                    && willNotPassCheck pos (kingPosF color) (rookPosF color) -- must not move through check
+               )
+            then
+                let newSnapshot = doCastleF (m pos) color
+                    newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
+                    newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
+                    newKingPosWhite = case rookPosF color of
+                        Square 1 1 -> Just $ Square 3 1
+                        Square 8 1 -> Just $ Square 7 1
+                        _ -> whiteKing pos
+                    newKingPosBlack = case rookPosF color of
+                        Square 1 8 -> Just $ Square 3 8
+                        Square 8 8 -> Just $ Square 7 8
+                        _ -> blackKing pos
+                 in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newKingPosWhite newKingPosBlack]
+            else []
 
 doCastleShort :: Snapshot -> Color -> Snapshot
 doCastleShort pos c =

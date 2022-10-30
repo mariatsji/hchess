@@ -66,7 +66,7 @@ parseMove s pos
                 Left "Move made by incorrect color"
             else Right moveAttempt
     | s =~ ("O-O-O" :: String) =
-        let castleAttempt = Chess.castleLong pos (toPlay pos)
+        let castleAttempt = Chess.castleLong pos
             fromSquare =
                 if toPlay pos == White
                     then Square 5 1
@@ -79,7 +79,7 @@ parseMove s pos
                 then Right $ head castleAttempt
                 else Left "Could not do O-O-O"
     | s =~ ("O-O" :: String) =
-        let castleAttempt = Chess.castleShort pos (toPlay pos)
+        let castleAttempt = Chess.castleShort pos
             fromSquare =
                 if toPlay pos == White
                     then Square 5 1

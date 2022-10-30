@@ -112,7 +112,7 @@ spec = do
           m2 = removePieceAt m1 (Square 3 8)
           m3 = removePieceAt m2 (Square 4 8)
           p = Position m3 [m2, m1, m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) Black
-          c = castleLong p Black
+          c = castleLong p
       length c `shouldBe` (1 :: Int)
       pieceAt (head c) (Square 3 8) `shouldBe` Just (King Black)
       pieceAt (head c) (Square 4 8) `shouldBe` Just (Rook Black)
@@ -148,7 +148,7 @@ spec = do
                 (Square 3 3, Square 4 5),
                 (Square 7 5, Square 7 2)
               ]
-      let p2 = castleShort p White
+      let p2 = castleShort p
       p2 `shouldBe` []
     it "lets white castle from moves out of the opening" $ do
       let p =
