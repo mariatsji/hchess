@@ -1,8 +1,9 @@
 module Main where
 
-import Chess
+import AI
 import Position
 
 main :: IO ()
 main = do
-    print $ length $ positionTree startPosition
+    let res = edgeGreed startPosition 3
+    print res

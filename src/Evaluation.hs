@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Evaluation (
     Evaluated (..),
     evaluate,
@@ -8,17 +6,17 @@ module Evaluation (
 ) where
 
 import Chess
-import GHC.Generics (Generic)
-import Position
 import Data.Foldable (foldl')
 import Data.Maybe (fromMaybe)
+import GHC.Generics (Generic)
+import Position
 
 data Evaluated
     = Evaluated
         Position
         Float
         Status
-    deriving (Eq, Show, Generic)
+    deriving stock (Eq, Show)
 
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
@@ -30,11 +28,16 @@ evaluate' gh status = case status of
     Remis -> Evaluated gh 0 Remis
     playOn -> Evaluated gh (evaluate gh) playOn
 
+-- CAF good?
 evaluate :: Position -> Float
 evaluate p =
-    sum $ fmap
-      (maybe 0 valueOf)
-      (m p)
+    foldl'
+        ( \acc mP ->
+            let val = maybe 0 valueOf mP
+             in acc `seq` acc + val
+        )
+        0
+        (m p)
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = (if c == Black then (-1) else 1) * 1.0
