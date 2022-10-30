@@ -1,6 +1,5 @@
 module Main where
 
-import AI
 import Chess
 import Position
 

@@ -78,12 +78,12 @@ spec = do
       let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
-      isInCheck White p `shouldBe` (True :: Bool)
+      isInCheck p `shouldBe` (True :: Bool)
     it "knows that white is not in check" $ do
       let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
-      isInCheck White p `shouldBe` (False :: Bool)
+      isInCheck p `shouldBe` (False :: Bool)
     it "does not change color on black pawns on the board when white promotes to a rook" $ do
       let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4", "b7-a8R"]
       pieceAt p1 (Square 1 4) `shouldBe` Just (Pawn Black)
@@ -239,7 +239,7 @@ spec = do
       blackKing p `shouldBe` Just (Square 5 7)
     it "knows black is in check" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
-      isInCheck Black p `shouldBe` True
+      isInCheck p `shouldBe` True
     it "has empty positionTree when black is checkmate" $ do
       let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
           ptree = positionTree p

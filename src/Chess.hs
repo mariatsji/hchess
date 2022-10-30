@@ -134,7 +134,7 @@ pieceAt :: Position -> Square -> Maybe Piece
 pieceAt = pieceAt' . m
 
 positionTree :: Position -> [Position]
-positionTree pos = filter (\p -> not $ isInCheck (toPlay pos) pos) $ positionTreeIgnoreCheck pos
+positionTree pos = filter (\p -> not $ isInCheck pos) $ positionTreeIgnoreCheck pos
 
 debugger :: IO ()
 debugger = do
@@ -320,7 +320,7 @@ castle' pos color kingPosF rookPosF doCastleF =
         && pieceAt pos (rookPosF color) -- must have a rook at home
             == Just (rook color)
         && vacantBetween pos (kingPosF color) (rookPosF color) -- must be vacant between king and rook
-        && ( not (isInCheck color pos) -- must not be in check
+        && ( not (isInCheck pos) -- must not be in check
                 && willNotPassCheck pos (kingPosF color) (rookPosF color) -- must not move through check
            )
         then
@@ -384,14 +384,14 @@ willNotPassCheck :: Position -> Square -> Square -> Bool
 willNotPassCheck pos (Square 5 1) (Square 8 1) =
     not $
         any
-            (isInCheck (toPlay pos))
+            isInCheck
             [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 6 1) (King (toPlay pos)), whiteKing = Just (Square 6 1)}
             , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 7 1) (King (toPlay pos)), whiteKing = Just (Square 7 1)}
             ]
 willNotPassCheck pos (Square 5 1) (Square 1 1) =
     not $
         any
-            (isInCheck (toPlay pos))
+            isInCheck
             [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 4 1) (King (toPlay pos)), whiteKing = Just (Square 4 1)}
             , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 3 1) (King (toPlay pos)), whiteKing = Just (Square 3 1)}
             , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 2 1) (King (toPlay pos)), whiteKing = Just (Square 2 1)}
@@ -399,14 +399,14 @@ willNotPassCheck pos (Square 5 1) (Square 1 1) =
 willNotPassCheck pos (Square 5 8) (Square 8 8) =
     not $
         any
-            (isInCheck (toPlay pos))
+            isInCheck
             [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 6 8) (King (toPlay pos)), blackKing = Just (Square 6 8)}
             , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 7 8) (King (toPlay pos)), blackKing = Just (Square 7 8)}
             ]
 willNotPassCheck pos (Square 5 8) (Square 1 8) =
     not $
         any
-            (isInCheck (toPlay pos))
+            isInCheck
             [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 4 8) (King (toPlay pos)), blackKing = Just (Square 4 8)}
             , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 3 8) (King (toPlay pos)), blackKing = Just (Square 3 8)}
             , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 2 8) (King (toPlay pos)), blackKing = Just (Square 2 8)}
@@ -426,9 +426,9 @@ insideBoard' :: (Square, Maybe Square) -> Bool
 insideBoard' (s, Nothing) = insideBoard s
 insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
 
-isInCheck :: Color -> Position -> Bool
-isInCheck toCheckCheckFor pos =
-    case toCheckCheckFor of
+isInCheck :: Position -> Bool
+isInCheck pos =
+    case toPlay pos of
         White ->
             case whiteKing pos of
                 Nothing -> False
@@ -453,7 +453,7 @@ isInCheck toCheckCheckFor pos =
                      in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
 
 isCheckMate :: Position -> [Position] -> Bool
-isCheckMate pos positiontree = isInCheck (toPlay pos) pos && null positiontree
+isCheckMate pos positiontree = isInCheck pos && null positiontree
 
 isDraw :: Position -> [Position] -> Bool
 isDraw pos ptree = isPatt pos ptree || threefoldrepetition pos
@@ -465,7 +465,7 @@ eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _ _ _ _ _ _) (Position m2 _ _ _ _ _ _) = m1 == m2
 
 isPatt :: Position -> [Position] -> Bool
-isPatt pos positiontree = not (isInCheck (toPlay pos) pos) && null positiontree
+isPatt pos positiontree = not (isInCheck pos) && null positiontree
 
 determineStatus :: Position -> Status
 determineStatus pos =
