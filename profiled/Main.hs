@@ -5,4 +5,4 @@ import Position
 
 main :: IO ()
 main = do
-    print $ positionTree startPosition
+    print $ length $ positionTree startPosition
