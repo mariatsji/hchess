@@ -59,6 +59,12 @@ movePiece pos@(Position m' _ _ _ wk bk tp) from@(Square fc _) to@(Square tc tr)
                 | otherwise = bk
          in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newWhiteKing newBlackKing
 
+movePiecePromote :: Position -> Square -> Square -> Piece -> Position
+movePiecePromote pos from toSquare promPiece =
+    let newPos = movePiece pos from toSquare
+        snap = m newPos
+    in newPos {m = replacePieceAt snap toSquare promPiece}
+
 mkNewCastleStatus :: Position -> Color -> Square -> CastleStatus
 mkNewCastleStatus pos White from = case from of
     Square 1 1 -> case castleStatusWhite pos of
@@ -128,7 +134,7 @@ pieceAt :: Position -> Square -> Maybe Piece
 pieceAt = pieceAt' . m
 
 positionTree :: Position -> [Position]
-positionTree pos = positionTreeIgnoreCheck pos >>= (\p -> [p | not (isInCheck (toPlay p) p)])
+positionTree pos = filter (\p -> not $ isInCheck (toPlay pos) pos) $ positionTreeIgnoreCheck pos
 
 debugger :: IO ()
 debugger = do
@@ -141,20 +147,38 @@ positionTreeIgnoreCheck pos =
     let c = toPlay pos
         allPieceSquares = searchForPieces pos (const True) (\p -> colr p == c)
         prPiece = positionsPrPiece pos =<< allPieceSquares -- flipped
-        promoted = promote c pos -- flipped
         castled = castle pos -- flipped
-     in prPiece <> promoted <> castled
+     in prPiece <> castled
 
--- flips toPlay
+-- flips toPlay, does promotions too
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos@(Position snp _ _ _ _ _ _) (s, p) = case p of
     Pawn _ ->
-        map
-            ( \t -> case snd t of
-                Nothing -> movePiece pos s (fst t)
-                Just s' -> movePiece pos {m = removePieceAt snp s'} s (fst t)
-            )
-            (filter (canGoThere pos s . fst) $ toSquaresPawn pos s)
+        let squares = filter (canGoThere pos s . fst) $ toSquaresPawn pos s
+            positions =
+                ( \t ->
+                    let fromSquare = s
+                        toSquare = fst t
+                        promRow = if toPlay pos == White then 8 else 1
+                     in case snd t of
+                            Nothing ->
+                                if row toSquare == promRow
+                                    then
+                                        let naive = movePiece pos fromSquare toSquare
+                                            snap = m naive
+                                            color = toPlay pos
+                                            replaced piece = naive {m = replacePieceAt snap toSquare piece}
+                                         in [ replaced (Rook color)
+                                            , replaced (Knight color)
+                                            , replaced (Bishop color)
+                                            , replaced (Queen color)
+                                            ]
+                                    else [movePiece pos fromSquare toSquare]
+                            Just s' ->
+                                [movePiece pos {m = removePieceAt snp s'} s toSquare] -- En passant
+                )
+                    =<< squares
+         in positions
     Knight _ ->
         fmap
             (movePiece pos s)
@@ -167,6 +191,9 @@ positionsPrPiece pos@(Position snp _ _ _ _ _ _) (s, p) = case p of
         fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
     King _ ->
         fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
+
+row :: Square -> Int
+row (Square _ r) = r
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]
@@ -205,44 +232,6 @@ enPassant pos s@(Square c r)
             length (gamehistory pos) < 3
                 && let prevSnapshot = gamehistory pos !! 1
                     in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece && isNothing (pieceAt' prevSnapshot s)
-
--- flips
-promote :: Color -> Position -> [Position]
-promote c pos =
-    -- maybePromote c pos =<< [Queen c, Rook c, Bishop c, Knight c]
-    let promPiece = Pawn c
-        promRow = if c == White then 7 else 2
-        toPromote = searchForPieces pos ((== promRow) . row) (== promPiece)
-        as pieceChoice = fmap (\(sq, pi) -> promoteTo c pos sq pieceChoice) toPromote
-     in as (Rook c) <> as (Queen c) <> as (Knight c) <> as (Bishop c)
-  where
-    row (Square _ r) = r
-
--- promote one position
-promoteTo :: Color -> Position -> Square -> Piece -> Position
-promoteTo c pos sq pi =
-    let oldSnap = m pos
-        destSquare (Square c r ) = if r == 7 then Square c 8 else Square c 1
-        newSnap = replacePieceAt (removePieceAt oldSnap sq) (destSquare sq) pi
-    in mkPosition pos newSnap (castleStatusWhite pos) (castleStatusBlack pos) (whiteKing pos) (blackKing pos)
-
-prom :: Color -> Piece -> (Square, Piece) -> (Square, Piece)
-prom White p1 (s@(Square _ r), p2) =
-    if r == 8 && p2 == Pawn White then (s, p1) else (s, p2)
-prom Black p1 (s@(Square _ r), p2) =
-    if r == 1 && p2 == Pawn Black then (s, p1) else (s, p2)
-
--- optimization, only check for promotions with pending pawns
-promoteBindFriendly :: Color -> Position -> [Position]
-promoteBindFriendly c pos =
-    if Just (Pawn c) `elem` [pieceAt pos (Square col (promoteRow c)) | col <- [1 .. 8]]
-        then promoteBindFriendly' c pos
-        else [pos]
-
--- same pos or all four
-promoteBindFriendly' :: Color -> Position -> [Position]
-promoteBindFriendly' c pos =
-    if promote c pos /= [pos] && promote c pos /= [] then promote c pos else [pos]
 
 -- knights
 toSquaresKnight :: Square -> [Square]

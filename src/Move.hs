@@ -5,78 +5,66 @@ module Move (
     parseMoves,
     parseFrom,
     parseTo,
-    debugga
+    debugga,
 ) where
 
 import Chess
 import Data.Char
+import qualified Debug.Trace as Debug
 import Position
 import Text.Regex.TDFA
-import qualified Debug.Trace as Debug
 
 parseMove :: String -> Position -> Either String Position
 parseMove s pos
     | s =~ ("[a-h][1-8].[a-h][1-8]Q" :: String) =
-        let moveAttempt =
-                promoteTo
-                    (toPlay pos)
-                    (Chess.movePiece pos (parseFrom s) (parseTo s))
-                    (parseFrom s)
-                    (Queen White)
-            fromSquare = parseFrom s
-         in if moveAttempt `elem` Chess.positionTree pos
-                && Just (toPlay pos)
-                    == fmap colr (pieceAt pos fromSquare)
-                then Right moveAttempt
-                else Left "Could not do queen promotion"
-    | s =~ ("[a-h][1-8].[a-h][1-8]R" :: String) =
-        let moveAttempt =
-                promoteTo
-                    (toPlay pos)
-                    (Chess.movePiece pos (parseFrom s) (parseTo s))
-                    (parseFrom s)
-                    (Rook White)
-            fromSquare = parseFrom s
-         in if moveAttempt `elem` Chess.positionTree pos
-                && Just (toPlay pos)
-                    == fmap colr (pieceAt pos fromSquare)
-                then Right moveAttempt
-                else Left "Could not do rook promotion"
-    | s =~ ("[a-h][1-8].[a-h][1-8]B" :: String) =
-        let moveAttempt =
-                promoteTo
-                    (toPlay pos)
-                    (Chess.movePiece pos (parseFrom s) (parseTo s))
-                    (parseFrom s)
-                    (Bishop White)
-            fromSquare = parseFrom s
-         in if moveAttempt `elem` Chess.positionTree pos
-                && Just (toPlay pos)
-                    == fmap colr (pieceAt pos fromSquare)
-                then Right moveAttempt
-                else Left "Could not do Bishop promotion"
-    | s =~ ("[a-h][1-8].[a-h][1-8]K" :: String) =
-        let moveAttempt =
-                promoteTo
-                    (toPlay pos)
-                    (Chess.movePiece pos (parseFrom s) (parseTo s))
-                    (parseFrom s)
-                    (Knight White)
-            fromSquare = parseFrom s
-         in if moveAttempt `elem` Chess.positionTree pos
-                && Just (toPlay pos)
-                    == fmap colr (pieceAt pos fromSquare)
-                then Right moveAttempt
-                else Left "Could not do Knight promotion"
-    | s =~ ("[a-h][1-8].[a-h][1-8]" :: String) =
-        let moveAttempt = Chess.movePiece pos (parseFrom s) (parseTo s)
+        let promPiece = if toPlay pos == White then Queen White else Queen Black
+            moveAttempt = Chess.movePiecePromote pos (parseFrom s) (parseTo s) promPiece
             fromSquare = parseFrom s
             isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
             correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
-         in if Debug.traceShowId isAmongLegalMoves
-                && correctColorMadeTheMove
+         in if isAmongLegalMoves && correctColorMadeTheMove
                 then Right moveAttempt
-                else Left "Could not find move to be OK"
+                else Left "Could not find Queen prom move to be OK"
+    | s =~ ("[a-h][1-8].[a-h][1-8]R" :: String) =
+        let promPiece = if toPlay pos == White then Rook White else Rook Black
+            moveAttempt = Chess.movePiecePromote pos (parseFrom s) (parseTo s) promPiece
+            fromSquare = parseFrom s
+            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
+            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
+         in if isAmongLegalMoves && correctColorMadeTheMove
+                then Right moveAttempt
+                else Left "Could not find Rook prom move to be OK"
+    | s =~ ("[a-h][1-8].[a-h][1-8]B" :: String) =
+        let promPiece = if toPlay pos == White then Bishop White else Bishop Black
+            moveAttempt = Chess.movePiecePromote pos (parseFrom s) (parseTo s) promPiece
+            fromSquare = parseFrom s
+            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
+            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
+         in if isAmongLegalMoves && correctColorMadeTheMove
+                then Right moveAttempt
+                else Left "Could not find Bishop prom move to be OK"
+    | s =~ ("[a-h][1-8].[a-h][1-8]K" :: String) =
+        let promPiece = if toPlay pos == White then Knight White else Knight Black
+            moveAttempt = Chess.movePiecePromote pos (parseFrom s) (parseTo s) promPiece
+            fromSquare = parseFrom s
+            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
+            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
+         in if isAmongLegalMoves && correctColorMadeTheMove
+                then Right moveAttempt
+                else Left "Could not find Knight prom move to be OK"
+    | s =~ ("[a-h][1-8].[a-h][1-8]" :: String) =
+        let moveAttempt = Chess.movePiece pos (parseFrom s) (parseTo s)
+            fromSquare = parseFrom s
+            tree = Chess.positionTree pos
+            isAmongLegalMoves = any (eqPosition moveAttempt) tree
+            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
+         in if null tree then
+                Left "No legal moves, empty positionTree prior to move"
+            else if not isAmongLegalMoves then
+                Left$  "Move not among " <> show (length tree) <> " legal moves"
+            else if not correctColorMadeTheMove then
+                Left "Move made by incorrect color"
+            else Right moveAttempt
     | s =~ ("O-O-O" :: String) =
         let castleAttempt = Chess.castleLong pos (toPlay pos)
             fromSquare =
@@ -140,7 +128,7 @@ asInt x = error $ "not a column I can parse: " ++ [x]
 
 debugga :: IO ()
 debugga = do
-  let (Right pos) = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6"] --, "h5-f7"]
-  print $ length $ positionTreeIgnoreCheck pos
-  print $ head $ positionTreeIgnoreCheck pos
-  
+    let beforeCheck = parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4"]
+        afterCheck = parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"] -- check
+    -- print beforeCheck
+    print afterCheck
