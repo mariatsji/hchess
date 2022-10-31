@@ -5,5 +5,5 @@ import Position
 
 main :: IO ()
 main = do
-    let res = edgeGreed startPosition 3
+    let res = edgeGreed startPosition 4
     print res

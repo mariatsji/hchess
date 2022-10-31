@@ -127,8 +127,12 @@ makeMoves = foldl (uncurry . movePiece)
 pieceAt :: Position -> Square -> Maybe Piece
 pieceAt = pieceAt' . m
 
+-- BUG.. cant find positiontree when in check here, we simply want to remove positions where we put ourselves in check
 positionTree :: Position -> [Position]
-positionTree pos = filter (\p -> not $ isInCheck pos) $ positionTreeIgnoreCheck pos
+positionTree pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
+
+notSelfcheck :: Color -> Position -> Bool
+notSelfcheck col pos = not $ isInCheck ( pos { toPlay =col } )
 
 debugger :: IO ()
 debugger = do

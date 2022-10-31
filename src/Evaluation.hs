@@ -15,9 +15,9 @@ import GHC.Conc (pseq)
 
 data Evaluated
     = Evaluated
-        Position
-        Float
-        Status
+        { pos :: Position
+        , score :: Float
+        , status :: Status }
     deriving stock (Eq, Show)
 
 getPosition :: Evaluated -> Position
