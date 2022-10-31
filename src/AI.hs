@@ -6,6 +6,7 @@ module AI (
     swapForBetter,
     oneStep,
     test,
+    dig,
 ) where
 
 import Chess (
