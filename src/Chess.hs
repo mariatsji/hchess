@@ -113,10 +113,6 @@ enemyAt pos to =
     let enemyColor = next (toPlay pos)
      in (colr <$> pieceAt pos to) == Just enemyColor
 
-succ' :: Color -> Color
-succ' White = Black
-succ' Black = White
-
 vacantAt :: Position -> Square -> Bool
 vacantAt pos t = isNothing $ pieceAt pos t
 

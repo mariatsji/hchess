@@ -25,8 +25,11 @@ import Evaluation (Evaluated (..), evaluate', getPosition)
 import Move (parseMoves)
 import Position (
     Color (..),
-    Position (Position, toPlay),
+    Move,
+    Position (Position, m, toPlay),
+    findMove,
     mkPositionExpensive,
+    next,
  )
 import Printer (prettyE)
 
@@ -40,7 +43,12 @@ edgeGreed' pos' depth =
     let status = determineStatus pos'
         perspective = toPlay pos'
         evaluated = evaluate' pos' status
-     in mkEither $ dig depth (toPlay pos') evaluated
+        resEither = mkEither $ dig depth (toPlay pos') evaluated
+     in case resEither of
+            Right poz -> case oneStep pos' poz of
+                Just pozz -> Right pozz
+                Nothing -> Left (pos', status)
+            x -> x
   where
     mkEither :: Evaluated -> Either (Position, Status) Position
     mkEither Evaluated {..} = case status of
@@ -66,23 +74,11 @@ dig depth perspective ev@Evaluated {..} =
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =
     listToMaybe $ best 1 color cands
-test :: IO ()
-test = do
-    let whiteInCheckE = parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
-    case whiteInCheckE of
-        Right whiteInCheck -> do
-            let evaled = evaluate' whiteInCheck WhiteToPlay
-            prettyE $ dig 1 White evaled
-        Left e ->
-            print e
 
 terminallyGood :: Color -> Evaluated -> Bool
 terminallyGood color Evaluated {..} = case color of
     White -> status == BlackIsMate
     Black -> status == WhiteIsMate
-
-next White = Black
-next Black = White
 
 best :: Int -> Color -> [Evaluated] -> [Evaluated]
 best n perspective evals =
@@ -154,3 +150,13 @@ oneStep pos@(Position snpa gha _ _ _ _ _) (Position snpb ghb _ _ _ _ _) =
     let diff = length (snpb : ghb) - length (snpa : gha)
         onemorelist = drop (diff - 1) (snpb : ghb)
      in if diff > 0 then mkPositionExpensive pos <$> listToMaybe onemorelist else Nothing
+
+test :: IO ()
+test = do
+    let whiteInCheckE = parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
+    case whiteInCheckE of
+        Right whiteInCheck -> do
+            let evaled = evaluate' whiteInCheck WhiteToPlay
+            prettyE $ dig 1 White evaled
+        Left e ->
+            print e

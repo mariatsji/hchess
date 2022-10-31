@@ -15,10 +15,6 @@ import Data.List (find)
 data Color = White | Black
     deriving (Eq, Ord, Enum, Show, Generic)
 
-next :: Color -> Color
-next White = Black
-next Black = White
-
 data Piece
     = Pawn Color
     | Knight Color
@@ -50,6 +46,10 @@ data Position = Position
     deriving (Eq, Show, Generic)
 
 data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Square Piece | Castle Square Square deriving (Eq, Show)
+
+next :: Color -> Color
+next White = Black
+next Black = White
 
 mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Maybe Square -> Maybe Square -> Position
 mkPosition pos snp csW csB whiteKing' blackKing' =
