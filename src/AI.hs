@@ -5,7 +5,6 @@ module AI (
     expandHorizon,
     swapForBetter,
     oneStep,
-    test,
     dig,
 ) where
 
@@ -35,15 +34,15 @@ import Printer (prettyE)
 
 -- restore edgeGreed until oneStep is in place
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
-edgeGreed = actualEdgeGreed
+edgeGreed pos depth = edgeGreedCompat pos depth 3
 
 -- silly wrapper, this is not edgeGreed but dig..
-edgeGreed' :: Position -> Int -> Either (Position, Status) Position
-edgeGreed' pos' depth =
+edgeGreedCompat :: Position -> Int -> Int -> Either (Position, Status) Position
+edgeGreedCompat pos' depth broadness =
     let status = determineStatus pos'
         perspective = toPlay pos'
         evaluated = evaluate' pos' status
-        resEither = mkEither $ dig depth (toPlay pos') evaluated
+        resEither = mkEither $ dig depth broadness (toPlay pos') evaluated
      in case resEither of
             Right poz -> case oneStep pos' poz of
                 Just pozz -> Right pozz
@@ -57,8 +56,8 @@ edgeGreed' pos' depth =
         terminalStatus -> Left (pos, terminalStatus)
 
 -- oneStep-functionality is missing
-dig :: Int -> Color -> Evaluated -> Evaluated
-dig depth perspective ev@Evaluated {..} =
+dig :: Int -> Int -> Color -> Evaluated -> Evaluated
+dig depth broadness perspective ev@Evaluated {..} =
     let candidates = positionTree pos
         withStatuses = (\p -> (p, determineStatus p)) <$> candidates
         evaluated = uncurry evaluate' <$> withStatuses
@@ -67,9 +66,8 @@ dig depth perspective ev@Evaluated {..} =
             else case find (terminallyGood perspective) evaluated of
                 Just x -> x
                 Nothing ->
-                    let broadness = 4
-                        furtherInspect = best broadness perspective evaluated
-                     in fromMaybe ev $ singleBest perspective $ dig (depth - 1) (next perspective) <$> furtherInspect
+                    let furtherInspect = best broadness perspective evaluated
+                     in fromMaybe ev $ singleBest perspective $ dig (depth - 1) broadness (next perspective) <$> furtherInspect
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =
@@ -150,13 +148,3 @@ oneStep pos@(Position snpa gha _ _ _ _ _) (Position snpb ghb _ _ _ _ _) =
     let diff = length (snpb : ghb) - length (snpa : gha)
         onemorelist = drop (diff - 1) (snpb : ghb)
      in if diff > 0 then mkPositionExpensive pos <$> listToMaybe onemorelist else Nothing
-
-test :: IO ()
-test = do
-    let whiteInCheckE = parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
-    case whiteInCheckE of
-        Right whiteInCheck -> do
-            let evaled = evaluate' whiteInCheck WhiteToPlay
-            prettyE $ dig 1 White evaled
-        Left e ->
-            print e

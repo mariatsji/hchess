@@ -6,3 +6,4 @@
 *.aux
 bin/*
 dist-newstyle
+result
