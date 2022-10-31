@@ -30,9 +30,13 @@ import Position (
  )
 import Printer (prettyE)
 
--- silly wrapper, this is not edgeGreed but dig..
+-- restore edgeGreed until oneStep is in place
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
-edgeGreed pos' depth =
+edgeGreed = actualEdgeGreed
+
+-- silly wrapper, this is not edgeGreed but dig..
+edgeGreed' :: Position -> Int -> Either (Position, Status) Position
+edgeGreed' pos' depth =
     let status = determineStatus pos'
         perspective = toPlay pos'
         evaluated = evaluate' pos' status
