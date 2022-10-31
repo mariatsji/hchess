@@ -10,7 +10,6 @@ module Move (
 
 import Chess
 import Data.Char
-import qualified Debug.Trace as Debug
 import Position
 import Text.Regex.TDFA
 

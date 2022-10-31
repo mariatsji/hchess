@@ -29,30 +29,39 @@ import Position (
     mkPositionExpensive,
  )
 import Printer (prettyE)
-import qualified Debug.Trace as Debug
 
+-- silly wrapper, this is not edgeGreed but dig..
+edgeGreed :: Position -> Int -> Either (Position, Status) Position
+edgeGreed pos' depth =
+    let status = determineStatus pos'
+        perspective = toPlay pos'
+        evaluated = evaluate' pos' status
+     in mkEither $ dig depth (toPlay pos') evaluated
+  where
+    mkEither :: Evaluated -> Either (Position, Status) Position
+    mkEither Evaluated {..} = case status of
+        WhiteToPlay -> Right pos
+        BlackToPlay -> Right pos
+        terminalStatus -> Left (pos, terminalStatus)
+
+-- oneStep-functionality is missing
 dig :: Int -> Color -> Evaluated -> Evaluated
 dig depth perspective ev@Evaluated {..} =
     let candidates = positionTree pos
         withStatuses = (\p -> (p, determineStatus p)) <$> candidates
-        poses = show (length candidates)
-        evaluated = Debug.trace ("positionTree: " <> poses) $ uncurry evaluate' <$> withStatuses
+        evaluated = uncurry evaluate' <$> withStatuses
      in if depth == 0
-            then Debug.trace "depth 0" $ fromMaybe ev $ singleBest perspective evaluated
+            then fromMaybe ev $ singleBest perspective evaluated
             else case find (terminallyGood perspective) evaluated of
-                Just x -> Debug.trace "found terminally good" x
+                Just x -> x
                 Nothing ->
                     let broadness = 4
                         furtherInspect = best broadness perspective evaluated
-                        evLen = show (length evaluated)
-                        len = show (length furtherInspect)
-                     in Debug.trace ( "Checking " <> len <> " more places (" <> evLen <> ")") $
-                        fromMaybe ev $ singleBest perspective $ dig (depth - 1) (next perspective) <$> furtherInspect
+                     in fromMaybe ev $ singleBest perspective $ dig (depth - 1) (next perspective) <$> furtherInspect
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
-singleBest color cands = let res = best 1 color cands
-    in Debug.trace (show (length res)) listToMaybe res
-
+singleBest color cands =
+    listToMaybe $ best 1 color cands
 test :: IO ()
 test = do
     let whiteInCheckE = parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
@@ -95,8 +104,8 @@ sorter perspective (Evaluated posA scoreA statusA) (Evaluated posB scoreB status
             (_, BlackIsMate) -> GT
             (_, _) -> compare scoreA scoreB
 
-edgeGreed :: Position -> Int -> Either (Position, Status) Position
-edgeGreed pos depth =
+actualEdgeGreed :: Position -> Int -> Either (Position, Status) Position
+actualEdgeGreed pos depth =
     let status = determineStatus pos
         color = toPlay pos
         best =
