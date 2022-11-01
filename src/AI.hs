@@ -5,6 +5,7 @@ module AI (
     expandHorizon,
     swapForBetter,
     oneStep,
+    best,
     dig,
 ) where
 
@@ -34,7 +35,7 @@ import Printer (prettyE)
 
 -- restore edgeGreed until oneStep is in place
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
-edgeGreed pos depth = edgeGreedCompat pos depth 4
+edgeGreed pos depth = edgeGreedCompat pos depth 200
 
 -- silly wrapper, this is not edgeGreed but dig..
 edgeGreedCompat :: Position -> Int -> Int -> Either (Position, Status) Position
@@ -92,7 +93,7 @@ sorter perspective (Evaluated posA scoreA statusA) (Evaluated posB scoreB status
             (_, BlackIsMate) -> LT
             (WhiteIsMate, _) -> LT
             (_, WhiteIsMate) -> GT
-            (_, _) -> compare scoreA scoreB
+            (_, _) -> compare scoreB scoreA -- todo why does White want to flip here? I dont get it
         else case (statusA, statusB) of
             (WhiteIsMate, WhiteIsMate) -> EQ
             (BlackIsMate, BlackIsMate) -> EQ
@@ -100,7 +101,7 @@ sorter perspective (Evaluated posA scoreA statusA) (Evaluated posB scoreB status
             (_, WhiteIsMate) -> LT
             (BlackIsMate, _) -> LT
             (_, BlackIsMate) -> GT
-            (_, _) -> compare scoreA scoreB
+            (_, _) -> compare scoreA scoreB -- black wants as negative as possible
 
 actualEdgeGreed :: Position -> Int -> Either (Position, Status) Position
 actualEdgeGreed pos depth =
@@ -129,7 +130,7 @@ swapForBetter Black ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBS
     | otherwise = bestSoFar
 
 expandHorizon :: Int -> Position -> [Position]
-expandHorizon 0 _ = error "cannot expand horizon 0 steps"
+expandHorizon 0 pos = [pos]
 expandHorizon 1 pos = positionTree pos
 expandHorizon n pos =
     let expanded = expandHorizon 1 pos

@@ -4,6 +4,7 @@
 module Position where
 
 import Control.Monad.ST
+import Data.Aeson
 import Data.Bifunctor (first)
 import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe, catMaybes, mapMaybe)
 import Data.STRef
@@ -13,7 +14,8 @@ import Tree
 import Data.List (find)
 
 data Color = White | Black
-    deriving (Eq, Ord, Enum, Show, Generic)
+    deriving stock (Eq, Ord, Enum, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 data Piece
     = Pawn Color
@@ -22,13 +24,18 @@ data Piece
     | Rook Color
     | Queen Color
     | King Color
-    deriving (Eq, Ord, Show, Generic)
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON)
+
+type Col = Int
+type Row = Int
 
 data Square
     = Square
-        Int -- col
-        Int -- row
-    deriving (Eq, Ord, Show, Generic)
+        Col
+        Row
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 type Snapshot = Tree (Maybe Piece)
 
@@ -45,7 +52,9 @@ data Position = Position
     }
     deriving (Eq, Show, Generic)
 
-data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Square Piece | Castle Square Square deriving (Eq, Show)
+data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Square Piece | Castle Square Square
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (FromJSON, ToJSON)
 
 next :: Color -> Color
 next White = Black

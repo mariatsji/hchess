@@ -1,9 +1,7 @@
 module Main where
 
-import Chess
 import AI
 import Position
-import Evaluation
 
 main :: IO ()
 main = do

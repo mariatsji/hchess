@@ -5,7 +5,6 @@ module Move (
     parseMoves,
     parseFrom,
     parseTo,
-    debugga,
 ) where
 
 import Chess
@@ -124,10 +123,3 @@ asInt 'f' = 6
 asInt 'g' = 7
 asInt 'h' = 8
 asInt x = error $ "not a column I can parse: " ++ [x]
-
-debugga :: IO ()
-debugga = do
-    let beforeCheck = parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4"]
-        afterCheck = parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"] -- check
-    -- print beforeCheck
-    print afterCheck
