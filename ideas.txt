@@ -1,0 +1,2 @@
+flightrecorder for games!
+"auto"-generate-tests from flightrecorder!

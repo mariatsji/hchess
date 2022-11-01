@@ -34,7 +34,7 @@ import Printer (prettyE)
 
 -- restore edgeGreed until oneStep is in place
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
-edgeGreed pos depth = edgeGreedCompat pos depth 3
+edgeGreed pos depth = edgeGreedCompat pos depth 4
 
 -- silly wrapper, this is not edgeGreed but dig..
 edgeGreedCompat :: Position -> Int -> Int -> Either (Position, Status) Position
