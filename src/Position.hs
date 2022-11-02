@@ -6,12 +6,12 @@ module Position where
 import Control.Monad.ST
 import Data.Aeson
 import Data.Bifunctor (first)
-import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe, catMaybes, mapMaybe)
+import Data.List (find)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, listToMaybe, mapMaybe)
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
 import Tree
-import Data.List (find)
 
 data Color = White | Black
     deriving stock (Eq, Ord, Enum, Show, Generic)
@@ -46,13 +46,13 @@ data Position = Position
     , gamehistory :: [Snapshot]
     , castleStatusWhite :: CastleStatus
     , castleStatusBlack :: CastleStatus
-    , whiteKing :: Maybe Square
-    , blackKing :: Maybe Square
+    , whiteKing :: Maybe Square -- todo delete this
+    , blackKing :: Maybe Square -- todo delete this
     , toPlay :: Color
     }
     deriving (Eq, Show, Generic)
 
-data Move = MovedPiece Square Square | Promotion Square Square Piece | Castle Square Square
+data Move = MovedPiece Square Square | Promotion Square Square Piece | CastleShort | CastleLong
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -74,29 +74,38 @@ mkPosition pos snp csW csB whiteKing' blackKing' =
             }
 
 mkPositionExpensive :: Position -> Snapshot -> Position
-mkPositionExpensive pos@(Position snpa _ csw csb wk bk _) snpb = case findMove snpa snpb of
-    MovedPiece from to -> case snpa ?! hash from of
-        Just (King White) ->
-            mkPosition pos snpb CanCastleNone csb (Just to) bk
-        Just (King Black) ->
-            mkPosition pos snpb csw CanCastleNone wk (Just to)
-        _
-            | from == Square 1 1 && csw == CanCastleBoth -> mkPosition pos snpb CanCastleH csb wk bk
-            | from == Square 1 1 && csw == CanCastleA -> mkPosition pos snpb CanCastleNone csb wk bk
-            | from == Square 8 1 && csw == CanCastleBoth -> mkPosition pos snpb CanCastleA csb wk bk
-            | from == Square 8 1 && csw == CanCastleH -> mkPosition pos snpb CanCastleNone csb wk bk
-            | from == Square 1 8 && csb == CanCastleBoth -> mkPosition pos snpb csw CanCastleH wk bk
-            | from == Square 1 8 && csb == CanCastleA -> mkPosition pos snpb csw CanCastleNone wk bk
-            | from == Square 8 8 && csb == CanCastleBoth -> mkPosition pos snpb csw CanCastleA wk bk
-            | from == Square 8 8 && csb == CanCastleH -> mkPosition pos snpb csw CanCastleNone wk bk
-            | otherwise -> mkPosition pos snpb csw csb wk bk
-    Promotion _ _ _ -> mkPosition pos snpb csw csb wk bk
-    Castle _ to
-        | to == Square 1 1 -> mkPosition pos snpb CanCastleNone csb (Just $ Square 3 1) bk
-        | to == Square 8 1 -> mkPosition pos snpb CanCastleNone csb (Just $ Square 7 1) bk
-        | to == Square 1 8 -> mkPosition pos snpb csw CanCastleNone wk (Just $ Square 3 8)
-        | to == Square 8 8 -> mkPosition pos snpb csw CanCastleNone wk (Just $ Square 7 8)
-        | otherwise -> error "identified as castle, but does not make any sense"
+mkPositionExpensive pos@(Position snpa _ csw csb wk bk _) snpb =
+    let colorWhoMoved = next (toPlay pos)
+     in case findMove snpa snpb of
+            MovedPiece from to -> case snpb ?! hash from of
+                Just (King White) ->
+                    mkPosition pos snpb CanCastleNone csb (Just to) bk
+                Just (Rook White) ->
+                    mkPosition pos snpb (downgrade from csw) csb wk bk
+                Just (King Black) ->
+                    mkPosition pos snpb csw CanCastleNone wk (Just to)
+                Just (Rook Black) ->
+                    mkPosition pos snpb csw (downgrade from csb) wk bk
+                _ -> mkPosition pos snpb csw csb wk bk
+            Promotion {} -> mkPosition pos snpb csw csb wk bk
+            CastleShort -> case colorWhoMoved of
+                White -> mkPosition pos snpb CanCastleNone csb (Just $ Square 7 1) bk
+                Black -> mkPosition pos snpb csw CanCastleNone wk (Just $ Square 7 8)
+            CastleLong -> case colorWhoMoved of
+                White -> mkPosition pos snpb CanCastleNone csb (Just $ Square 3 1) bk
+                Black -> mkPosition pos snpb csw CanCastleNone wk (Just $ Square 3 8)
+
+downgrade :: Square -> CastleStatus -> CastleStatus
+downgrade (Square _ row) castleStatus =
+    let usedUpCastleStatus = case row of
+            1 -> CanCastleH
+            _ -> CanCastleA
+     in case (castleStatus, usedUpCastleStatus) of
+            (CanCastleBoth, CanCastleH) -> CanCastleA
+            (CanCastleA, CanCastleH) -> CanCastleA
+            (CanCastleBoth, CanCastleA) -> CanCastleH
+            (CanCastleH, CanCastleA) -> CanCastleH
+            _ -> CanCastleNone
 
 hash :: Square -> Word8
 hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
@@ -176,7 +185,7 @@ movePiece' snp from to = case snp ?! hash from of
         error $ "should be a piece at " <> show from <> " in pos " <> show snp
     (Just piece) ->
         let without = removePieceAt snp from
-        in replacePieceAt without to piece
+         in replacePieceAt without to piece
 
 removePieceAt :: Snapshot -> Square -> Snapshot
 removePieceAt snp s = set snp (hash s) Nothing
@@ -216,13 +225,13 @@ findMove a b =
         changedSquares = fst <$> changedSquaresAndPiece
      in case length changedSquares of
             4
-                | Square 8 1 `elem` changedSquares -> Castle (Square 5 1) (Square 8 1)
-                | Square 1 1 `elem` changedSquares -> Castle (Square 5 1) (Square 1 1)
-                | Square 8 8 `elem` changedSquares -> Castle (Square 5 8) (Square 8 8)
-                | Square 1 8 `elem` changedSquares -> Castle (Square 5 8) (Square 1 8)
+                | Square 8 1 `elem` changedSquares -> CastleShort
+                | Square 1 1 `elem` changedSquares -> CastleLong
+                | Square 8 8 `elem` changedSquares -> CastleShort
+                | Square 1 8 `elem` changedSquares -> CastleLong
                 | otherwise -> error "could not determine position diff of length 4 that does not seem to be a castle"
             2
-                | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (findTo b changedSquares) (promtoSquare changedSquaresAndPiece)
+                | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece) (promtoPiece changedSquaresAndPiece)
                 | otherwise -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares)
             _ -> error "could not determine changed position when diff length not 2,3,4"
 
@@ -242,6 +251,7 @@ epfromSquare l =
 eptoSquare :: [(Square, Maybe Piece)] -> Square
 eptoSquare l = maybe (error "cant find eptosquare") fst (find (\(_, mp) -> isJust mp) l)
 
+-- todo stupid
 pawnMovedIn :: [(Square, Maybe Piece)] -> Snapshot -> Snapshot -> Bool
 pawnMovedIn [] _ _ = False
 pawnMovedIn ((s@(Square _ r), mp) : xs) from to
@@ -249,6 +259,7 @@ pawnMovedIn ((s@(Square _ r), mp) : xs) from to
     | r == 2 && isNothing mp = from ?! hash s == Just (Pawn Black)
     | otherwise = pawnMovedIn xs from to
 
+-- todo stupid
 promfromSquare :: [(Square, Maybe Piece)] -> Square
 promfromSquare [] = error "could not determine promfromSquare"
 promfromSquare ((Square c r, _) : xs)
@@ -256,9 +267,18 @@ promfromSquare ((Square c r, _) : xs)
     | r == 7 = Square c r
     | otherwise = promfromSquare xs
 
-promtoSquare :: [(Square, Maybe Piece)] -> Piece
+-- todo stupid
+promtoSquare :: [(Square, Maybe Piece)] -> Square
 promtoSquare [] = error "could not determine promtoSquare"
-promtoSquare ((Square _ r, mp) : xs)
+promtoSquare ((Square c r, _) : xs)
+    | r == 1 = Square c r
+    | r == 8 = Square c r
+    | otherwise = promtoSquare xs
+
+-- todo stupid
+promtoPiece :: [(Square, Maybe Piece)] -> Piece
+promtoPiece [] = error "could not determine promtoSquare"
+promtoPiece ((Square _ r, mp) : xs)
     | r == 1 = fromMaybe (error "expected white officer in promtosquare") mp
     | r == 8 = fromMaybe (error "expected black officer in promtosquare") mp
-    | otherwise = promtoSquare xs
+    | otherwise = promtoPiece xs

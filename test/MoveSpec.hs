@@ -263,13 +263,13 @@ spec = do
           Right p3 = playMoves (initMoves <> ["O-O", "O-O"])
           whiteCastle = findMove (m p1) (m p2)
           blackCastle = findMove (m p2) (m p3)
-      whiteCastle `shouldBe` Castle (Square 5 1) (Square 8 1)
-      blackCastle `shouldBe` Castle (Square 5 8) (Square 8 8)
+      whiteCastle `shouldBe` CastleShort
+      blackCastle `shouldBe` CastleShort
     it "knows a promotion move for white between two snapshots" $ do
       let Right p1 = playMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4"]
           Right p2 = playMove "b7-a8R" p1
           themove = findMove (m p1) (m p2)
-      themove `shouldBe` Promotion (Square 2 7) (Square 2 8) (Rook White)
+      themove `shouldBe` Promotion (Square 2 7) (Square 1 8) (Rook White)
     it "can move a black king and find position between snapshots" $ do
       let Right p1 = playMoves ["e2-e4", "d7-d5", "e4-e5"]
           Right p2 = playMove "e8-d7" p1

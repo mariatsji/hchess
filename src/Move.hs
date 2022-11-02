@@ -13,7 +13,7 @@ import Data.Text (pack)
 import Position
 
 moveParser :: Position -> Parser Move
-moveParser pos = promParser pos <|> castleParser pos <|> regularMoveParser
+moveParser pos = promParser pos <|> castleParser <|> regularMoveParser
 
 regularMoveParser :: Parser Move
 regularMoveParser = do
@@ -21,14 +21,11 @@ regularMoveParser = do
     _ <- char '-'
     MovedPiece from <$> squareParser
 
-castleParser :: Position -> Parser Move
-castleParser pos = case toPlay pos of
-    White -> do
-        Castle (Square 8 1) (Square 5 1) <$ string "O-O-O"
-        Castle (Square 1 1) (Square 5 1) <$ string "O-O"
-    Black -> do
-        Castle (Square 8 8) (Square 5 8) <$ string "O-O-O"
-        Castle (Square 1 8) (Square 5 8) <$ string "O-O"
+castleParser :: Parser Move
+castleParser = castleLongParser <|> castleShortParser
+  where
+    castleLongParser = CastleLong <$ string "O-O-O"
+    castleShortParser = CastleShort <$ string "O-O"
 
 promParser :: Position -> Parser Move
 promParser pos = do
@@ -71,33 +68,19 @@ pieceParser color = knightParser <|> bishopParser <|> rookParser <|> queenParser
 playMove :: String -> Position -> Either String Position
 playMove s pos =
     let moveE = parseOnly (moveParser pos) (pack s)
+        color = toPlay pos
      in moveE
-            >>= ( \case
-                    MovedPiece from to ->
-                        let moveAttempt = Chess.movePiece pos from to
-                            tree = Chess.positionTree pos
-                            isAmongLegalMoves = any (eqPosition moveAttempt) tree
-                            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos from)
-                         in if isAmongLegalMoves && correctColorMadeTheMove
-                                then Right moveAttempt
-                                else Left "Move not among legal moves OR incorrect color made the move"
-                    Castle from@(Square col _) to ->
-                        let moveAttempt = head $ case col of
-                                1 -> Chess.castleLong pos
-                                8 -> Chess.castleShort pos
-                                _ -> error "Castle problems.. col from square not 1 or 8, plz clean up castling mess"
-                            isAmongLegalMoves = moveAttempt `elem` Chess.positionTree pos
-                            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos from)
-                         in if isAmongLegalMoves && correctColorMadeTheMove
-                                then Right moveAttempt
-                                else Left "Could not do Castling"
-                    Promotion from to piece ->
-                        let moveAttempt = Chess.movePiecePromote pos from to piece
-                            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
-                            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos from)
-                         in if isAmongLegalMoves && correctColorMadeTheMove
-                                then Right moveAttempt
-                                else Left "Promotion not among legal moves OR incorrect color made the move"
+            >>= ( \move ->
+                    let moveAttempt = case move of
+                            MovedPiece from to -> Chess.movePiece pos from to
+                            CastleShort -> head $ Chess.castleShort pos -- todo
+                            CastleLong -> head $ Chess.castleLong pos -- todo
+                            Promotion from to piece -> Chess.movePiecePromote pos from to piece
+                        tree = Chess.positionTree pos
+                        isAmongLegalMoves = any (eqPosition moveAttempt) tree
+                     in if isAmongLegalMoves
+                            then Right moveAttempt
+                            else Left $ "Move not among legal moves OR incorrect color made the move: " <> s
                 )
 
 playMoves :: [String] -> Either String Position
