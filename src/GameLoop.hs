@@ -4,7 +4,7 @@ import AI (edgeGreed)
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Trans.Writer (WriterT (runWriterT), tell)
-import Move (parseMove)
+import Move (playMove)
 import Position (
     Color (White),
     Move,
@@ -61,7 +61,7 @@ gameLoopMM pos whiteDepth blackDepth = do
 gameLoopHM :: Position -> Int -> IO ()
 gameLoopHM pos depth = do
     l <- getLine
-    case parseMove l pos of
+    case playMove l pos of
         Left _ -> do
             putStrLn "Could not parse move"
             gameLoopHM pos depth
@@ -86,7 +86,7 @@ gameLoopHH pos = do
     Printer.pretty pos
     putStrLn "Examples of moves are e2-e4 O-O-O d7-d8Q or newline to quit to menu"
     l <- getLine
-    case parseMove l pos of
+    case playMove l pos of
         Left s -> do
             print $ "could not parse " ++ s
             gameLoopHH pos

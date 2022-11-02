@@ -44,7 +44,7 @@ spec = do
           p7 = movePiece p6 (Square 8 5) (Square 6 7) -- mate
       toPlay p7 `shouldBe` Black
     it "parses a move text command" $ do
-      let newP = Move.parseMove "e2-e4" startPosition
+      let newP = Move.playMove "e2-e4" startPosition
       newP `shouldSatisfy` isRight
       newP `shouldNotBe` Right startPosition
     it "does not step on own pieces" $ do
@@ -75,34 +75,34 @@ spec = do
       let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], castleStatusWhite = CanCastleBoth, castleStatusBlack = CanCastleBoth, whiteKing = Just (Square 5 1), blackKing = Just (Square 8 8), toPlay = Black}
       length t `shouldBe` (3 :: Int)
     it "knows that white is in check" $ do
-      let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
+      let p' = Move.playMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
       isInCheck p `shouldBe` (True :: Bool)
     it "knows that white is not in check" $ do
-      let p' = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
+      let p' = Move.playMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
       isInCheck p `shouldBe` (False :: Bool)
     it "does not change color on black pawns on the board when white promotes to a rook" $ do
-      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4", "b7-a8R"]
+      let Right p1 = playMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4", "b7-a8R"]
       pieceAt p1 (Square 1 4) `shouldBe` Just (Pawn Black)
       pieceAt p1 (Square 1 8) `shouldBe` Just (Rook White)
     it "allows castle both sides for white after opening move" $ do
-      let p = Move.parseMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
+      let p = Move.playMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
       either (const CanCastleNone) castleStatusWhite p `shouldBe` CanCastleBoth
       either (const CanCastleNone) castleStatusBlack p `shouldBe` CanCastleBoth
     it "only allows white to castle kingside after moving rook on a1" $ do
-      let p = Move.parseMoves ["a2-a4", "d7-d5", "a1-a2"]
+      let p = Move.playMoves ["a2-a4", "d7-d5", "a1-a2"]
       either (const CanCastleBoth) castleStatusWhite p `shouldBe` CanCastleH
       either (const CanCastleNone) castleStatusBlack p `shouldBe` CanCastleBoth
     it "does not allow black any castle after moving king" $ do
-      let p = Move.parseMoves ["e2-e4", "e7-e5", "d2-d4", "e8-e7"]
+      let p = Move.playMoves ["e2-e4", "e7-e5", "d2-d4", "e8-e7"]
       either (const CanCastleNone) castleStatusWhite p `shouldBe` CanCastleBoth
       either (const CanCastleBoth) castleStatusBlack p `shouldBe` CanCastleNone
     it "does a short castle for black" $ do
       let initMoves = ["e2-e4", "e7-e5", "g1-f3", "g8-f6", "f1-e2", "f8-e7", "O-O", "O-O"]
-          Right p1 = parseMoves initMoves
+          Right p1 = playMoves initMoves
       pieceAt p1 (Square 5 8) `shouldBe` Nothing
       pieceAt p1 (Square 8 8) `shouldBe` Nothing
       pieceAt p1 (Square 7 8) `shouldBe` Just (King Black)
@@ -118,7 +118,7 @@ spec = do
       pieceAt (head c) (Square 4 8) `shouldBe` Just (Rook Black)
     it "includes long castle for white in legal moves" $ do
       let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]
-      let p' = Move.parseMoves moves
+      let p' = Move.playMoves moves
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
       let legals = positionTree p
@@ -126,10 +126,10 @@ spec = do
       length kingMoves `shouldBe` (2 :: Int)
     it "parses a long castle for white" $ do
       let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]
-          p' = Move.parseMoves moves
+          p' = Move.playMoves moves
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
-          p2' = Move.parseMove "O-O-O" p
+          p2' = Move.playMove "O-O-O" p
       p2' `shouldSatisfy` isRight
       let p2 = fromRight startPosition p2'
       length (gamehistory p2) - length (gamehistory p) `shouldBe` (1 :: Int)
@@ -209,24 +209,24 @@ spec = do
       threefoldrepetition p `shouldBe` False
     it "finds threefoldrepetition though" $ do
       let moves = ["b1-c3", "b8-c6", "c3-b1", "c6-b8", "b1-c3", "b8-c6", "c3-b1", "c6-b8", "b1-c3", "b8-c6", "c3-b1", "c6-b8"]
-          Right p = parseMoves moves
+          Right p = playMoves moves
       threefoldrepetition p `shouldBe` True
     it "parses an en passant move for black" $ do
       let moves = ["e2-e4", "a7-a5", "f1-b5", "a5-a4", "b2-b4"]
-      let p' = parseMoves moves
+      let p' = playMoves moves
       p' `shouldSatisfy` isRight
       let p = fromRight startPosition p'
-      let p2' = Move.parseMove "a4-b3" p
+      let p2' = Move.playMove "a4-b3" p
       p2' `shouldSatisfy` isRight
       let p2 = fromRight startPosition p2'
       length (gamehistory p2) `shouldBe` (6 :: Int)
     it "allows white to take with pawns from home row" $ do
       let moves = ["e2-e4", "a7-a5", "e4-e5", "a5-a4", "e5-e6", "a4-a3", "b2-a3"]
-      let p = Move.parseMoves moves
+      let p = Move.playMoves moves
       p `shouldSatisfy` isRight
     it "does not allow black any crazy en passant moves on row 3" $ do
       let moves = ["e2-e4", "a7-a5", "e4-e5", "a5-a4", "e5-e6", "a4-a3", "b2-b3"]
-      let p = Move.parseMoves moves
+      let p = Move.playMoves moves
       let t = positionTree (fromRight startPosition p)
       let bPawnMoves = filter (\p -> isNothing (pieceAt p (Square 1 3))) t
       length bPawnMoves `shouldBe` (0 :: Int)
@@ -235,67 +235,62 @@ spec = do
       let p2 = head $ positionTree startPosition
       head (gamehistory p2) `shouldBe` m p1
     it "updates the black king position when moving king" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "e8-e7"]
+      let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "e8-e7"]
       blackKing p `shouldBe` Just (Square 5 7)
     it "knows black is in check" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
+      let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
       isInCheck p `shouldBe` True
     it "has empty positionTree when black is checkmate" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
+      let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
           ptree = positionTree p
       null ptree`shouldBe` True
     it "realizes black is checkmate" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
+      let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
           ptree = positionTree p
       isCheckMate p ptree `shouldBe` True
     it "determines status of a checkmate" $ do
-      let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
+      let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
       determineStatus p `shouldBe` BlackIsMate
     it "knows what move has been played between two snapshots" $ do
-      let Right p1 = parseMoves ["e2-e4", "e7-e5"]
-          Right p2 = parseMoves ["e2-e4", "e7-e5", "f1-c4"]
+      let Right p1 = playMoves ["e2-e4", "e7-e5"]
+          Right p2 = playMoves ["e2-e4", "e7-e5", "f1-c4"]
           themove = findMove (m p1) (m p2)
       themove `shouldBe` MovedPiece (Square 6 1) (Square 3 4)
     it "knows black castle short between two snapshots" $ do
       let initMoves = ["e2-e4", "e7-e5", "g1-f3", "g8-f6", "f1-e2", "f8-e7"]
-          Right p1 = parseMoves initMoves
-          Right p2 = parseMoves (initMoves <> ["O-O"])
-          Right p3 = parseMoves (initMoves <> ["O-O", "O-O"])
+          Right p1 = playMoves initMoves
+          Right p2 = playMoves (initMoves <> ["O-O"])
+          Right p3 = playMoves (initMoves <> ["O-O", "O-O"])
           whiteCastle = findMove (m p1) (m p2)
           blackCastle = findMove (m p2) (m p3)
       whiteCastle `shouldBe` Castle (Square 5 1) (Square 8 1)
       blackCastle `shouldBe` Castle (Square 5 8) (Square 8 8)
-    it "knows an an passant move from black between from snapshots" $ do
-      let Right p1 = parseMoves ["e2-e4", "a7-a5", "f1-b5", "a5-a4", "b2-b4"]
-          Right p2 = parseMoves ["e2-e4", "a7-a5", "f1-b5", "a5-a4", "b2-b4", "a4-b3"]
-          themove = findMove (m p1) (m p2)
-      themove `shouldBe` Enpassant (Square 1 4) (Square 2 3)
     it "knows a promotion move for white between two snapshots" $ do
-      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4"]
-          Right p2 = parseMove "b7-a8R" p1
+      let Right p1 = playMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4"]
+          Right p2 = playMove "b7-a8R" p1
           themove = findMove (m p1) (m p2)
-      themove `shouldBe` Promotion (Square 2 7) (Rook White)
+      themove `shouldBe` Promotion (Square 2 7) (Square 2 8) (Rook White)
     it "can move a black king and find position between snapshots" $ do
-      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-e5"]
-          Right p2 = parseMove "e8-d7" p1
+      let Right p1 = playMoves ["e2-e4", "d7-d5", "e4-e5"]
+          Right p2 = playMove "e8-d7" p1
           themove = findMove (m p1) (m p2)
       themove `shouldBe` MovedPiece (Square 5 8) (Square 4 7)
     it "finds epfromsquare and eptosquare" $ do
       epfromSquare [(Square 5 5, Nothing), (Square 6 5, Nothing), (Square 6 6, Just (Pawn White))] `shouldBe` Square 5 5
       eptoSquare [(Square 5 5, Nothing), (Square 6 5, Nothing), (Square 6 6, Just (Pawn White))] `shouldBe` Square 6 6
     it "finds promotions in positionTree" $ do
-      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4"]
-          Right p2 = parseMove "b7-a8R" p1
-          Right p3 = parseMove "b7-a8Q" p1
-          Right p4 = parseMove "b7-a8B" p1
-          Right p5 = parseMove "b7-a8K" p1
+      let Right p1 = playMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "a5-a4"]
+          Right p2 = playMove "b7-a8R" p1
+          Right p3 = playMove "b7-a8Q" p1
+          Right p4 = playMove "b7-a8B" p1
+          Right p5 = playMove "b7-a8K" p1
       p2 `elem` positionTree p1 `shouldBe` True
       p3 `elem` positionTree p1 `shouldBe` True
       p4 `elem` positionTree p1 `shouldBe` True
       p5 `elem` positionTree p1 `shouldBe` True
     it "finds a walk in promotion, not just a take in" $ do
-      let Right p1 = parseMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "b8-a6"]
-          Right p2 = parseMove "b7-b8K" p1
+      let Right p1 = playMoves ["e2-e4", "d7-d5", "e4-d5", "c7-c6", "d5-c6", "a7-a5", "c6-b7", "b8-a6"]
+          Right p2 = playMove "b7-b8K" p1
           themove = findMove (m p1) (m p2)
       pieceAt p2 (Square 2 8) `shouldBe` Just (Knight White)
-      themove `shouldBe` Promotion (Square 2 7) (Knight White)
+      themove `shouldBe` Promotion (Square 2 7) (Square 2 8) (Knight White)

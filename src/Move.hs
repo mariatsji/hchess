@@ -1,125 +1,107 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Move (
-    parseMove,
-    parseMoves,
-    parseFrom,
-    parseTo,
+    playMove,
+    playMoves,
 ) where
 
 import Chess
+import Control.Applicative ((<|>))
+import Data.Attoparsec.Text (Parser, char, parseOnly, string)
 import Data.Char
+import Data.Text (pack)
 import Position
-import Text.Regex.TDFA
 
-parseMove :: String -> Position -> Either String Position
-parseMove s pos
-    | s =~ ("[a-h][1-8].[a-h][1-8]Q" :: String) =
-        let promPiece = if toPlay pos == White then Queen White else Queen Black
-            moveAttempt = Chess.movePiecePromote pos (parseFrom s) (parseTo s) promPiece
-            fromSquare = parseFrom s
-            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
-            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
-         in if isAmongLegalMoves && correctColorMadeTheMove
-                then Right moveAttempt
-                else Left "Could not find Queen prom move to be OK"
-    | s =~ ("[a-h][1-8].[a-h][1-8]R" :: String) =
-        let promPiece = if toPlay pos == White then Rook White else Rook Black
-            moveAttempt = Chess.movePiecePromote pos (parseFrom s) (parseTo s) promPiece
-            fromSquare = parseFrom s
-            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
-            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
-         in if isAmongLegalMoves && correctColorMadeTheMove
-                then Right moveAttempt
-                else Left "Could not find Rook prom move to be OK"
-    | s =~ ("[a-h][1-8].[a-h][1-8]B" :: String) =
-        let promPiece = if toPlay pos == White then Bishop White else Bishop Black
-            moveAttempt = Chess.movePiecePromote pos (parseFrom s) (parseTo s) promPiece
-            fromSquare = parseFrom s
-            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
-            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
-         in if isAmongLegalMoves && correctColorMadeTheMove
-                then Right moveAttempt
-                else Left "Could not find Bishop prom move to be OK"
-    | s =~ ("[a-h][1-8].[a-h][1-8]K" :: String) =
-        let promPiece = if toPlay pos == White then Knight White else Knight Black
-            moveAttempt = Chess.movePiecePromote pos (parseFrom s) (parseTo s) promPiece
-            fromSquare = parseFrom s
-            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
-            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
-         in if isAmongLegalMoves && correctColorMadeTheMove
-                then Right moveAttempt
-                else Left "Could not find Knight prom move to be OK"
-    | s =~ ("[a-h][1-8].[a-h][1-8]" :: String) =
-        let moveAttempt = Chess.movePiece pos (parseFrom s) (parseTo s)
-            fromSquare = parseFrom s
-            tree = Chess.positionTree pos
-            isAmongLegalMoves = any (eqPosition moveAttempt) tree
-            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos fromSquare)
-         in if null tree then
-                Left "No legal moves, empty positionTree prior to move"
-            else if not isAmongLegalMoves then
-                Left$  "Move not among " <> show (length tree) <> " legal moves"
-            else if not correctColorMadeTheMove then
-                Left "Move made by incorrect color"
-            else Right moveAttempt
-    | s =~ ("O-O-O" :: String) =
-        let castleAttempt = Chess.castleLong pos
-            fromSquare =
-                if toPlay pos == White
-                    then Square 5 1
-                    else Square 5 8
-         in if [] /= castleAttempt
-                && head castleAttempt
-                    `elem` Chess.positionTree pos
-                && Just (toPlay pos)
-                    == fmap colr (pieceAt pos fromSquare)
-                then Right $ head castleAttempt
-                else Left "Could not do O-O-O"
-    | s =~ ("O-O" :: String) =
-        let castleAttempt = Chess.castleShort pos
-            fromSquare =
-                if toPlay pos == White
-                    then Square 5 1
-                    else Square 5 8
-         in if [] /= castleAttempt
-                && head castleAttempt
-                    `elem` positionTree pos
-                && Just (toPlay pos)
-                    == fmap colr (pieceAt pos fromSquare)
-                then Right $ head castleAttempt
-                else Left "Could not do O-O"
-    | otherwise = Left $ "Unable to parse move with string " ++ s
+moveParser :: Position -> Parser Move
+moveParser pos = promParser pos <|> castleParser pos <|> regularMoveParser
 
-parseMoves :: [String] -> Either String Position
-parseMoves =
+regularMoveParser :: Parser Move
+regularMoveParser = do
+    from <- squareParser
+    _ <- char '-'
+    MovedPiece from <$> squareParser
+
+castleParser :: Position -> Parser Move
+castleParser pos = case toPlay pos of
+    White -> do
+        Castle (Square 8 1) (Square 5 1) <$ string "O-O-O"
+        Castle (Square 1 1) (Square 5 1) <$ string "O-O"
+    Black -> do
+        Castle (Square 8 8) (Square 5 8) <$ string "O-O-O"
+        Castle (Square 1 8) (Square 5 8) <$ string "O-O"
+
+promParser :: Position -> Parser Move
+promParser pos = do
+    from <- squareParser
+    _ <- char '-'
+    to <- squareParser
+    Promotion from to <$> pieceParser (toPlay pos)
+
+squareParser :: Parser Square
+squareParser =
+    Square <$> colParser <*> rowParser
+  where
+    colParser = colAparser <|> colBparser <|> colCparser <|> colDparser <|> colEparser <|> colFparser <|> colGparser <|> colHparser
+    colAparser = 1 <$ char 'a'
+    colBparser = 2 <$ char 'b'
+    colCparser = 3 <$ char 'c'
+    colDparser = 4 <$ char 'd'
+    colEparser = 5 <$ char 'e'
+    colFparser = 6 <$ char 'f'
+    colGparser = 7 <$ char 'g'
+    colHparser = 8 <$ char 'h'
+    rowParser = rowAparser <|> rowBparser <|> rowCparser <|> rowDparser <|> rowEparser <|> rowFparser <|> rowGparser <|> rowHparser
+    rowAparser = 1 <$ char '1'
+    rowBparser = 2 <$ char '2'
+    rowCparser = 3 <$ char '3'
+    rowDparser = 4 <$ char '4'
+    rowEparser = 5 <$ char '5'
+    rowFparser = 6 <$ char '6'
+    rowGparser = 7 <$ char '7'
+    rowHparser = 8 <$ char '8'
+
+pieceParser :: Color -> Parser Piece
+pieceParser color = knightParser <|> bishopParser <|> rookParser <|> queenParser
+  where
+    knightParser = Knight color <$ char 'K'
+    bishopParser = Bishop color <$ char 'B'
+    rookParser = Rook color <$ char 'R'
+    queenParser = Queen color <$ char 'Q'
+
+playMove :: String -> Position -> Either String Position
+playMove s pos =
+    let moveE = parseOnly (moveParser pos) (pack s)
+     in moveE
+            >>= ( \case
+                    MovedPiece from to ->
+                        let moveAttempt = Chess.movePiece pos from to
+                            tree = Chess.positionTree pos
+                            isAmongLegalMoves = any (eqPosition moveAttempt) tree
+                            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos from)
+                         in if isAmongLegalMoves && correctColorMadeTheMove
+                                then Right moveAttempt
+                                else Left "Move not among legal moves OR incorrect color made the move"
+                    Castle from@(Square col _) to ->
+                        let moveAttempt = head $ case col of
+                                1 -> Chess.castleLong pos
+                                8 -> Chess.castleShort pos
+                                _ -> error "Castle problems.. col from square not 1 or 8, plz clean up castling mess"
+                            isAmongLegalMoves = moveAttempt `elem` Chess.positionTree pos
+                            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos from)
+                         in if isAmongLegalMoves && correctColorMadeTheMove
+                                then Right moveAttempt
+                                else Left "Could not do Castling"
+                    Promotion from to piece ->
+                        let moveAttempt = Chess.movePiecePromote pos from to piece
+                            isAmongLegalMoves = any (eqPosition moveAttempt) (Chess.positionTree pos)
+                            correctColorMadeTheMove = Just (toPlay pos) == fmap colr (pieceAt pos from)
+                         in if isAmongLegalMoves && correctColorMadeTheMove
+                                then Right moveAttempt
+                                else Left "Promotion not among legal moves OR incorrect color made the move"
+                )
+
+playMoves :: [String] -> Either String Position
+playMoves =
     foldl
-        (\acc c -> acc >>= parseMove c)
+        (\acc c -> acc >>= playMove c)
         (Right startPosition :: Either String Position)
-
-parseFrom :: String -> Square
-parseFrom x =
-    let cC = head x
-        c = asInt cC
-        rC = x !! 1
-        r = digitToInt rC
-     in Square c r
-
-parseTo :: String -> Square
-parseTo x =
-    let cC = x !! 3
-        c = asInt cC
-        rC = x !! 4
-        r = digitToInt rC
-     in Square c r
-
-asInt :: Char -> Int
-asInt 'a' = 1
-asInt 'b' = 2
-asInt 'c' = 3
-asInt 'd' = 4
-asInt 'e' = 5
-asInt 'f' = 6
-asInt 'g' = 7
-asInt 'h' = 8
-asInt x = error $ "not a column I can parse: " ++ [x]

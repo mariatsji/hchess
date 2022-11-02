@@ -52,7 +52,7 @@ data Position = Position
     }
     deriving (Eq, Show, Generic)
 
-data Move = MovedPiece Square Square | Enpassant Square Square | Promotion Square Piece | Castle Square Square
+data Move = MovedPiece Square Square | Promotion Square Square Piece | Castle Square Square
     deriving stock (Eq, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
@@ -90,8 +90,7 @@ mkPositionExpensive pos@(Position snpa _ csw csb wk bk _) snpb = case findMove s
             | from == Square 8 8 && csb == CanCastleBoth -> mkPosition pos snpb csw CanCastleA wk bk
             | from == Square 8 8 && csb == CanCastleH -> mkPosition pos snpb csw CanCastleNone wk bk
             | otherwise -> mkPosition pos snpb csw csb wk bk
-    Enpassant _ _ -> mkPosition pos snpb csw csb wk bk
-    Promotion _ _ -> mkPosition pos snpb csw csb wk bk
+    Promotion _ _ _ -> mkPosition pos snpb csw csb wk bk
     Castle _ to
         | to == Square 1 1 -> mkPosition pos snpb CanCastleNone csb (Just $ Square 3 1) bk
         | to == Square 8 1 -> mkPosition pos snpb CanCastleNone csb (Just $ Square 7 1) bk
@@ -222,9 +221,8 @@ findMove a b =
                 | Square 8 8 `elem` changedSquares -> Castle (Square 5 8) (Square 8 8)
                 | Square 1 8 `elem` changedSquares -> Castle (Square 5 8) (Square 1 8)
                 | otherwise -> error "could not determine position diff of length 4 that does not seem to be a castle"
-            3 -> Enpassant (epfromSquare changedSquaresAndPiece) (eptoSquare changedSquaresAndPiece)
             2
-                | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece)
+                | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (findTo b changedSquares) (promtoSquare changedSquaresAndPiece)
                 | otherwise -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares)
             _ -> error "could not determine changed position when diff length not 2,3,4"
 

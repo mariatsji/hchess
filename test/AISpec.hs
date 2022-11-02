@@ -30,20 +30,20 @@ spec = describe "AI" $ do
     let p3 = head $ positionTree p2
     oneStep p1 p3 `shouldBe` Just p2
   it "checks a rather specific oneStep function" $ do
-    let Right p = parseMoves ["e2-e4","d7-d5","e4-d5"]
+    let Right p = playMoves ["e2-e4","d7-d5","e4-d5"]
     let Right best = AI.edgeGreed p 2
     m best `shouldNotBe` startTree
   it "sorts a small positionTree for black" $ do
-    let Right p = parseMoves ["e2-e4","g7-g6","d1-h5"]
+    let Right p = playMoves ["e2-e4","g7-g6","d1-h5"]
         evaluated = (`evaluate'` BlackToPlay) <$> positionTree p
         [queenTake] = AI.best 1 Black evaluated -- it should take the queen here
     pieceAt (pos queenTake) (Square 8 5) `shouldBe` Just (Pawn Black) -- took the queen
   it "sorts a small positionTree for white" $ do
-    let Right p = parseMoves ["e2-e4","f7-f5"]
+    let Right p = playMoves ["e2-e4","f7-f5"]
         evaluated = (`evaluate'` WhiteToPlay) <$> positionTree p
         [queenTake] = AI.best 1 White evaluated -- it should take the pawn here
     pieceAt (pos queenTake) (Square 6 5) `shouldBe` Just (Pawn White) -- took the pawn
 {-   it "edgeGreed finds a checkmate" $ do
-    let Right p = parseMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
+    let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4","b8-c6","d1-h5","g8-f6","h5-f7"]
     let Left (resPos, status) = AI.edgeGreed p 2
     status `shouldBe` BlackIsMate -}

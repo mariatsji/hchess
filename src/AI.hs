@@ -22,7 +22,7 @@ import Data.List (drop, find, length, sortBy)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Ord (Ord ((<), (>)))
 import Evaluation (Evaluated (..), evaluate', getPosition)
-import Move (parseMoves)
+import Move (playMoves)
 import Position (
     Color (..),
     Move,
