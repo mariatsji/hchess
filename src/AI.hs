@@ -145,7 +145,7 @@ expandHorizon n pos =
                  in first `par` first <> (xs >>= expandHorizon (n - 1))
 
 oneStep :: Position -> Position -> Maybe Position
-oneStep pos@(Position snpa gha _ _ _ _ _) (Position snpb ghb _ _ _ _ _) =
+oneStep pos@(Position snpa gha _ _ _) (Position snpb ghb _ _ _) =
     let diff = length (snpb : ghb) - length (snpa : gha)
         onemorelist = drop (diff - 1) (snpb : ghb)
      in if diff > 0 then mkPositionExpensive pos <$> listToMaybe onemorelist else Nothing

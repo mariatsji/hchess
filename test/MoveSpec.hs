@@ -72,7 +72,7 @@ spec = do
       let p1 = replacePieceAt (m emptyBoard) (Square 8 8) (King Black)
       let p2 = replacePieceAt p1 (Square 5 1) (King White)
       let p3 = replacePieceAt p2 (Square 8 7) (Pawn White)
-      let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], castleStatusWhite = CanCastleBoth, castleStatusBlack = CanCastleBoth, whiteKing = Just (Square 5 1), blackKing = Just (Square 8 8), toPlay = Black}
+      let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], castleStatusWhite = CanCastleBoth, castleStatusBlack = CanCastleBoth, toPlay = Black}
       length t `shouldBe` (3 :: Int)
     it "knows that white is in check" $ do
       let p' = Move.playMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
@@ -111,7 +111,7 @@ spec = do
       let m1 = removePieceAt (m startPosition) (Square 2 8)
           m2 = removePieceAt m1 (Square 3 8)
           m3 = removePieceAt m2 (Square 4 8)
-          p = Position m3 [m2, m1, m startPosition] CanCastleBoth CanCastleBoth (Just $ Square 5 1) (Just $ Square 5 8) Black
+          p = Position m3 [m2, m1, m startPosition] CanCastleBoth CanCastleBoth Black
           c = castleLong p
       length c `shouldBe` (1 :: Int)
       pieceAt (head c) (Square 3 8) `shouldBe` Just (King Black)
@@ -234,9 +234,6 @@ spec = do
       let p1 = startPosition
       let p2 = head $ positionTree startPosition
       head (gamehistory p2) `shouldBe` m p1
-    it "updates the black king position when moving king" $ do
-      let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "e8-e7"]
-      blackKing p `shouldBe` Just (Square 5 7)
     it "knows black is in check" $ do
       let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
       isInCheck p `shouldBe` True

@@ -46,8 +46,6 @@ data Position = Position
     , gamehistory :: [Snapshot]
     , castleStatusWhite :: CastleStatus
     , castleStatusBlack :: CastleStatus
-    , whiteKing :: Maybe Square -- todo delete this
-    , blackKing :: Maybe Square -- todo delete this
     , toPlay :: Color
     }
     deriving (Eq, Show, Generic)
@@ -60,40 +58,38 @@ next :: Color -> Color
 next White = Black
 next Black = White
 
-mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Maybe Square -> Maybe Square -> Position
-mkPosition pos snp csW csB whiteKing' blackKing' =
+mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Position
+mkPosition pos snp csW csB =
     let newGH = m pos : gamehistory pos
      in pos
             { m = snp
             , gamehistory = newGH
             , castleStatusWhite = csW
             , castleStatusBlack = csB
-            , whiteKing = whiteKing'
-            , blackKing = blackKing'
             , toPlay = next (toPlay pos)
             }
 
 mkPositionExpensive :: Position -> Snapshot -> Position
-mkPositionExpensive pos@(Position snpa _ csw csb wk bk _) snpb =
+mkPositionExpensive pos@(Position snpa _ csw csb _) snpb =
     let colorWhoMoved = next (toPlay pos)
      in case findMove snpa snpb of
             MovedPiece from to -> case snpb ?! hash from of
                 Just (King White) ->
-                    mkPosition pos snpb CanCastleNone csb (Just to) bk
+                    mkPosition pos snpb CanCastleNone csb
                 Just (Rook White) ->
-                    mkPosition pos snpb (downgrade from csw) csb wk bk
+                    mkPosition pos snpb (downgrade from csw) csb
                 Just (King Black) ->
-                    mkPosition pos snpb csw CanCastleNone wk (Just to)
+                    mkPosition pos snpb csw CanCastleNone
                 Just (Rook Black) ->
-                    mkPosition pos snpb csw (downgrade from csb) wk bk
-                _ -> mkPosition pos snpb csw csb wk bk
-            Promotion {} -> mkPosition pos snpb csw csb wk bk
+                    mkPosition pos snpb csw (downgrade from csb)
+                _ -> mkPosition pos snpb csw csb
+            Promotion {} -> mkPosition pos snpb csw csb
             CastleShort -> case colorWhoMoved of
-                White -> mkPosition pos snpb CanCastleNone csb (Just $ Square 7 1) bk
-                Black -> mkPosition pos snpb csw CanCastleNone wk (Just $ Square 7 8)
+                White -> mkPosition pos snpb CanCastleNone csb
+                Black -> mkPosition pos snpb csw CanCastleNone
             CastleLong -> case colorWhoMoved of
-                White -> mkPosition pos snpb CanCastleNone csb (Just $ Square 3 1) bk
-                Black -> mkPosition pos snpb csw CanCastleNone wk (Just $ Square 3 8)
+                White -> mkPosition pos snpb CanCastleNone csb
+                Black -> mkPosition pos snpb csw CanCastleNone
 
 downgrade :: Square -> CastleStatus -> CastleStatus
 downgrade (Square _ row) castleStatus =
@@ -128,8 +124,6 @@ startPosition =
         , gamehistory = []
         , castleStatusWhite = CanCastleBoth
         , castleStatusBlack = CanCastleBoth
-        , whiteKing = Just (Square 5 1)
-        , blackKing = Just (Square 5 8)
         , toPlay = White
         }
 
@@ -217,7 +211,7 @@ catSndMaybes = mapMaybe sequenceA
 infixl 9 <$.>
 
 emptyBoard :: Position
-emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth Nothing Nothing White
+emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth White
 
 findMove :: Snapshot -> Snapshot -> Move
 findMove a b =

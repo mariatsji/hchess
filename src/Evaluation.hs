@@ -6,18 +6,18 @@ module Evaluation (
 ) where
 
 import Chess
+import Control.Parallel (par)
 import Data.Foldable (foldl')
 import Data.Maybe (fromMaybe)
+import GHC.Conc (pseq)
 import GHC.Generics (Generic)
 import Position
-import Control.Parallel (par)
-import GHC.Conc (pseq)
 
-data Evaluated
-    = Evaluated
-        { pos :: Position
-        , score :: Float
-        , status :: Status }
+data Evaluated = Evaluated
+    { pos :: Position
+    , score :: Float
+    , status :: Status
+    }
     deriving stock (Eq, Show)
 
 getPosition :: Evaluated -> Position

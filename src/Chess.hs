@@ -2,12 +2,12 @@
 
 module Chess where
 
+import Control.Parallel (par, pseq)
 import Data.List
 import Data.Maybe
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
-import Control.Parallel (pseq, par)
 
 data Status
     = WhiteToPlay
@@ -25,15 +25,15 @@ squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
 -- flips toPlay
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos@(Position m' _ _ _ wk bk tp) from@(Square fc _) to@(Square tc tr)
+movePiece pos@(Position m' _ _ _ tp) from@(Square fc _) to@(Square tc tr)
     | pieceAt pos from == Just (Pawn White) && (fc /= tc) && vacantAt pos to =
         let newSnapshot =
                 movePiece' (removePieceAt m' (Square tc (tr - 1))) from to
-         in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos) wk bk
+         in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos)
     | pieceAt pos from == Just (Pawn Black) && (fc /= tc) && vacantAt pos to =
         let newSnapshot =
                 movePiece' (removePieceAt m' (Square tc (tr + 1))) from to
-         in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos) wk bk
+         in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos)
     | otherwise =
         let newSnapshot = movePiece' m' from to
             newCastleStatusWhite = case tp of
@@ -42,15 +42,7 @@ movePiece pos@(Position m' _ _ _ wk bk tp) from@(Square fc _) to@(Square tc tr)
             newCastleStatusBlack = case tp of
                 Black -> mkNewCastleStatus pos Black from
                 White -> castleStatusBlack pos
-            newWhiteKing
-                | pieceAt pos to == Just (King White) = Nothing
-                | pieceAt pos from == Just (King White) = Just to
-                | otherwise = wk
-            newBlackKing
-                | pieceAt pos to == Just (King Black) = Nothing
-                | pieceAt pos from == Just (King Black) = Just to
-                | otherwise = bk
-         in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newWhiteKing newBlackKing
+         in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack
 
 movePiecePromote :: Position -> Square -> Square -> Piece -> Position
 movePiecePromote pos from toSquare promPiece =
@@ -128,7 +120,7 @@ positionTree :: Position -> [Position]
 positionTree pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
 
 notSelfcheck :: Color -> Position -> Bool
-notSelfcheck col pos = not $ isInCheck ( pos { toPlay =col } )
+notSelfcheck col pos = not $ isInCheck (pos {toPlay = col})
 
 debugger :: IO ()
 debugger = do
@@ -146,7 +138,7 @@ positionTreeIgnoreCheck pos =
 
 -- flips toPlay, does promotions too
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
-positionsPrPiece pos@(Position snp _ _ _ _ _ _) (s, p) = case p of
+positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
     Pawn _ ->
         let squares = filter (canGoThere pos s . fst) $ toSquaresPawn pos s
             positions =
@@ -211,7 +203,7 @@ toSquaresPawn pos s@(Square _ r)
 
 -- en passant
 enPassant :: Position -> Square -> Bool
-enPassant (Position _ [] _ _ _ _ _) _ = False
+enPassant (Position _ [] _ _ _) _ = False
 enPassant pos s@(Square c r)
     | toPlay pos == White =
         (r == 5) && pieceAt pos s == Just (Pawn Black) && jumpedHereJustNow pos s
@@ -318,15 +310,7 @@ castle' pos kingPosF rookPosF doCastleF =
                 let newSnapshot = doCastleF (m pos) color
                     newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
                     newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
-                    newKingPosWhite = case rookPosF color of
-                        Square 1 1 -> Just $ Square 3 1
-                        Square 8 1 -> Just $ Square 7 1
-                        _ -> whiteKing pos
-                    newKingPosBlack = case rookPosF color of
-                        Square 1 8 -> Just $ Square 3 8
-                        Square 8 8 -> Just $ Square 7 8
-                        _ -> blackKing pos
-                 in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack newKingPosWhite newKingPosBlack]
+                 in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack]
             else []
 
 doCastleShort :: Snapshot -> Color -> Snapshot
@@ -376,31 +360,31 @@ willNotPassCheck pos (Square 5 1) (Square 8 1) =
     not $
         any
             isInCheck
-            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 6 1) (King (toPlay pos)), whiteKing = Just (Square 6 1)}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 7 1) (King (toPlay pos)), whiteKing = Just (Square 7 1)}
+            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 6 1) (King (toPlay pos))}
+            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 7 1) (King (toPlay pos))}
             ]
 willNotPassCheck pos (Square 5 1) (Square 1 1) =
     not $
         any
             isInCheck
-            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 4 1) (King (toPlay pos)), whiteKing = Just (Square 4 1)}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 3 1) (King (toPlay pos)), whiteKing = Just (Square 3 1)}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 2 1) (King (toPlay pos)), whiteKing = Just (Square 2 1)}
+            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 4 1) (King (toPlay pos))}
+            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 3 1) (King (toPlay pos))}
+            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 2 1) (King (toPlay pos))}
             ]
 willNotPassCheck pos (Square 5 8) (Square 8 8) =
     not $
         any
             isInCheck
-            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 6 8) (King (toPlay pos)), blackKing = Just (Square 6 8)}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 7 8) (King (toPlay pos)), blackKing = Just (Square 7 8)}
+            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 6 8) (King (toPlay pos))}
+            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 7 8) (King (toPlay pos))}
             ]
 willNotPassCheck pos (Square 5 8) (Square 1 8) =
     not $
         any
             isInCheck
-            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 4 8) (King (toPlay pos)), blackKing = Just (Square 4 8)}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 3 8) (King (toPlay pos)), blackKing = Just (Square 3 8)}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 2 8) (King (toPlay pos)), blackKing = Just (Square 2 8)}
+            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 4 8) (King (toPlay pos))}
+            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 3 8) (King (toPlay pos))}
+            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 2 8) (King (toPlay pos))}
             ]
 willNotPassCheck _ s1 s2 =
     error $
@@ -421,27 +405,29 @@ isInCheck :: Position -> Bool
 isInCheck pos =
     case toPlay pos of
         White ->
-            case whiteKing pos of
-                Nothing -> False
-                Just kingSquare ->
-                    let cangothere = canGoThere pos kingSquare
-                        checkByPawn = pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
-                        checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKnight kingSquare)
-                        checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
-                        checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
-                        checkByKing = any ((Just (King Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare) -- todo move this check to canGoThere.. case I am a King piece -> check if causes check, else ..
-                     in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
+            let whiteKingPos = searchForPieces pos (const True) (== King White)
+             in case whiteKingPos of
+                    [(kingSquare, _)] ->
+                        let cangothere = canGoThere pos kingSquare
+                            checkByPawn = pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
+                            checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKnight kingSquare)
+                            checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
+                            checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
+                            checkByKing = any ((Just (King Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare) -- todo move this check to canGoThere.. case I am a King piece -> check if causes check, else ..
+                         in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
+                    _ -> False
         Black ->
-            case blackKing pos of
-                Nothing -> False
-                Just kingSquare ->
-                    let cangothere = canGoThere pos kingSquare
-                        checkByPawn = pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
-                        checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight kingSquare
-                        checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
-                        checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
-                        checkByKing = any ((Just (King White) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare)
-                     in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
+            let blackKingPos = searchForPieces pos (const True) (== King Black)
+             in case blackKingPos of
+                    [(kingSquare, _)] ->
+                        let cangothere = canGoThere pos kingSquare
+                            checkByPawn = pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
+                            checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight kingSquare
+                            checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
+                            checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
+                            checkByKing = any ((Just (King White) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare)
+                         in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
+                    _ -> False
 
 isCheckMate :: Position -> [Position] -> Bool
 isCheckMate pos positiontree = isInCheck pos && null positiontree
@@ -450,10 +436,10 @@ isDraw :: Position -> [Position] -> Bool
 isDraw pos ptree = isPatt pos ptree || threefoldrepetition pos
 
 threefoldrepetition :: Position -> Bool
-threefoldrepetition (Position m' gh _ _ _ _ _) = length gh > 5 && length (filter (== m') gh) > 1
+threefoldrepetition (Position m' gh _ _ _) = length gh > 5 && length (filter (== m') gh) > 1
 
 eqPosition :: Position -> Position -> Bool
-eqPosition (Position m1 _ _ _ _ _ _) (Position m2 _ _ _ _ _ _) = m1 == m2
+eqPosition (Position m1 _ _ _ _) (Position m2 _ _ _ _) = m1 == m2
 
 isPatt :: Position -> [Position] -> Bool
 isPatt pos positiontree = not (isInCheck pos) && null positiontree
