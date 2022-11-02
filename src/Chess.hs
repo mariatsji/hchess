@@ -278,10 +278,10 @@ type RookPos = Color -> Square
 -- flips!
 castle :: Position -> [Position]
 castle pos =
-    let x = case toPlay pos of
+    let relevantStatus = case toPlay pos of
             White -> castleStatusWhite pos
             _ -> castleStatusBlack pos
-     in case x of
+     in case relevantStatus of
             CanCastleNone -> []
             CanCastleBoth -> castleShort pos <> castleLong pos
             CanCastleA -> castleLong pos
