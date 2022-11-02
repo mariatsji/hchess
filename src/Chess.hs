@@ -178,8 +178,6 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
     King _ ->
         fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
-row :: Square -> Int
-row (Square _ r) = r
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]

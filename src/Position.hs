@@ -30,10 +30,10 @@ data Piece
 type Col = Int
 type Row = Int
 
-data Square
-    = Square
-        Col
-        Row
+data Square = Square
+    { col :: Col
+    , row :: Row
+    }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (FromJSON, ToJSON)
 
