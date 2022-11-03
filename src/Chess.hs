@@ -98,7 +98,8 @@ canGoThere pos from to =
 
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos to =
-    null $ searchForPieces pos (== to) ((== toPlay pos) . colr)
+    let myColor = toPlay pos
+    in fmap colr (pieceAt pos to) /= Just myColor
 
 enemyAt :: Position -> Square -> Bool
 enemyAt pos to =
