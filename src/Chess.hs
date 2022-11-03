@@ -269,12 +269,7 @@ toSquaresKing s =
     , insideBoard $ squareTo s a b
     ]
 
--- castles
-type KingPos = Color -> Square
-
-type RookPos = Color -> Square
-
--- flips!
+-- flips! todo this is in context of positionTree.. not after a Move
 castle :: Position -> [Position]
 castle pos =
     let relevantStatus = case toPlay pos of
@@ -282,33 +277,30 @@ castle pos =
             _ -> castleStatusBlack pos
      in case relevantStatus of
             CanCastleNone -> []
-            CanCastleBoth -> castleShort pos <> castleLong pos
-            CanCastleA -> castleLong pos
-            CanCastleH -> castleShort pos
+            CanCastleBoth -> castle' CastleShort pos <> castle' CastleLong pos
+            CanCastleA -> castle' CastleLong pos
+            CanCastleH -> castle' CastleShort pos
 
-castleShort :: Position -> [Position]
-castleShort pos = castle' pos kingPos shortRookPos doCastleShort
-
-castleLong :: Position -> [Position]
-castleLong pos = castle' pos kingPos longRookPos doCastleLong
-
-castle' ::
-    Position -> KingPos -> RookPos -> (Snapshot -> Color -> Snapshot) -> [Position]
-castle' pos kingPosF rookPosF doCastleF =
+castle' :: Move -> Position -> [Position]
+castle' move pos =
     let color = toPlay pos
-     in if pieceAt pos (kingPosF color) == Just (King color) -- must have a king at home
-            && pieceAt pos (rookPosF color) -- must have a rook at home
-                == Just (Rook color)
-            && vacantBetween pos (kingPosF color) (rookPosF color) -- must be vacant between king and rook
-            && ( not (isInCheck pos) -- must not be in check
-                    && willNotPassCheck pos (kingPosF color) (rookPosF color) -- must not move through check
-               )
-            then
-                let newSnapshot = doCastleF (m pos) color
-                    newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
-                    newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
-                 in [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack]
-            else []
+        kingSquare = kingPos color
+        rookSquare = case move of
+            CastleShort -> shortRookPos color
+            _ -> longRookPos color -- todo illegal state if not castle move
+        hasKingAtHome = pieceAt pos kingSquare == Just (King color)
+        hasRookAtHome = pieceAt pos rookSquare == Just (Rook color)
+        vacantBetweenKingAndRook = vacantBetween pos kingSquare rookSquare
+        isNotInCheck = not (isInCheck pos)
+        wontPassCheck = willNotPassCheck pos kingSquare rookSquare
+        newSnapshot = case move of
+            CastleShort -> doCastleShort (m pos) color
+            _ -> doCastleLong (m pos) color -- todo illegal state if not castle move
+        newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
+        newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
+    in if hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck
+        then [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack]
+    else [] -- todo error state ?
 
 doCastleShort :: Snapshot -> Color -> Snapshot
 doCastleShort pos c =

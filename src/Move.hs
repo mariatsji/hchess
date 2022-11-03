@@ -69,8 +69,8 @@ playMove s pos = do
     move <- parseOnly (moveParser pos) (pack s)
     let moveAttempt = case move of
             MovedPiece from to -> Chess.movePiece pos from to
-            CastleShort -> head $ Chess.castleShort pos -- todo
-            CastleLong -> head $ Chess.castleLong pos -- todo
+            CastleShort -> head $ Chess.castle' CastleShort pos -- todo head..
+            CastleLong -> head $ Chess.castle' CastleLong pos -- todo head..
             Promotion from to piece -> Chess.movePiecePromote pos from to piece
         tree = Chess.positionTree pos
         isAmongLegalMoves = any (eqPosition moveAttempt) tree
