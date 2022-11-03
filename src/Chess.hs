@@ -94,8 +94,8 @@ points (Square c1 r1) (Square c2 r2)
 -- todo par?
 canGoThere :: Position -> Square -> Square -> Bool
 canGoThere pos from to =
-    all isNothing (fmap (pieceAt pos) (points from to))
-        && finalDestinationNotOccupiedBySelf pos to
+    finalDestinationNotOccupiedBySelf pos to &&
+        all isNothing (fmap (pieceAt pos) (points from to))
 
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos to =
