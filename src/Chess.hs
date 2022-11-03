@@ -178,7 +178,6 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
     King _ ->
         fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
-
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]
 toSquaresPawn pos s@(Square _ r)
@@ -354,43 +353,11 @@ promoteRow White = homeRow Black
 promoteRow Black = homeRow White
 
 willNotPassCheck :: Position -> Square -> Square -> Bool
-willNotPassCheck pos (Square 5 1) (Square 8 1) =
-    not $
-        any
-            isInCheck
-            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 6 1) (King (toPlay pos))}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 7 1) (King (toPlay pos))}
-            ]
-willNotPassCheck pos (Square 5 1) (Square 1 1) =
-    not $
-        any
-            isInCheck
-            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 4 1) (King (toPlay pos))}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 3 1) (King (toPlay pos))}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 1)) (Square 2 1) (King (toPlay pos))}
-            ]
-willNotPassCheck pos (Square 5 8) (Square 8 8) =
-    not $
-        any
-            isInCheck
-            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 6 8) (King (toPlay pos))}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 7 8) (King (toPlay pos))}
-            ]
-willNotPassCheck pos (Square 5 8) (Square 1 8) =
-    not $
-        any
-            isInCheck
-            [ pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 4 8) (King (toPlay pos))}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 3 8) (King (toPlay pos))}
-            , pos {m = replacePieceAt (removePieceAt (m pos) (Square 5 8)) (Square 2 8) (King (toPlay pos))}
-            ]
-willNotPassCheck _ s1 s2 =
-    error $
-        "cannot use squares "
-            <> show s1
-            <> " and "
-            <> show s2
-            <> " as castling squares"
+willNotPassCheck pos kingPos rookPos =
+    let king = King $ toPlay pos
+        squares = if col rookPos == 8 then points kingPos rookPos else points kingPos (rookPos {col = 7})
+        asPos square = pos {m = replacePieceAt (removePieceAt (m pos) kingPos) square king}
+     in not $ any isInCheck $ asPos <$> squares
 
 insideBoard :: Square -> Bool
 insideBoard (Square c r) = c >= 1 && c <= 8 && r >= 1 && r <= 8
