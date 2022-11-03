@@ -91,6 +91,7 @@ points (Square c1 r1) (Square c2 r2)
                     else reverse [r2 + 1 .. r1 - 1]
          in uncurry Square <$> cs `zip` rs
 
+-- todo par?
 canGoThere :: Position -> Square -> Square -> Bool
 canGoThere pos from to =
     all isNothing (fmap (pieceAt pos) (points from to))
