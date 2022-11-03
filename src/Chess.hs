@@ -94,8 +94,9 @@ points (Square c1 r1) (Square c2 r2)
 -- todo par?
 canGoThere :: Position -> Square -> Square -> Bool
 canGoThere pos from to =
-    finalDestinationNotOccupiedBySelf pos to &&
-        all isNothing (fmap (pieceAt pos) (points from to))
+    let vacant = finalDestinationNotOccupiedBySelf pos to
+        clear = all isNothing (fmap (pieceAt pos) (points from to))
+    in vacant && clear
 
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos to =
@@ -135,7 +136,7 @@ positionTreeIgnoreCheck pos =
         allPieceSquares = searchForPieces pos (const True) (\p -> colr p == c)
         prPiece = positionsPrPiece pos =<< allPieceSquares -- flipped
         castled = castle pos -- flipped
-     in prPiece `pseq` castled `par` prPiece <> castled
+     in prPiece <> castled
 
 -- flips toPlay, does promotions too
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
