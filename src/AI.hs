@@ -57,7 +57,7 @@ edgeGreedCompat pos' depth broadness =
 dig :: Int -> Int -> Color -> Evaluated -> Evaluated
 dig depth broadness perspective ev@Evaluated {..} =
     let candidates = positionTree pos
-        evaluated = evaluate' <$> candidates
+        evaluated = evaluate' <-$-> candidates
      in if depth == 0
             then fromMaybe ev $ singleBest perspective evaluated
             else case find (terminallyGood perspective) evaluated of
@@ -65,6 +65,18 @@ dig depth broadness perspective ev@Evaluated {..} =
                 Nothing ->
                     let furtherInspect = best broadness perspective evaluated
                      in fromMaybe ev $ singleBest perspective $ dig (depth - 1) broadness (next perspective) <$> furtherInspect
+
+-- par/pseq fmap
+paraMap :: ( a -> b ) -> [ a ] -> [ b ]
+paraMap f [] = []
+paraMap f (x:xs) = 
+    let a = f x
+        as = paraMap f xs 
+    in a `pseq` as `par` a : as
+
+
+(<-$->) = paraMap
+infixl 4 <-$->
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =

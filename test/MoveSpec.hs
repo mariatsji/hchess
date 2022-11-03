@@ -182,20 +182,6 @@ spec = do
       length cPawnMoves `shouldBe` (2 :: Int)
       let ePawnMoves = filter (\p -> isNothing (pieceAt p (Square 5 5))) t
       length ePawnMoves `shouldBe` (2 :: Int)
-    it "counts occurrences of a position in a game history" $ do
-      let p =
-            makeMoves
-              startPosition
-              [ (Square 2 1, Square 3 3),
-                (Square 2 8, Square 1 6),
-                (Square 3 3, Square 2 1),
-                (Square 1 6, Square 2 8),
-                (Square 2 1, Square 3 3),
-                (Square 2 8, Square 1 6),
-                (Square 3 3, Square 2 1),
-                (Square 1 6, Square 2 8)
-              ]
-      threefoldrepetition p `shouldBe` True
     it "does not trigger 3-fold-repetition rule out of the blue" $ do
       let p =
             makeMoves

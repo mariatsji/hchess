@@ -71,6 +71,8 @@ gameLoopHM pos depth = do
             if status == BlackToPlay
                 then case AI.edgeGreed newPos depth of
                     Right newPos2 -> do
+                        let move = findMove (m newPos) (m newPos2)
+                        print move
                         Printer.pretty newPos2
                         gameLoopHM newPos2 depth
                     Left (pos'', status') -> do

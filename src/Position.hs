@@ -34,8 +34,14 @@ data Square = Square
     { col :: Col
     , row :: Row
     }
-    deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving stock (Eq, Ord)
+
+instance Show Square where
+    show (Square col row) = toLetter col : show row
+
+-- todo hack
+toLetter :: Int -> Char
+toLetter c = ('x' : [ 'a' .. ]) !! c
 
 type Snapshot = Tree (Maybe Piece)
 
@@ -51,8 +57,19 @@ data Position = Position
     deriving (Eq, Show, Generic)
 
 data Move = MovedPiece Square Square | Promotion Square Square Piece | CastleShort | CastleLong
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving stock (Eq)
+
+instance Show Move where
+    show (MovedPiece from to) = show from <> "-" <> show to
+    show (Promotion from to piece) = show from <> "-" <> show to <> toOneChar piece
+        where toOneChar :: Piece -> String
+              toOneChar (Queen _) = "Q"
+              toOneChar (Rook _) = "R"
+              toOneChar (Bishop _) = "B"
+              toOneChar (Knight _) = "K"
+              toOneChar _ = ""
+    show CastleShort = "O-O"
+    show CastleLong = "O-O-O"
 
 next :: Color -> Color
 next White = Black
