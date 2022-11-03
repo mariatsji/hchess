@@ -340,10 +340,6 @@ homeRow :: Color -> Int
 homeRow White = 1
 homeRow Black = 8
 
-promoteRow :: Color -> Int
-promoteRow White = homeRow Black
-promoteRow Black = homeRow White
-
 willNotPassCheck :: Position -> Square -> Square -> Bool
 willNotPassCheck pos kingPos rookPos =
     let king = King $ toPlay pos
