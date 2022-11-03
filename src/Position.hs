@@ -60,16 +60,16 @@ data Move = MovedPiece Square Square | Promotion Square Square Piece | CastleSho
     deriving stock (Eq)
 
 instance Show Move where
-    show (MovedPiece from to) = show from <> "-" <> show to
-    show (Promotion from to piece) = show from <> "-" <> show to <> toOneChar piece
+    show (MovedPiece from to) = "\"" <> show from <> "-" <> show to <> "\""
+    show (Promotion from to piece) = "\"" <> show from <> "-" <> show to <> toOneChar piece <> "\""
         where toOneChar :: Piece -> String
               toOneChar (Queen _) = "Q"
               toOneChar (Rook _) = "R"
               toOneChar (Bishop _) = "B"
               toOneChar (Knight _) = "K"
               toOneChar _ = ""
-    show CastleShort = "O-O"
-    show CastleLong = "O-O-O"
+    show CastleShort = "\"O-O\""
+    show CastleLong = "\"O-O-O\""
 
 next :: Color -> Color
 next White = Black

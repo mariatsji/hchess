@@ -2,8 +2,6 @@ module GameLoop where
 
 import AI (edgeGreed)
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus)
-import Control.Monad.IO.Class (MonadIO (liftIO))
-import Control.Monad.Trans.Writer (WriterT (runWriterT), tell)
 import Move (playMove)
 import Position (
     Color (White),
@@ -14,8 +12,8 @@ import Position (
  )
 import Printer (pretty)
 import System.Exit (exitSuccess)
-
-type App a = WriterT [Move] IO a
+import qualified Data.Text.IO as TIO
+import Data.Text (pack)
 
 start :: String -> IO ()
 start "1" = do
@@ -29,7 +27,7 @@ start "2" = do
     l <- getLine
     let depth = read l :: Int
     Printer.pretty startPosition
-    gameLoopHM startPosition depth
+    gameLoopHM [] startPosition depth
 start "3" = do
     putStrLn "Enter white search depth (2-5) where 2 is faster and 5 is stronger"
     lw <- getLine
@@ -38,11 +36,10 @@ start "3" = do
     lb <- getLine
     let bdepth = read lb :: Int
     Printer.pretty startPosition
-    moves <- runWriterT $ gameLoopMM startPosition wdepth bdepth
-    print moves
+    gameLoopMM startPosition wdepth bdepth
 start _ = exitSuccess
 
-gameLoopMM :: Position -> Int -> Int -> App ()
+gameLoopMM :: Position -> Int -> Int -> IO ()
 gameLoopMM pos whiteDepth blackDepth = do
     let depth =
             if toPlay pos == White
@@ -50,22 +47,23 @@ gameLoopMM pos whiteDepth blackDepth = do
                 else blackDepth
     case AI.edgeGreed pos depth of
         Right pos' -> do
-            tell [findMove (m pos) (m pos')]
-            liftIO $ Printer.pretty pos'
+            let move = findMove (m pos) (m pos')
+            Printer.pretty pos'
             gameLoopMM pos' whiteDepth blackDepth
         Left (pos', status) -> do
-            liftIO $ print status
-            liftIO $ Printer.pretty pos'
+            print status
+            Printer.pretty pos'
             pure ()
 
-gameLoopHM :: Position -> Int -> IO ()
-gameLoopHM pos depth = do
+gameLoopHM :: [Move] -> Position -> Int -> IO ()
+gameLoopHM moves pos depth = do
     l <- getLine
     case playMove l pos of
         Left _ -> do
             putStrLn "Could not parse move"
-            gameLoopHM pos depth
+            gameLoopHM moves pos depth
         Right newPos -> do
+            let humanMove = findMove (m newPos) (m pos)
             Printer.pretty newPos
             let status = determineStatus newPos
             if status == BlackToPlay
@@ -74,14 +72,15 @@ gameLoopHM pos depth = do
                         let move = findMove (m newPos) (m newPos2)
                         print move
                         Printer.pretty newPos2
-                        gameLoopHM newPos2 depth
+                        gameLoopHM (humanMove : move : moves) newPos2 depth
                     Left (pos'', status') -> do
                         Printer.pretty pos''
                         print status'
+                        flightRecorder moves
                         exitSuccess
                 else do
                     print status
-                    gameLoopHM pos depth
+                    gameLoopHM (humanMove : moves) pos depth
 
 gameLoopHH :: Position -> IO ()
 gameLoopHH pos = do
@@ -102,3 +101,9 @@ gameLoopHH pos = do
                     else do
                         print newStatus
                         exitSuccess
+
+flightRecorder :: [Move] -> IO ()
+flightRecorder moves = do
+    print "saving game.log"
+    let content = show $ reverse moves
+    TIO.writeFile "game.log" (pack content)
