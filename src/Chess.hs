@@ -400,15 +400,13 @@ isPatt pos positiontree = not (isInCheck pos) && null positiontree
 determineStatus :: Position -> Status
 determineStatus pos =
     let ptree = positionTree pos
-     in if toPlay pos == White && isCheckMate pos ptree
+        isMate = isCheckMate pos ptree
+     in if toPlay pos == White && isMate
             then WhiteIsMate
-            else
-                if isCheckMate pos ptree
-                    then BlackIsMate
-                    else
-                        if isDraw pos ptree
-                            then Remis
-                            else
-                                if toPlay pos == White
-                                    then WhiteToPlay
-                                    else BlackToPlay
+        else if isMate
+            then BlackIsMate
+        else if isDraw pos ptree
+            then Remis
+        else if toPlay pos == White
+            then WhiteToPlay
+        else BlackToPlay
