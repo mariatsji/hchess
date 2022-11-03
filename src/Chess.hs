@@ -117,7 +117,6 @@ makeMoves = foldl (uncurry . movePiece)
 pieceAt :: Position -> Square -> Maybe Piece
 pieceAt = pieceAt' . m
 
--- BUG.. cant find positiontree when in check here, we simply want to remove positions where we put ourselves in check
 positionTree :: Position -> [Position]
 positionTree pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
 
@@ -388,10 +387,10 @@ isCheckMate :: Position -> [Position] -> Bool
 isCheckMate pos positiontree = null positiontree && isInCheck pos
 
 isDraw :: Position -> [Position] -> Bool
-isDraw pos ptree = isPatt pos ptree || threefoldrepetition pos
+isDraw pos ptree = threefoldrepetition pos || isPatt pos ptree
 
 threefoldrepetition :: Position -> Bool
-threefoldrepetition (Position m' gh _ _ _) = length gh > 5 && length (filter (== m') gh) > 1
+threefoldrepetition (Position m' gh _ _ _) = length gh > 5 && length (filter (== m') gh) > 2
 
 eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _ _ _ _) (Position m2 _ _ _ _) = m1 == m2
