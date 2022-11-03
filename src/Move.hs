@@ -64,22 +64,19 @@ pieceParser color = knightParser <|> bishopParser <|> rookParser <|> queenParser
     queenParser = Queen color <$ char 'Q'
 
 playMove :: String -> Position -> Either String Position
-playMove s pos =
-    let moveE = parseOnly (moveParser pos) (pack s)
-        color = toPlay pos
-     in moveE
-            >>= ( \move ->
-                    let moveAttempt = case move of
-                            MovedPiece from to -> Chess.movePiece pos from to
-                            CastleShort -> head $ Chess.castleShort pos -- todo
-                            CastleLong -> head $ Chess.castleLong pos -- todo
-                            Promotion from to piece -> Chess.movePiecePromote pos from to piece
-                        tree = Chess.positionTree pos
-                        isAmongLegalMoves = any (eqPosition moveAttempt) tree
-                     in if isAmongLegalMoves
-                            then Right moveAttempt
-                            else Left $ "Move not among legal moves OR incorrect color made the move: " <> s
-                )
+playMove s pos = do
+    let color = toPlay pos
+    move <- parseOnly (moveParser pos) (pack s)
+    let moveAttempt = case move of
+            MovedPiece from to -> Chess.movePiece pos from to
+            CastleShort -> head $ Chess.castleShort pos -- todo
+            CastleLong -> head $ Chess.castleLong pos -- todo
+            Promotion from to piece -> Chess.movePiecePromote pos from to piece
+        tree = Chess.positionTree pos
+        isAmongLegalMoves = any (eqPosition moveAttempt) tree
+    if isAmongLegalMoves
+        then Right moveAttempt
+        else Left $ "Move not among legal moves OR incorrect color made the move: " <> s
 
 playMoves :: [String] -> Either String Position
 playMoves =
