@@ -2,8 +2,6 @@
 
 module AI (
     edgeGreed,
-    expandHorizon,
-    swapForBetter,
     oneStep,
     best,
     dig,
@@ -40,28 +38,26 @@ edgeGreed pos depth = edgeGreedCompat pos depth 200
 -- silly wrapper, this is not edgeGreed but dig..
 edgeGreedCompat :: Position -> Int -> Int -> Either (Position, Status) Position
 edgeGreedCompat pos' depth broadness =
-    let status = determineStatus pos'
-        perspective = toPlay pos'
-        evaluated = evaluate' pos' status
+    let perspective = toPlay pos'
+        evaluated = evaluate' pos'
         resEither = mkEither $ dig depth broadness (toPlay pos') evaluated
      in case resEither of
-            Right poz -> case oneStep pos' poz of
+            Right ev -> case oneStep pos' (pos ev) of
                 Just pozz -> Right pozz
-                Nothing -> Left (pos', status)
-            x -> x
+                Nothing -> Left (pos', status ev)
+            x -> fmap pos x
   where
-    mkEither :: Evaluated -> Either (Position, Status) Position
-    mkEither Evaluated {..} = case status of
-        WhiteToPlay -> Right pos
-        BlackToPlay -> Right pos
+    mkEither :: Evaluated -> Either (Position, Status) Evaluated
+    mkEither ev@Evaluated {..} = case status of
+        WhiteToPlay -> Right ev
+        BlackToPlay -> Right ev
         terminalStatus -> Left (pos, terminalStatus)
 
 -- oneStep-functionality is missing
 dig :: Int -> Int -> Color -> Evaluated -> Evaluated
 dig depth broadness perspective ev@Evaluated {..} =
     let candidates = positionTree pos
-        withStatuses = (\p -> (p, determineStatus p)) <$> candidates
-        evaluated = uncurry evaluate' <$> withStatuses
+        evaluated = evaluate' <$> candidates
      in if depth == 0
             then fromMaybe ev $ singleBest perspective evaluated
             else case find (terminallyGood perspective) evaluated of
@@ -102,47 +98,6 @@ sorter perspective (Evaluated posA scoreA statusA) (Evaluated posB scoreB status
             (BlackIsMate, _) -> LT
             (_, BlackIsMate) -> GT
             (_, _) -> compare scoreA scoreB -- black wants as negative as possible
-
-actualEdgeGreed :: Position -> Int -> Either (Position, Status) Position
-actualEdgeGreed pos depth =
-    let status = determineStatus pos
-        color = toPlay pos
-        best =
-            foldl'
-                ( \bestsofar potential ->
-                    potential `pseq`
-                        bestsofar `par`
-                            swapForBetter color (evaluate' potential status) bestsofar
-                )
-                (evaluate' pos status)
-                (expandHorizon depth pos)
-     in maybe (Left (pos, status)) Right (oneStep pos (getPosition best))
-
--- compare current potential gh from horizon with a best so far (used in a fold over complete horizon)
-swapForBetter :: Color -> Evaluated -> Evaluated -> Evaluated
-swapForBetter White ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBSF statusBSF)
-    | statusBSF == BlackIsMate = bestSoFar
-    | scorePot > scoreBSF = ePot
-    | otherwise = bestSoFar
-swapForBetter Black ePot@(Evaluated _ scorePot _) bestSoFar@(Evaluated _ scoreBSF statusBSF)
-    | statusBSF == WhiteIsMate = bestSoFar
-    | scorePot < scoreBSF = ePot
-    | otherwise = bestSoFar
-
-expandHorizon :: Int -> Position -> [Position]
-expandHorizon 0 pos = [pos]
-expandHorizon 1 pos = positionTree pos
-expandHorizon n pos =
-    let expanded = expandHorizon 1 pos
-     in case expanded of
-            [] -> []
-            [x, y] ->
-                let first = expandHorizon (n - 1) x
-                    second = expandHorizon (n - 1) y
-                 in first `pseq` second
-            (x : xs) ->
-                let first = expandHorizon (n - 1) x
-                 in first `par` first <> (xs >>= expandHorizon (n - 1))
 
 oneStep :: Position -> Position -> Maybe Position
 oneStep pos@(Position snpa gha _ _ _) (Position snpb ghb _ _ _) =

@@ -23,12 +23,13 @@ data Evaluated = Evaluated
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
 
-evaluate' :: Position -> Status -> Evaluated
-evaluate' gh status = case status of
-    WhiteIsMate -> Evaluated gh (-10000.0) WhiteIsMate
-    BlackIsMate -> Evaluated gh 10000.0 BlackIsMate
-    Remis -> Evaluated gh 0 Remis
-    playOn -> Evaluated gh (evaluate gh) playOn
+evaluate' :: Position -> Evaluated
+evaluate' pos = 
+    case determineStatus pos of
+        WhiteIsMate -> Evaluated pos (-10000.0) WhiteIsMate
+        BlackIsMate -> Evaluated pos 10000.0 BlackIsMate
+        Remis -> Evaluated pos 0 Remis
+        playOn -> Evaluated pos (evaluate pos) playOn
 
 -- CAF good?
 evaluate :: Position -> Float
