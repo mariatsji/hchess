@@ -108,14 +108,14 @@ executable hchess-profiled
 executable hchess
   main-is: Main.hs
   ghc-options:
-    -O1
+    -O2
     -fwarn-incomplete-patterns
     -fwarn-redundant-constraints
     -fwarn-unused-imports
     -fwarn-unused-packages
     -F -pgmF=record-dot-preprocessor
     -threaded
-    "-with-rtsopts=-N4"
+    "-with-rtsopts=-N6 --nonmoving-gc -M8G -A64M -qn4 -qb"
   hs-source-dirs:
       app
   default-extensions:

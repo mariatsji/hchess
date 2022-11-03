@@ -11,7 +11,14 @@
     cabal run hchess
     
     
-# start app with profiling
+# Run profiling
 
     nix-shell
     ./prof.sh
+
+
+outputs hchess-profiled.hp and hchess-profiled.prof
+
+# Install binary locally
+
+    nix-env -i -f release.nix

@@ -383,7 +383,7 @@ isInCheck pos =
                     _ -> False
 
 isCheckMate :: Position -> [Position] -> Bool
-isCheckMate pos positiontree = isInCheck pos && null positiontree
+isCheckMate pos positiontree = null positiontree && isInCheck pos
 
 isDraw :: Position -> [Position] -> Bool
 isDraw pos ptree = isPatt pos ptree || threefoldrepetition pos
@@ -395,7 +395,7 @@ eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _ _ _ _) (Position m2 _ _ _ _) = m1 == m2
 
 isPatt :: Position -> [Position] -> Bool
-isPatt pos positiontree = not (isInCheck pos) && null positiontree
+isPatt pos positiontree = null positiontree && not (isInCheck pos)
 
 determineStatus :: Position -> Status
 determineStatus pos =
