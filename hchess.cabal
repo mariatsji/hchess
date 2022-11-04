@@ -24,6 +24,7 @@ source-repository head
 
 library
   exposed-modules:
+      Cache
       Chess
       Printer
       Evaluation
@@ -43,6 +44,7 @@ library
       DerivingVia
       GeneralisedNewtypeDeriving
       LambdaCase
+      NumericUnderscores
       OverloadedStrings
       QuasiQuotes
       RecordWildCards
@@ -62,6 +64,7 @@ library
     , parallel
     , text
     , transformers
+    , multi-containers
     , utf8-string
   default-language: Haskell2010
 
@@ -141,6 +144,7 @@ test-suite hchess-test
   main-is: Main.hs
   other-modules:
       AISpec
+      CacheSpec
       MoveSpec
   hs-source-dirs:
       test

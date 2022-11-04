@@ -8,6 +8,7 @@ import Data.Maybe
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
+import qualified Data.Set as Set
 
 data Status
     = WhiteToPlay

@@ -7,7 +7,7 @@ import Data.Monoid
 import Data.Word
 import GHC.Generics
 
-data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Eq, Show, Generic)
+data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Eq, Ord, Show, Generic)
 
 instance Functor Tree where
     fmap f (Leaf x) = Leaf (f x)

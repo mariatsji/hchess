@@ -7,6 +7,7 @@ module AI (
     dig,
 ) where
 
+import Cache
 import Chess (
     Status (..),
     determineStatus,
@@ -58,7 +59,7 @@ edgeGreedCompat pos' depth broadness =
 dig :: Int -> Int -> Color -> Evaluated -> Evaluated
 dig depth broadness perspective ev@Evaluated {..} =
     let candidates = positionTree pos
-        evaluated = evaluate' <-$-> candidates
+        evaluated = evaluate' <$> candidates
      in if depth == 0
             then fromMaybe ev $ singleBest perspective evaluated
             else case find (terminallyGood perspective) evaluated of
