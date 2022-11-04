@@ -244,7 +244,7 @@ findMove a b =
             2
                 | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece) (promtoPiece changedSquaresAndPiece)
                 | otherwise -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares)
-            _ -> error "could not determine changed position when diff length not 2,3,4"
+            _ -> error $ "could not determine changed position when diff length " <> show (length changedSquares)
 
 findFrom :: Snapshot -> [Square] -> Square
 findFrom _ [] = error "Could not find from square in snapshot"

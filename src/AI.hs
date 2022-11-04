@@ -24,12 +24,13 @@ import Move (playMoves)
 import Position (
     Color (..),
     Move,
-    Position (Position, m, toPlay),
+    Position (Position, gamehistory, m, toPlay),
     findMove,
     mkPositionExpensive,
     next,
  )
 import Printer (prettyE)
+import qualified Debug.Trace as Debug
 
 -- restore edgeGreed until oneStep is in place
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
@@ -40,20 +41,20 @@ edgeGreedCompat :: Position -> Int -> Int -> Either (Position, Status) Position
 edgeGreedCompat pos' depth broadness =
     let perspective = toPlay pos'
         evaluated = evaluate' pos'
-        resEither = mkEither $ dig depth broadness (toPlay pos') evaluated
+        resEither = filterOnlyPlayable $ dig depth broadness (toPlay pos') evaluated
      in case resEither of
-            Right ev -> case oneStep pos' (pos ev) of
-                Just pozz -> Right pozz
-                Nothing -> Left (pos', status ev)
+            Right ev ->
+                case oneStep pos' (pos ev) of
+                    Left s -> Debug.trace s $ Left (pos ev, status ev)
+                    Right newPos -> Right newPos
             x -> fmap pos x
   where
-    mkEither :: Evaluated -> Either (Position, Status) Evaluated
-    mkEither ev@Evaluated {..} = case status of
+    filterOnlyPlayable :: Evaluated -> Either (Position, Status) Evaluated
+    filterOnlyPlayable ev@Evaluated {..} = case status of
         WhiteToPlay -> Right ev
         BlackToPlay -> Right ev
         terminalStatus -> Left (pos, terminalStatus)
 
--- oneStep-functionality is missing
 dig :: Int -> Int -> Color -> Evaluated -> Evaluated
 dig depth broadness perspective ev@Evaluated {..} =
     let candidates = positionTree pos
@@ -67,13 +68,12 @@ dig depth broadness perspective ev@Evaluated {..} =
                      in fromMaybe ev $ singleBest perspective $ dig (depth - 1) broadness (next perspective) <$> furtherInspect
 
 -- par/pseq fmap
-paraMap :: ( a -> b ) -> [ a ] -> [ b ]
+paraMap :: (a -> b) -> [a] -> [b]
 paraMap f [] = []
-paraMap f (x:xs) = 
+paraMap f (x : xs) =
     let a = f x
-        as = paraMap f xs 
-    in a `pseq` as `par` a : as
-
+        as = paraMap f xs
+     in a `pseq` as `par` a : as
 
 (<-$->) = paraMap
 infixl 4 <-$->
@@ -111,8 +111,17 @@ sorter perspective (Evaluated posA scoreA statusA) (Evaluated posB scoreB status
             (_, BlackIsMate) -> GT
             (_, _) -> compare scoreA scoreB -- black wants as negative as possible
 
-oneStep :: Position -> Position -> Maybe Position
-oneStep pos@(Position snpa gha _ _ _) (Position snpb ghb _ _ _) =
-    let diff = length (snpb : ghb) - length (snpa : gha)
-        onemorelist = drop (diff - 1) (snpb : ghb)
-     in if diff > 0 then mkPositionExpensive pos <$> listToMaybe onemorelist else Nothing
+-- todo this throws away sooooo much info!
+oneStep :: Position -> Position -> Either String Position
+oneStep p (Position snpAdvanced ghAdvanced _ _ _) =
+    let snp = m p
+        gh = gamehistory p
+        idx = (length ghAdvanced - length gh) - 1
+     in case safeLookup idx (snpAdvanced : ghAdvanced) of
+            Nothing -> Left $ "Could not lookup oneStep, from gh length " <> show (length gh) <> " to length advanced " <> show (length ghAdvanced)
+            Just nextSnp -> Right $ mkPositionExpensive p nextSnp
+
+safeLookup :: Int -> [a] -> Maybe a
+safeLookup _ [] = Nothing
+safeLookup 0 (x : _) = Just x
+safeLookup i (_ : xs) = safeLookup (i - 1) xs
