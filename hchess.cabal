@@ -28,6 +28,7 @@ library
       Chess
       Printer
       Evaluation
+      GUI
       Move
       AI
       Position
@@ -61,6 +62,7 @@ library
     , bytestring
     , containers
     , ghc-bignum
+    , gloss
     , parallel
     , text
     , transformers
@@ -136,6 +138,42 @@ executable hchess
       TypeOperators
   build-depends:
       base
+    , hchess
+  default-language: Haskell2010
+
+executable hchess-gui
+  main-is: Main.hs
+  ghc-options:
+    -O2
+    -fwarn-incomplete-patterns
+    -fwarn-redundant-constraints
+    -fwarn-unused-imports
+    -fwarn-unused-packages
+    -threaded
+    "-with-rtsopts=-N6 --nonmoving-gc -M8G -A64M -qn4 -qb"
+  hs-source-dirs:
+      gui
+  default-extensions:
+      BlockArguments
+      DataKinds
+      DeriveAnyClass
+      DeriveGeneric
+      DerivingStrategies
+      DerivingVia
+      GeneralisedNewtypeDeriving
+      LambdaCase
+      OverloadedStrings
+      QuasiQuotes
+      RecordWildCards
+      ScopedTypeVariables
+      StandaloneDeriving
+      TupleSections
+      TypeApplications
+      TypeFamilies
+      TypeOperators
+  build-depends:
+      base
+    , gloss
     , hchess
   default-language: Haskell2010
 

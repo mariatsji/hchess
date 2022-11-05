@@ -8,3 +8,9 @@ cradle:
 
     - path: "test"
       component: "hchess:test:hchess-test"
+
+    - path: "profiled"
+      component: "hchess:exe:hchess-profiled"
+
+    - path: "gui"
+      component: "hchess:exe:hchess-gui"

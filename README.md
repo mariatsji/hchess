@@ -5,11 +5,15 @@
     nix-shell
     cabal test
 
+# Start app with GUI
+
+    nix-shell
+    cabal run hchess-gui
+
 # start app
 
     nix-shell
     cabal run hchess
-    
     
 # Run profiling
 
