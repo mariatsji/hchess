@@ -1,21 +1,46 @@
 module GUI (render, handleInput, step) where
 
-import Data.Maybe (fromMaybe)
+import Chess (board, movePiece)
+import Data.Maybe (fromMaybe, listToMaybe)
+import qualified Debug.Trace as Debug
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort (ViewPort)
-import Graphics.Gloss.Interface.IO.Interact (Event)
+import Graphics.Gloss.Interface.IO.Game (Event (EventKey), Key (..), MouseButton (..))
+import Graphics.Gloss.Interface.IO.Interact (Event, KeyState (..))
 import Graphics.Gloss.Juicy
-import Position (Color (..), Piece (..), Position (m), Square (..), toList')
+import Position (Color (..), Move, Piece (..), Position (m), Square (..), toList')
 import System.IO.Unsafe (unsafePerformIO)
 
-render :: Position -> Picture
-render pos = Pictures $ drawPiece <$> toList' (m pos)
+type World = (Position, Maybe Square) -- need to store mouse down square (from square)
 
-handleInput :: Event -> Position -> Position
-handleInput _ pos = pos
+render :: World -> Picture
+render (pos, maybeFrom) = Pictures $ drawPiece <$> toList' (m pos)
 
-step :: Float -> Position -> Position
-step _ pos = pos
+handleInput :: Event -> World -> World
+handleInput event (pos, mSquare) = Debug.trace (analyze event) $ case event of
+    EventKey (MouseButton LeftButton) Down _ xy ->
+        let foundSquare = findSquare xy
+         in Debug.trace (show foundSquare) (pos, foundSquare)
+    EventKey (MouseButton LeftButton) Up _ xy ->
+        let mSquareTo = findSquare xy
+            newPos = movePiece pos <$> mSquare <*> mSquareTo
+         in Debug.trace (show mSquare <> "-" <> show mSquareTo) case newPos of
+                Nothing -> (pos, mSquare)
+                Just new -> (new, Nothing)
+    _ -> (pos, mSquare)
+
+findSquare :: (Float, Float) -> Maybe Square
+findSquare (x, y) = listToMaybe [square | square <- board, xCoord square `closeTo` x && yCoord square `closeTo` y]
+  where
+    closeTo :: Float -> Float -> Bool
+    closeTo a b = abs (a - b) < 15
+
+analyze :: Event -> String
+analyze =
+    show
+
+step :: Float -> World -> World
+step _ (pos, mSquare) = (pos, mSquare)
 
 emptySquare :: Square -> Picture
 emptySquare squ@Square {..} =
@@ -36,8 +61,7 @@ yCoord (Square _ r) = fromIntegral $ 60 * [(-4) ..] !! r
 
 emptyBoard :: Picture
 emptyBoard =
-    let squares = Square <$> [1 .. 8] <*> [1 .. 8]
-     in foldMap emptySquare squares
+    foldMap emptySquare board
 
 drawPiece :: (Square, Maybe Piece) -> Picture
 drawPiece (squ@(Square c r), mPiece) =
@@ -63,10 +87,9 @@ piecePicture piece = fromMaybe (error "unable to load piece image") $
             King White -> "img/KingWhite.png"
             King Black -> "img/KingBlack.png"
 
-
 over :: Picture -> Picture -> Picture
-over foreground background = 
+over foreground background =
     let xScaleFactor = 0.1
         yScaleFactor = 0.1
         scaled = Scale xScaleFactor yScaleFactor foreground
-    in Pictures [background, scaled]
+     in Pictures [background, scaled]

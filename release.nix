@@ -1,6 +1,6 @@
 let
   pkgs = import ./nixpkgs.nix;
-  hchess = pkgs.haskellPackages.callCabal2nix "hchess" ./. { };
+  hchess = pkgs.haskellPackages.callCabal2nix "hchess-gui" ./. { };
   thinner = x:
     with pkgs;
     haskell.lib.disableLibraryProfiling
