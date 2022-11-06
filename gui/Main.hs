@@ -1,11 +1,12 @@
 module Main where
 
 import qualified GUI
-import Graphics.Gloss
-import Position
+import Graphics.Gloss ( greyN, play, Display(InWindow) )
+import Position ( startPosition )
 
 main :: IO ()
 main = do
+    
     play
         (InWindow "hChess" (800, 600) (10, 10))
         (greyN 0.8) -- background color
