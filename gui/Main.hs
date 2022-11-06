@@ -10,7 +10,7 @@ main = do
     play
         (InWindow "hChess" (800, 600) (10, 10))
         (greyN 0.8) -- background color
-        10 -- number of steps per second
+        2 -- number of steps per second
         (startPosition, Nothing) -- initial world with no square mouse-clicked
         GUI.render -- function to convert world to a Picture
         GUI.handleInput -- function to handle input events

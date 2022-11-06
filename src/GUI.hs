@@ -14,20 +14,23 @@ import System.IO.Unsafe (unsafePerformIO)
 type World = (Position, Maybe Square) -- need to store mouse down square (from square)
 
 render :: World -> Picture
-render (pos, maybeFrom) = Pictures $ drawPiece <$> toList' (m pos)
+render (pos, maybeFrom) = Pictures $ drawPiece maybeFrom <$> toList' (m pos)
 
 handleInput :: Event -> World -> World
-handleInput event (pos, mSquare) = Debug.trace (analyze event) $ case event of
-    EventKey (MouseButton LeftButton) Down _ xy ->
-        let foundSquare = findSquare xy
-         in Debug.trace (show foundSquare) (pos, foundSquare)
+handleInput event (pos, Nothing) = Debug.trace (analyze event) $ case event of
+    EventKey (MouseButton LeftButton) Down _ xy -> (pos, findSquare xy)
+    _ -> (pos, Nothing)
+handleInput event (pos, Just fromSquare) = Debug.trace (show fromSquare <> ": " <> analyze event) $ case event of
     EventKey (MouseButton LeftButton) Up _ xy ->
         let mSquareTo = findSquare xy
-            newPos = movePiece pos <$> mSquare <*> mSquareTo
-         in Debug.trace (show mSquare <> "-" <> show mSquareTo) case newPos of
-                Nothing -> (pos, mSquare)
-                Just new -> (new, Nothing)
-    _ -> (pos, mSquare)
+         in if mSquareTo /= Just fromSquare
+                then
+                    let newPos = movePiece pos fromSquare <$> mSquareTo
+                     in Debug.trace (show fromSquare <> "-" <> show mSquareTo) case newPos of
+                            Nothing -> (pos, Nothing)
+                            Just new -> (new, Nothing)
+                else (pos, Just fromSquare)
+    _ -> (pos, Just fromSquare)
 
 findSquare :: (Float, Float) -> Maybe Square
 findSquare (x, y) = listToMaybe [square | square <- board, xCoord square `closeTo` x && yCoord square `closeTo` y]
@@ -42,13 +45,14 @@ analyze =
 step :: Float -> World -> World
 step _ (pos, mSquare) = (pos, mSquare)
 
-emptySquare :: Square -> Picture
-emptySquare squ@Square {..} =
+emptySquare :: Bool -> Square -> Picture
+emptySquare toHighlight squ@Square {..} =
     let color' =
             if odd (col + row)
                 then light aquamarine
                 else dark azure
-     in Color color' emptySquareImg
+        highlighted = if toHighlight then rose else color'
+     in Color highlighted emptySquareImg
 
 emptySquareImg :: Picture
 emptySquareImg = Polygon [(-30, -30), (30, -30), (30, 30), (-30, 30)]
@@ -61,14 +65,18 @@ yCoord (Square _ r) = fromIntegral $ 60 * [(-4) ..] !! r
 
 emptyBoard :: Picture
 emptyBoard =
-    foldMap emptySquare board
+    foldMap (emptySquare False) board
 
-drawPiece :: (Square, Maybe Piece) -> Picture
-drawPiece (squ@(Square c r), mPiece) =
+drawPiece :: Maybe Square -> (Square, Maybe Piece) -> Picture
+drawPiece mFrom (squ@(Square c r), mPiece) =
     let translated = Translate (xCoord squ) (yCoord squ)
+        bgSquare =
+            if mFrom == Just squ
+                then emptySquare True squ
+                else emptySquare False squ
      in translated $ case mPiece of
-            Just piece -> piecePicture piece `over` emptySquare squ
-            _ -> emptySquare squ
+            Just piece -> piecePicture piece `over` bgSquare
+            _ -> bgSquare
 
 piecePicture :: Piece -> Picture
 piecePicture piece = fromMaybe (error "unable to load piece image") $
