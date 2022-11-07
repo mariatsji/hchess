@@ -61,9 +61,6 @@ library
     , attoparsec
     , bytestring
     , containers
-    , ghc-bignum
-    , gloss
-    , gloss-juicy
     , parallel
     , text
     , transformers
@@ -174,7 +171,7 @@ executable hchess-gui
       TypeOperators
   build-depends:
       base
-    , gloss
+    , gi-gtk-declarative-app-simple
     , hchess
   default-language: Haskell2010
 

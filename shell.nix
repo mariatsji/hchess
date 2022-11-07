@@ -16,7 +16,8 @@ let haskellStuff = with pkgs;
             git
             curl
         ];
-    all = haskellStuff ++ tools;
+    graphics = with pkgs; [ haskellPackages.haskell-gi-base haskellPackages.gi-gtk ]; # pkg-config glib gobject-introspection ];
+    all = haskellStuff ++ tools ++ graphics;
 
 
 in pkgs.mkShell {

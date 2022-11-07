@@ -1,5 +1,6 @@
-module GUI (render, handleInput, step) where
+module GUI where
 
+{--
 import Chess (board, movePiece)
 import Data.Maybe (fromMaybe, listToMaybe)
 import qualified Debug.Trace as Debug
@@ -17,16 +18,16 @@ render :: World -> Picture
 render (pos, maybeFrom) = Pictures $ drawPiece maybeFrom <$> toList' (m pos)
 
 handleInput :: Event -> World -> World
-handleInput event (pos, Nothing) = Debug.trace (analyze event) $ case event of
+handleInput event (pos, Nothing) = case event of
     EventKey (MouseButton LeftButton) Down _ xy -> (pos, findSquare xy)
     _ -> (pos, Nothing)
-handleInput event (pos, Just fromSquare) = Debug.trace (show fromSquare <> ": " <> analyze event) $ case event of
+handleInput event (pos, Just fromSquare) = case event of
     EventKey (MouseButton LeftButton) Up _ xy ->
         let mSquareTo = findSquare xy
          in if mSquareTo /= Just fromSquare
                 then
                     let newPos = movePiece pos fromSquare <$> mSquareTo
-                     in Debug.trace (show fromSquare <> "-" <> show mSquareTo) case newPos of
+                     in case newPos of
                             Nothing -> (pos, Nothing)
                             Just new -> (new, Nothing)
                 else (pos, Just fromSquare)
@@ -101,3 +102,5 @@ over foreground background =
         yScaleFactor = 0.1
         scaled = Scale xScaleFactor yScaleFactor foreground
      in Pictures [background, scaled]
+
+     --}
