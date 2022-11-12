@@ -1,18 +1,23 @@
 module Main where
 
-import qualified GUI
-import Position ( startPosition )
-import Graphics.UI.Gtk
+import Data.Text (Text)
+import qualified GI.Gtk as Gtk
+import qualified GI.Gio.Objects.Application as Gio
+import Position
 
-type World = (Position, Mabybe Square) -- store the world and also a potential fromSquare (after user clicks it)
+type World = (Position, Maybe Square) -- store the world and also a potential fromSquare (after user clicks it)
 
--- https://hackage.haskell.org/package/gi-gtk-declarative-app-simple-0.7.1/docs/GI-Gtk-Declarative-App-Simple.html
 main :: IO ()
 main = do
-    let initialState = (newPosition, Nothing)
-    let app = App
-        _update
-        _view
-        _inputs
-        initialState
-    newState <- run app
+    Just app <- Gtk.applicationNew (Just appId) []
+    _ <- Gio.onApplicationActivate app (appActivate app)
+    _ <- Gio.applicationRun app Nothing
+    pure ()
+    
+appId :: Text
+appId = "io.grevling.hchess"
+
+appActivate :: Gtk.Application -> IO ()
+appActivate app = do
+    window <- Gtk.applicationWindowNew app
+    Gtk.widgetShowAll window
