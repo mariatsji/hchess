@@ -1,12 +1,16 @@
 module Main where
 
 import Data.Text (Text)
+import Control.Monad (forM_)
 import qualified Data.Text as Text
 import qualified GI.Gtk as Gtk
 import qualified GI.Gtk.Objects.Widget (widgetSetSizeRequest)
+import qualified GI.Cairo.Structs.Rectangle as Rect
 import qualified GI.Gio.Objects.Application as Gio
 import Position
 import System.IO.Unsafe (unsafePerformIO)
+import Data.Foldable (traverse_)
+import Data.Int (Int32)
 
 type World = (Position, Maybe Square) -- store the world and also a potential fromSquare (after user clicks it)
 
@@ -16,7 +20,7 @@ main = do
     _ <- Gio.onApplicationActivate app (appActivate app)
     _ <- Gio.applicationRun app Nothing
     pure ()
-    
+
 appId :: Text
 appId = "io.grevling.hchess"
 
@@ -27,28 +31,39 @@ appActivate app = do
     Gtk.setWindowResizable window True
     Gtk.setWindowDefaultWidth window 1000
 
-    {--vbox <- Gtk.boxNew Gtk.OrientationVertical 10
-    Gtk.setWidgetMargin vbox 10
-    Gtk.containerAdd window vbox
-    Gtk.widgetShow vbox --}
-    pic <- whitePawn (Square 1 1, Nothing)
-    Gtk.containerAdd window pic 
-    Gtk.widgetShow pic
-    
+    traverse_
+        (drawSquare window)
+        (toList' (m startPosition))
+
     Gtk.widgetShow window
 
 
+drawSquare :: Gtk.ApplicationWindow -> (Square, Maybe Piece) -> IO Gtk.Box
+drawSquare window (Square c r, mPiece)= do
+    vbox <- Gtk.boxNew Gtk.OrientationVertical 0
+    Gtk.widgetSetSizeRequest vbox 60 60
 
-whitePawn :: (Square, Maybe Piece) -> IO Gtk.Image
-whitePawn (Square c r, mPiece)= do
     area <- Gtk.drawingAreaNew
-    let width = 60
-        height = 60
-    _ <- Gtk.widgetSetSizeRequest area width height
+    Gtk.setDrawingAreaContentHeight area 60
+   
     --let squareCol = if even $ c + r then _brown else _white
-    
-    Gtk.imageNewFromFile "img/PawnWhite.png"
 
+    rect <- Rect.newZeroRectangle
+    Rect.setRectangleWidth rect 60
+    Rect.setRectangleHeight rect 60
+
+    Gtk.containerAdd vbox area
+    Gtk.containerAdd window vbox
+    Gtk.widgetShow vbox
+
+    pure vbox
+    -- Gtk.imageNewFromFile "img/PawnWhite.png"
+
+
+{--vbox <- Gtk.boxNew Gtk.OrientationVertical 10
+Gtk.setWidgetMargin vbox 10
+Gtk.containerAdd window vbox
+Gtk.widgetShow vbox --}
 
 
 {--
@@ -82,7 +97,7 @@ Gtk.onButtonClicked button $ do
     Gtk.containerAdd vbox button
     Gtk.widgetShow button
 --}
-addEntry :: Gtk.IsContainer a => Text -> a -> IO Gtk.Entry
+{- addEntry :: Gtk.IsContainer a => Text -> a -> IO Gtk.Entry
 addEntry labelStr container = do
     hbox <- Gtk.boxNew Gtk.OrientationHorizontal 5
     entry <- Gtk.entryNew
@@ -95,4 +110,4 @@ addEntry labelStr container = do
     Gtk.widgetShow entry
     Gtk.widgetShow label
     Gtk.widgetShow hbox
-    pure entry
+    pure entry -}

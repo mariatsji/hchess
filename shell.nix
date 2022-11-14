@@ -30,7 +30,7 @@ let hax = pkgs.haskellPackages.override {
             git
             curl
         ];
-    ux = with pkgs;[ gtk3 pkgconfig gobject-introspection ];
+    ux = with pkgs;[ gtk3 pkgconfig gobject-introspection cairo ];
     
     all = haskellStuff ++ tools ++ ux;
 

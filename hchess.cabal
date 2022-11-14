@@ -1,4 +1,4 @@
-cabal-version: 1.12
+cabal-version: 3.4
 
 -- This file has been generated from package.yaml by hpack version 0.34.4.
 --
@@ -11,8 +11,7 @@ homepage:       https://github.com/githubuser/hchess#readme
 bug-reports:    https://github.com/githubuser/hchess/issues
 author:         Sjur Millidahl
 maintainer:     sjur.millidahl@gmail.com
-copyright:      2017 Sjur Millidahl
-license:        BSD3
+copyright:      2022 Sjur Millidahl
 license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
@@ -56,7 +55,7 @@ library
       TypeFamilies
       TypeOperators
   build-depends:
-      base >=4.7 && <5
+      base ^>=4.15.1.0
     , aeson
     , attoparsec
     , bytestring
@@ -100,7 +99,7 @@ executable hchess-profiled
       TypeFamilies
       TypeOperators
   build-depends:
-      base
+      base ^>=4.15.1.0
     , hchess
   default-language: Haskell2010
 
@@ -135,7 +134,7 @@ executable hchess
       TypeFamilies
       TypeOperators
   build-depends:
-      base
+      base ^>=4.15.1.0
     , hchess
   default-language: Haskell2010
 
@@ -170,9 +169,10 @@ executable hchess-gui
       TypeFamilies
       TypeOperators
   build-depends:
-      base
+      base ^>=4.15.1.0
     , gi-gtk
     , gi-gio
+    , gi-cairo
     , hchess
     , text
   default-language: Haskell2010
@@ -205,7 +205,7 @@ test-suite hchess-test
       TypeFamilies
       TypeOperators
   build-depends:
-    base
+    base ^>=4.15.1.0
     , hchess
     , hspec
   default-language: Haskell2010
