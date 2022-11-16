@@ -1,4 +1,6 @@
-# hchess
+# hChess
+
+![Cover art](img/coverart.png "hChess")
 
 # run tests
 

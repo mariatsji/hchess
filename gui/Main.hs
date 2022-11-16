@@ -1,14 +1,12 @@
 module Main where
 
 import Data.Text (Text)
-import Control.Monad (forM_)
-import qualified Data.Text as Text
 import qualified GI.Gtk as Gtk
-import qualified GI.Gtk.Objects.Widget (widgetSetSizeRequest)
-import qualified GI.Cairo.Structs.Rectangle as Rect
+import qualified GI.Gtk.Objects.Fixed as Gtk.Fixed
+import qualified GI.GdkPixbuf as Pixbuf
+
 import qualified GI.Gio.Objects.Application as Gio
 import Position
-import System.IO.Unsafe (unsafePerformIO)
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
 
@@ -30,84 +28,53 @@ appActivate app = do
     Gtk.setWindowTitle window "hChess"
     Gtk.setWindowResizable window True
     Gtk.setWindowDefaultWidth window 1000
+    Gtk.setWindowDefaultHeight window 1000
+
+    fixedArea <- Gtk.Fixed.fixedNew
+    Gtk.containerAdd window fixedArea
 
     traverse_
-        (drawSquare window)
+        (drawSquare fixedArea)
         (toList' (m startPosition))
 
+    Gtk.widgetShow fixedArea
     Gtk.widgetShow window
 
 
-drawSquare :: Gtk.ApplicationWindow -> (Square, Maybe Piece) -> IO Gtk.Box
-drawSquare window (Square c r, mPiece)= do
-    vbox <- Gtk.boxNew Gtk.OrientationVertical 0
-    Gtk.widgetSetSizeRequest vbox 60 60
+drawSquare :: Gtk.Fixed.Fixed -> (Square, Maybe Piece) -> IO ()
+drawSquare fixed (sq, mPiece)= do
 
-    area <- Gtk.drawingAreaNew
-    Gtk.setDrawingAreaContentHeight area 60
-   
+    img <- case mPiece of
+        Just (Pawn White) -> Gtk.imageNewFromFile "img/PawnWhite.png"
+        Just (Pawn Black) -> Gtk.imageNewFromFile "img/PawnBlack.png"
+        Just (Knight White) -> Gtk.imageNewFromFile "img/KnightWhite.png"
+        Just (Knight Black) -> Gtk.imageNewFromFile "img/KnightBlack.png"
+        Just (Bishop White) -> Gtk.imageNewFromFile "img/BishopWhite.png"
+        Just (Bishop Black) -> Gtk.imageNewFromFile "img/BishopBlack.png"
+        Just (Rook White) -> Gtk.imageNewFromFile "img/RookWhite.png"
+        Just (Rook Black) -> Gtk.imageNewFromFile "img/RookBlack.png"
+        Just (Queen White) -> Gtk.imageNewFromFile "img/QueenWhite.png"
+        Just (Queen Black) -> Gtk.imageNewFromFile "img/QueenBlack.png"
+        Just (King White) -> Gtk.imageNewFromFile "img/KingWhite.png"
+        Just (King Black) -> Gtk.imageNewFromFile "img/KingBlack.png"
+        _ -> Gtk.imageNewFromFile "img/PawnWhite.png" -- todo wrong
+
+    Gtk.setImagePixelSize img 30
+
+    Gtk.Fixed.fixedPut
+        fixed
+        img
+        (xCoord sq)
+        (yCoord sq)
+       
     --let squareCol = if even $ c + r then _brown else _white
-
-    rect <- Rect.newZeroRectangle
-    Rect.setRectangleWidth rect 60
-    Rect.setRectangleHeight rect 60
-
-    Gtk.containerAdd vbox area
-    Gtk.containerAdd window vbox
-    Gtk.widgetShow vbox
-
-    pure vbox
-    -- Gtk.imageNewFromFile "img/PawnWhite.png"
-
-
-{--vbox <- Gtk.boxNew Gtk.OrientationVertical 10
-Gtk.setWidgetMargin vbox 10
-Gtk.containerAdd window vbox
-Gtk.widgetShow vbox --}
-
-
-{--
-Gtk.onButtonClicked button $ do
-    Gtk.widgetSetSensitive button False
-    _ <- forkIO $ do
-        c <- getWeather
-        _ <- GLib.idleAdd GLib.PRIORITY_HIGH_IDLE $ do
-            _ <- Gtk.entrySetText entryC (renderDouble c)
-            Gtk.widgetSetSensitive button True
-            pure False
-        pure ()
-    pure ()      
---}
-
-
-{--
--- input celcius
-    entryC <- addEntry "° C" vbox
-    -- input fahr
-    entryF <- addEntry "° F" vbox
-    -- processing logic
-    _ <- Gtk.onEditableChanged entryC $ do
-        s <- Gtk.entryGetText entryC
-        Gtk.entrySetText entryF (Text.reverse s)
     
-    -- button
-    button <- Gtk.buttonNew
-    Gtk.setButtonLabel button "Get Weather"
-    Gtk.setWidgetHalign button Gtk.AlignCenter
-    Gtk.containerAdd vbox button
-    Gtk.widgetShow button
---}
-{- addEntry :: Gtk.IsContainer a => Text -> a -> IO Gtk.Entry
-addEntry labelStr container = do
-    hbox <- Gtk.boxNew Gtk.OrientationHorizontal 5
-    entry <- Gtk.entryNew
-    label <- Gtk.labelNew $ Just labelStr
-    Gtk.containerAdd hbox entry
-    Gtk.containerAdd hbox label
-    Gtk.containerAdd container hbox
-    Gtk.setWidgetExpand entry True
-    Gtk.setEntryXalign entry 1
-    Gtk.widgetShow entry
-    Gtk.widgetShow label
-    Gtk.widgetShow hbox
-    pure entry -}
+    Gtk.widgetShow img
+
+    
+    
+xCoord :: Square -> Int32
+xCoord (Square c _) = 60 * ([0 ..] !! c)
+
+yCoord :: Square -> Int32
+yCoord (Square _ r) = 60 * ([0 ..] !! r)
