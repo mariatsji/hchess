@@ -23,7 +23,7 @@ appId :: Text
 appId = "io.grevling.hchess"
 
 appActivate :: Gtk.Application -> World -> IO ()
-appActivate app (pos, mHighlight) = do
+appActivate app world = do
     window <- Gtk.applicationWindowNew app
     Gtk.setWindowTitle window "hChess"
     Gtk.setWindowResizable window True
@@ -33,12 +33,15 @@ appActivate app (pos, mHighlight) = do
     fixedArea <- Gtk.Fixed.fixedNew
     Gtk.containerAdd window fixedArea
 
+    drawWorld fixedArea world
+    Gtk.widgetShow fixedArea
+    Gtk.widgetShow window
+
+drawWorld :: Gtk.Fixed.Fixed -> World -> IO ()
+drawWorld fixedArea (pos, mHighlight) =
     traverse_
         (drawSquare fixedArea mHighlight)
         (toList' (m pos))
-
-    Gtk.widgetShow fixedArea
-    Gtk.widgetShow window
 
 drawSquare :: Gtk.Fixed.Fixed -> Maybe Square -> (Square, Maybe Piece) -> IO ()
 drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
