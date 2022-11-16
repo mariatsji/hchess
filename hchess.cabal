@@ -172,8 +172,6 @@ executable hchess-gui
       base ^>=4.15.1.0
     , gi-gtk
     , gi-gio
-    , gi-cairo
-    , gi-gdkpixbuf
     , hchess
     , text
   default-language: Haskell2010
