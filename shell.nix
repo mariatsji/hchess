@@ -16,7 +16,7 @@ let haskellStuff = with pkgs;
             git
             curl
         ];
-    ux = with pkgs;[ gtk4 atk gobject-introspection ];
+    ux = with pkgs;[ gtk4 atk ];
     
     all = haskellStuff ++ tools ++ ux;
 
