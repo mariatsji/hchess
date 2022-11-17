@@ -171,7 +171,7 @@ executable hchess-gui
   build-depends:
       base ^>=4.15.1.0
     , gi-gtk >= 4.0.0
-    -- , gi-atk >= 2.0.0
+    , gi-gdkpixbuf >= 2.0.20
     , gi-gio
     , hchess
     , text

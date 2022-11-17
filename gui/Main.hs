@@ -1,11 +1,13 @@
 module Main where
 
 import Data.Text (Text)
+import GI.GdkPixbuf.Enums (InterpType (InterpTypeBilinear))
+import qualified GI.GdkPixbuf.Objects.Pixbuf as Pixbuf
 import qualified GI.Gtk as Gtk
 import qualified GI.Gtk.Objects.Fixed as Gtk.Fixed
+import qualified GI.Gtk.Objects.GestureClick as GestureClick
 import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
-import qualified GI.Gtk.Objects.GestureClick as GestureClick
 
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
@@ -25,6 +27,9 @@ main = do
 appId :: Text
 appId = "io.grevling.hchess"
 
+sizeScale :: Int32
+sizeScale = 100
+
 appActivate :: Gtk.Application -> World -> IO ()
 appActivate app world = do
     window <- Gtk.applicationWindowNew app
@@ -34,6 +39,7 @@ appActivate app world = do
     Gtk.setWindowDefaultHeight window 1000
 
     fixedArea <- Gtk.Fixed.fixedNew
+
     Window.windowSetChild window (Just fixedArea)
 
     -- add event listener to drags
@@ -57,20 +63,21 @@ drawWorld fixedArea (pos, mHighlight) =
 
 drawSquare :: Gtk.Fixed.Fixed -> Maybe Square -> (Square, Maybe Piece) -> IO ()
 drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
-    squareImg <-
-        Gtk.imageNewFromFile
-            if even (c + r)
-                then "img/dark.square.png"
-                else "img/bright.square.png"
-
-    highlightImg <- Gtk.imageNewFromFile "img/highlight.square.png"
-
-    let finalSquareImage =
+    (Just buf) <-
+        Pixbuf.pixbufNewFromFile $
             if mHighlight == Just sq
-                then highlightImg
-                else squareImg
+                then "img/highlight.square.png"
+                else
+                    if even (c + r)
+                        then "img/dark.square.png"
+                        else "img/bright.square.png"
 
-    Gtk.widgetShow finalSquareImage
+    bufScaled <- Pixbuf.pixbufScaleSimple buf sizeScale sizeScale InterpTypeBilinear
+
+    finalSquareImage <-
+        Gtk.imageNewFromPixbuf bufScaled
+    size <- Gtk.getImagePixelSize finalSquareImage
+    Gtk.imageSetPixelSize finalSquareImage sizeScale
 
     -- draw square behind the piece
     Gtk.Fixed.fixedPut
@@ -83,43 +90,47 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
     maybe
         (pure ())
         ( \piece -> do
-            pieceImage <- loadPieceImage piece
+            (Just pieceBuf) <- loadPieceImage piece
+            bufScaled <- Pixbuf.pixbufScaleSimple pieceBuf sizeScale sizeScale InterpTypeBilinear
+            pieceImage <- Gtk.imageNewFromPixbuf bufScaled
+            Gtk.imageSetPixelSize pieceImage sizeScale
             Gtk.Fixed.fixedPut
                 fixed
                 pieceImage
                 (xCoord sq)
                 (yCoord sq)
-            
-            Gtk.widgetShow pieceImage
         )
         mPiece
 
 clickBegin :: Int32 -> Double -> Double -> IO ()
-clickBegin nrClicks x y = print $ "its a drag [" <> show (x, y) <> "]"
+clickBegin nrClicks x y = do
+    
+    print $ "its a drag [" <> show (x, y) <> "]"
 
 clickEnd :: Int32 -> Double -> Double -> IO ()
 clickEnd nrClicks x y = print $ "its a drop [" <> show (x, y) <> "]"
 
 -- todo buffer this plz
-loadPieceImage :: Piece -> IO Gtk.Image
-loadPieceImage =
-    Gtk.imageNewFromFile . \case
-        Pawn White -> "img/PawnWhite.png"
-        Pawn Black -> "img/PawnBlack.png"
-        Knight White -> "img/KnightWhite.png"
-        Knight Black -> "img/KnightBlack.png"
-        Bishop White -> "img/BishopWhite.png"
-        Bishop Black -> "img/BishopBlack.png"
-        Rook White -> "img/RookWhite.png"
-        Rook Black -> "img/RookBlack.png"
-        Queen White -> "img/QueenWhite.png"
-        Queen Black -> "img/QueenBlack.png"
-        King White -> "img/KingWhite.png"
-        King Black -> "img/KingBlack.png"
+loadPieceImage :: Piece -> IO (Maybe Pixbuf.Pixbuf)
+loadPieceImage piece = do
+    let filename = case piece of
+            Pawn White -> "img/PawnWhite.png"
+            Pawn Black -> "img/PawnBlack.png"
+            Knight White -> "img/KnightWhite.png"
+            Knight Black -> "img/KnightBlack.png"
+            Bishop White -> "img/BishopWhite.png"
+            Bishop Black -> "img/BishopBlack.png"
+            Rook White -> "img/RookWhite.png"
+            Rook Black -> "img/RookBlack.png"
+            Queen White -> "img/QueenWhite.png"
+            Queen Black -> "img/QueenBlack.png"
+            King White -> "img/KingWhite.png"
+            King Black -> "img/KingBlack.png"
+    Pixbuf.pixbufNewFromFile filename
 
 -- ---> x (more x is more to the right)
 xCoord :: Square -> Double
-xCoord (Square c _) = 60 * ([0 .. 8] !! c)
+xCoord (Square c _) = fromIntegral sizeScale * ([0 .. 8] !! c)
 
 {--
   |
@@ -127,4 +138,4 @@ xCoord (Square c _) = 60 * ([0 .. 8] !! c)
   | y (more y is more down)
 --}
 yCoord :: Square -> Double
-yCoord (Square _ r) = let marginTop = 80 in (60 * (reverse [0 .. 8] !! r)) + marginTop
+yCoord (Square _ r) = let marginTop = 80 in (fromIntegral sizeScale * (reverse [0 .. 8] !! r)) + marginTop
