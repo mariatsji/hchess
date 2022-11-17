@@ -9,8 +9,10 @@ import qualified GI.Gtk.Objects.GestureClick as GestureClick
 import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
 
+import Chess (board)
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
+import Data.Maybe (listToMaybe)
 import qualified GI.Gio.Objects.Application as Gio
 import Position
 
@@ -104,11 +106,16 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
 
 clickBegin :: Int32 -> Double -> Double -> IO ()
 clickBegin nrClicks x y = do
-    
-    print $ "its a drag [" <> show (x, y) <> "]"
+    print $ "its a drag from [" <> show (findSquare x y, (x,y)) <> "]"
 
 clickEnd :: Int32 -> Double -> Double -> IO ()
-clickEnd nrClicks x y = print $ "its a drop [" <> show (x, y) <> "]"
+clickEnd nrClicks x y = print $ "its a drop at [" <> show (findSquare x y, (x,y)) <> "]"
+
+findSquare :: Double -> Double -> Maybe Square
+findSquare x y = listToMaybe [square | square <- board, xCoord square `closeTo` x && yCoord square `closeTo` y]
+  where
+    closeTo :: Double -> Double -> Bool
+    closeTo a b = abs (a - b) < 15
 
 -- todo buffer this plz
 loadPieceImage :: Piece -> IO (Maybe Pixbuf.Pixbuf)
