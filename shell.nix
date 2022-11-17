@@ -1,20 +1,6 @@
 { pkgs ? import ./nixpkgs.nix }:
 
-let hax = pkgs.haskellPackages.override {
-        overrides = self: super: rec {
-        wx = pkgs.haskell.lib.dontCheck
-            (self.callHackage "wx" "0.92.3.0" { });
-        wxdirect = pkgs.haskell.lib.dontCheck
-            (self.callHackage "wxdirect" "0.92.3.0" { });
-        process = pkgs.haskell.lib.dontCheck
-            (self.callHackage "process" "1.4.3.0" { });
-        #process = pkgs.haskell.lib.dontCheck
-        #    (self.callHackage "process" )
-        # stm-containers = pkgs.haskell.lib.dontCheck
-        #  (self.callHackage "stm-containers" "1.1.0.4" { });
-        }; 
-    };
-    haskellStuff = with pkgs;
+let haskellStuff = with pkgs;
         [ 
             haskellPackages.haskell-language-server
             ghc
@@ -30,7 +16,7 @@ let hax = pkgs.haskellPackages.override {
             git
             curl
         ];
-    ux = with pkgs;[ gtk3 pkgconfig gobject-introspection cairo ];
+    ux = with pkgs;[ gtk4 atk gobject-introspection ];
     
     all = haskellStuff ++ tools ++ ux;
 

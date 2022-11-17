@@ -3,6 +3,8 @@ module Main where
 import Data.Text (Text)
 import qualified GI.Gtk as Gtk
 import qualified GI.Gtk.Objects.Fixed as Gtk.Fixed
+import qualified GI.Gtk.Objects.Widget as Widget
+import qualified GI.Gtk.Objects.GestureClick as GestureClick
 
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
@@ -15,8 +17,8 @@ main :: IO ()
 main = do
     let world = (startPosition, Just (Square 5 2))
     Just app <- Gtk.applicationNew (Just appId) []
-    _ <- Gio.onApplicationActivate app (appActivate app world)
-    _ <- Gio.applicationRun app Nothing
+    Gio.onApplicationActivate app (appActivate app world)
+    Gio.applicationRun app Nothing
     pure ()
 
 appId :: Text
@@ -33,7 +35,16 @@ appActivate app world = do
     fixedArea <- Gtk.Fixed.fixedNew
     Gtk.containerAdd window fixedArea
 
+    -- add event listener to drags
+    clickEvent <- GestureClick.gestureClickNew
+    GestureClick.onGestureClickPressed clickEvent clickBegin
+    GestureClick.onGestureClickReleased clickEvent clickEnd
+    Widget.widgetAddController
+        fixedArea
+        click
+
     drawWorld fixedArea world
+
     Gtk.widgetShow fixedArea
     Gtk.widgetShow window
 
@@ -77,28 +88,33 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
                 pieceImage
                 (xCoord sq)
                 (yCoord sq)
-
+            
             Gtk.widgetShow pieceImage
         )
         mPiece
 
--- let squareCol = if even $ c + r then _brown else _white
+clickBegin :: Double -> Double -> IO ()
+clickBegin x y = print $ "its a drag [" <> show (x, y) <> "]"
+
+clickEnd :: Double -> Double -> IO ()
+clickEnd x y = print $ "its a drop [" <> show (x, y) <> "]"
 
 -- todo buffer this plz
 loadPieceImage :: Piece -> IO Gtk.Image
-loadPieceImage = \case
-    Pawn White -> Gtk.imageNewFromFile "img/PawnWhite6060.png"
-    Pawn Black -> Gtk.imageNewFromFile "img/PawnBlack6060.png"
-    Knight White -> Gtk.imageNewFromFile "img/KnightWhite6060.png"
-    Knight Black -> Gtk.imageNewFromFile "img/KnightBlack6060.png"
-    Bishop White -> Gtk.imageNewFromFile "img/BishopWhite6060.png"
-    Bishop Black -> Gtk.imageNewFromFile "img/BishopBlack6060.png"
-    Rook White -> Gtk.imageNewFromFile "img/RookWhite6060.png"
-    Rook Black -> Gtk.imageNewFromFile "img/RookBlack6060.png"
-    Queen White -> Gtk.imageNewFromFile "img/QueenWhite6060.png"
-    Queen Black -> Gtk.imageNewFromFile "img/QueenBlack6060.png"
-    King White -> Gtk.imageNewFromFile "img/KingWhite6060.png"
-    King Black -> Gtk.imageNewFromFile "img/KingBlack6060.png"
+loadPieceImage =
+    Gtk.imageNewFromFile . \case
+        Pawn White -> "img/PawnWhite6060.png"
+        Pawn Black -> "img/PawnBlack6060.png"
+        Knight White -> "img/KnightWhite6060.png"
+        Knight Black -> "img/KnightBlack6060.png"
+        Bishop White -> "img/BishopWhite6060.png"
+        Bishop Black -> "img/BishopBlack6060.png"
+        Rook White -> "img/RookWhite6060.png"
+        Rook Black -> "img/RookBlack6060.png"
+        Queen White -> "img/QueenWhite6060.png"
+        Queen Black -> "img/QueenBlack6060.png"
+        King White -> "img/KingWhite6060.png"
+        King Black -> "img/KingBlack6060.png"
 
 -- ---> x (more x is more to the right)
 xCoord :: Square -> Int32
