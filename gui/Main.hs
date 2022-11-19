@@ -9,10 +9,12 @@ import qualified GI.Gtk.Objects.GestureClick as GestureClick
 import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
 
+import Chess (movePiece)
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
-import GHC.Conc (TVar, newTVarIO, readTVarIO)
+import GHC.Conc (TVar, newTVarIO, readTVarIO, writeTVar)
+import GHC.Conc.Sync (atomically)
 import qualified GI.Gio.Objects.Application as Gio
 import Position
 
@@ -50,8 +52,8 @@ appActivate app worldVar = do
 
     -- add event listener to drags
     clickEvent <- GestureClick.gestureClickNew
-    GestureClick.onGestureClickPressed clickEvent $ clickBegin worldVar
-    GestureClick.onGestureClickReleased clickEvent $ clickEnd worldVar
+    GestureClick.onGestureClickPressed clickEvent $ clickBegin fixedArea worldVar
+    GestureClick.onGestureClickReleased clickEvent $ clickEnd fixedArea worldVar
     Widget.widgetAddController
         fixedArea
         clickEvent
@@ -63,6 +65,7 @@ appActivate app worldVar = do
 
 drawWorld :: Gtk.Fixed.Fixed -> TVar World -> IO ()
 drawWorld fixedArea worldVar = do
+    
     World {..} <- readTVarIO worldVar
     traverse_
         (drawSquare fixedArea highlighted)
@@ -109,12 +112,30 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
         )
         mPiece
 
-clickBegin :: TVar World -> Int32 -> Double -> Double -> IO ()
-clickBegin worldVar nrClicks x y = do
-    print $ "its a drag from [" <> show (findSquare x y, (x, y)) <> "]"
+clickBegin :: Gtk.Fixed.Fixed -> TVar World -> Int32 -> Double -> Double -> IO ()
+clickBegin fixed worldVar nrClicks x y =
+    case findSquare x y of
+        Just sq -> do
+            world <- readTVarIO worldVar
+            atomically $ writeTVar worldVar world {highlighted = Just sq}
+            drawWorld fixed worldVar
+        Nothing -> pure ()
 
-clickEnd :: TVar World -> Int32 -> Double -> Double -> IO ()
-clickEnd worldVar nrClicks x y = print $ "its a drop at [" <> show (findSquare x y, (x, y)) <> "]"
+clickEnd :: Gtk.Fixed.Fixed -> TVar World -> Int32 -> Double -> Double -> IO ()
+clickEnd fixed worldVar nrClicks x y = case findSquare x y of
+    Just sq -> do
+        w@World {..} <- readTVarIO worldVar
+        case highlighted of
+            Just toSquare -> do
+                atomically $
+                    writeTVar worldVar $
+                        w
+                            { world = movePiece world toSquare sq
+                            , highlighted = Nothing
+                            }
+                drawWorld fixed worldVar
+            Nothing -> pure ()
+    Nothing -> pure ()
 
 findSquare :: Double -> Double -> Maybe Square
 findSquare x y =
