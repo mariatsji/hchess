@@ -1,1 +1,1 @@
-ghcid --command=ghci gui/Main.hs
+ghcid --command=cabal repl gui/Main.hs

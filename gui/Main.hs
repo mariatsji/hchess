@@ -15,11 +15,14 @@ import Data.Maybe (listToMaybe)
 import qualified GI.Gio.Objects.Application as Gio
 import Position
 
-type World = (Position, Maybe Square) -- store the world and also a potential fromSquare (after user clicks it)
+data World = World
+    { world :: Position 
+    , highlighted :: Maybe Square
+    }
 
 main :: IO ()
 main = do
-    let world = (startPosition, Just (Square 5 2))
+    let world = World startPosition Nothing
     app <- Gtk.applicationNew (Just appId) []
     Gio.onApplicationActivate app (appActivate app world)
     _ <- Gio.applicationRun app Nothing
@@ -57,10 +60,10 @@ appActivate app world = do
     Gtk.widgetShow window
 
 drawWorld :: Gtk.Fixed.Fixed -> World -> IO ()
-drawWorld fixedArea (pos, mHighlight) =
+drawWorld fixedArea World {..} =
     traverse_
-        (drawSquare fixedArea mHighlight)
-        (toList' (m pos))
+        (drawSquare fixedArea highlighted)
+        (toList' (m world))
 
 drawSquare :: Gtk.Fixed.Fixed -> Maybe Square -> (Square, Maybe Piece) -> IO ()
 drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
