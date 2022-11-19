@@ -12,19 +12,21 @@ import qualified GI.Gtk.Objects.Window as Window
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
+import GHC.Conc (TVar, newTVarIO, readTVarIO)
 import qualified GI.Gio.Objects.Application as Gio
 import Position
 
 data World = World
-    { world :: Position 
+    { world :: Position
     , highlighted :: Maybe Square
     }
 
 main :: IO ()
 main = do
-    let world = World startPosition Nothing
+    worldVar <- newTVarIO $ World startPosition Nothing
     app <- Gtk.applicationNew (Just appId) []
-    Gio.onApplicationActivate app (appActivate app world)
+
+    Gio.onApplicationActivate app (appActivate app worldVar)
     _ <- Gio.applicationRun app Nothing
     pure ()
 
@@ -34,8 +36,8 @@ appId = "io.grevling.hchess"
 sizeScale :: Int32
 sizeScale = 100
 
-appActivate :: Gtk.Application -> World -> IO ()
-appActivate app world = do
+appActivate :: Gtk.Application -> TVar World -> IO ()
+appActivate app worldVar = do
     window <- Gtk.applicationWindowNew app
     Gtk.setWindowTitle window "hChess"
     Gtk.setWindowResizable window True
@@ -48,19 +50,20 @@ appActivate app world = do
 
     -- add event listener to drags
     clickEvent <- GestureClick.gestureClickNew
-    GestureClick.onGestureClickPressed clickEvent clickBegin
-    GestureClick.onGestureClickReleased clickEvent clickEnd
+    GestureClick.onGestureClickPressed clickEvent $ clickBegin worldVar
+    GestureClick.onGestureClickReleased clickEvent $ clickEnd worldVar
     Widget.widgetAddController
         fixedArea
         clickEvent
 
-    drawWorld fixedArea world
+    drawWorld fixedArea worldVar
 
     Gtk.widgetShow fixedArea
     Gtk.widgetShow window
 
-drawWorld :: Gtk.Fixed.Fixed -> World -> IO ()
-drawWorld fixedArea World {..} =
+drawWorld :: Gtk.Fixed.Fixed -> TVar World -> IO ()
+drawWorld fixedArea worldVar = do
+    World {..} <- readTVarIO worldVar
     traverse_
         (drawSquare fixedArea highlighted)
         (toList' (m world))
@@ -106,12 +109,12 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
         )
         mPiece
 
-clickBegin :: Int32 -> Double -> Double -> IO ()
-clickBegin nrClicks x y = do
+clickBegin :: TVar World -> Int32 -> Double -> Double -> IO ()
+clickBegin worldVar nrClicks x y = do
     print $ "its a drag from [" <> show (findSquare x y, (x, y)) <> "]"
 
-clickEnd :: Int32 -> Double -> Double -> IO ()
-clickEnd nrClicks x y = print $ "its a drop at [" <> show (findSquare x y, (x, y)) <> "]"
+clickEnd :: TVar World -> Int32 -> Double -> Double -> IO ()
+clickEnd worldVar nrClicks x y = print $ "its a drop at [" <> show (findSquare x y, (x, y)) <> "]"
 
 findSquare :: Double -> Double -> Maybe Square
 findSquare x y =
