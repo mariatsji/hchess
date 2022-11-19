@@ -9,7 +9,6 @@ import qualified GI.Gtk.Objects.GestureClick as GestureClick
 import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
 
-import Chess (board)
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
@@ -23,7 +22,7 @@ main = do
     let world = (startPosition, Just (Square 5 2))
     app <- Gtk.applicationNew (Just appId) []
     Gio.onApplicationActivate app (appActivate app world)
-    Gio.applicationRun app Nothing
+    _ <- Gio.applicationRun app Nothing
     pure ()
 
 appId :: Text
@@ -85,8 +84,8 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
     Gtk.Fixed.fixedPut
         fixed
         finalSquareImage
-        (xCoord sq)
-        (yCoord sq)
+        (xCoord c)
+        (yCoord r)
 
     -- draw piece on top maybe
     maybe
@@ -99,23 +98,31 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
             Gtk.Fixed.fixedPut
                 fixed
                 pieceImage
-                (xCoord sq)
-                (yCoord sq)
+                (xCoord c)
+                (yCoord r)
         )
         mPiece
 
 clickBegin :: Int32 -> Double -> Double -> IO ()
 clickBegin nrClicks x y = do
-    print $ "its a drag from [" <> show (findSquare x y, (x,y)) <> "]"
+    print $ "its a drag from [" <> show (findSquare x y, (x, y)) <> "]"
 
 clickEnd :: Int32 -> Double -> Double -> IO ()
-clickEnd nrClicks x y = print $ "its a drop at [" <> show (findSquare x y, (x,y)) <> "]"
+clickEnd nrClicks x y = print $ "its a drop at [" <> show (findSquare x y, (x, y)) <> "]"
 
 findSquare :: Double -> Double -> Maybe Square
-findSquare x y = listToMaybe [square | square <- board, xCoord square `closeTo` x && yCoord square `closeTo` y]
-  where
-    closeTo :: Double -> Double -> Bool
-    closeTo a b = abs (a - b) < 15
+findSquare x y =
+    let inside (Square c r) =
+            x > xCoord c
+                && x < xCoord c + fromIntegral sizeScale
+                && y > yCoord r
+                && y < yCoord r + fromIntegral sizeScale
+     in listToMaybe
+            [ Square co ro
+            | co <- [1 .. 8]
+            , ro <- [1 .. 8]
+            , inside (Square co ro)
+            ]
 
 -- todo buffer this plz
 loadPieceImage :: Piece -> IO (Maybe Pixbuf.Pixbuf)
@@ -136,13 +143,13 @@ loadPieceImage piece = do
     Pixbuf.pixbufNewFromFile filename
 
 -- ---> x (more x is more to the right)
-xCoord :: Square -> Double
-xCoord (Square c _) = fromIntegral sizeScale * ([0 .. 8] !! c)
+xCoord :: Int -> Double
+xCoord c = fromIntegral sizeScale * ([0 .. 8] !! c)
 
 {--
   |
   |
   | y (more y is more down)
 --}
-yCoord :: Square -> Double
-yCoord (Square _ r) = let marginTop = 80 in (fromIntegral sizeScale * (reverse [0 .. 8] !! r)) + marginTop
+yCoord :: Int -> Double
+yCoord r = let marginTop = 80 in (fromIntegral sizeScale * (reverse [0 .. 8] !! r)) + marginTop
