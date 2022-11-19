@@ -9,7 +9,8 @@ import qualified GI.Gtk.Objects.GestureClick as GestureClick
 import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
 
-import Chess (movePiece)
+import Chess (movePiece, pieceAt)
+import Control.Monad (when)
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
@@ -21,11 +22,12 @@ import Position
 data World = World
     { world :: Position
     , highlighted :: Maybe Square
+    , humanPlayer :: Color
     }
 
 main :: IO ()
 main = do
-    worldVar <- newTVarIO $ World startPosition Nothing
+    worldVar <- newTVarIO $ World startPosition Nothing White
     app <- Gtk.applicationNew (Just appId) []
 
     Gio.onApplicationActivate app (appActivate app worldVar)
@@ -65,7 +67,6 @@ appActivate app worldVar = do
 
 drawWorld :: Gtk.Fixed.Fixed -> TVar World -> IO ()
 drawWorld fixedArea worldVar = do
-    
     World {..} <- readTVarIO worldVar
     traverse_
         (drawSquare fixedArea highlighted)
@@ -116,8 +117,9 @@ clickBegin :: Gtk.Fixed.Fixed -> TVar World -> Int32 -> Double -> Double -> IO (
 clickBegin fixed worldVar nrClicks x y =
     case findSquare x y of
         Just sq -> do
-            world <- readTVarIO worldVar
-            atomically $ writeTVar worldVar world {highlighted = Just sq}
+            w <- readTVarIO worldVar
+            when (fmap colr (pieceAt (world w) sq) == Just (humanPlayer w)) $ do
+                atomically $ writeTVar worldVar w {highlighted = Just sq}
             drawWorld fixed worldVar
         Nothing -> pure ()
 
