@@ -9,6 +9,7 @@ import qualified GI.Gtk.Objects.GestureClick as GestureClick
 import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
 
+import AI (edgeGreed)
 import Chess (movePiece, pieceAt)
 import Control.Monad (when)
 import Data.Foldable (traverse_)
@@ -118,7 +119,7 @@ clickBegin fixed worldVar nrClicks x y =
     case findSquare x y of
         Just sq -> do
             w <- readTVarIO worldVar
-            when (fmap colr (pieceAt (world w) sq) == Just (humanPlayer w)) $ do
+            when (toPlay (world w) == humanPlayer w && fmap colr (pieceAt (world w) sq) == Just (humanPlayer w)) $ do
                 atomically $ writeTVar worldVar w {highlighted = Just sq}
             drawWorld fixed worldVar
         Nothing -> pure ()
@@ -129,13 +130,29 @@ clickEnd fixed worldVar nrClicks x y = case findSquare x y of
         w@World {..} <- readTVarIO worldVar
         case highlighted of
             Just toSquare -> do
-                atomically $
-                    writeTVar worldVar $
+                let newPos = movePiece world toSquare sq
+                    newWorld =
                         w
-                            { world = movePiece world toSquare sq
+                            { world = newPos
                             , highlighted = Nothing
                             }
+                atomically $ do
+                    writeTVar worldVar newWorld
+                
                 drawWorld fixed worldVar
+                
+                case edgeGreed newPos 3 of
+                    Left (p, stat) -> print stat -- todo
+                    Right responsePos -> do
+                        let responseWorld =
+                                newWorld
+                                    { world = responsePos
+                                    , highlighted = Nothing
+                                    }
+                        atomically $ do
+                            writeTVar worldVar responseWorld
+                        
+                        drawWorld fixed worldVar
             Nothing -> pure ()
     Nothing -> pure ()
 
