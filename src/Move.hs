@@ -1,6 +1,7 @@
 module Move (
     playMove,
     playMoves,
+    playMove'
 ) where
 
 import Chess
@@ -67,16 +68,8 @@ playMove :: String -> Position -> Either String Position
 playMove s pos = do
     let color = toPlay pos
     move <- parseOnly (moveParser pos) (pack s)
-    let moveAttempt = case move of
-            MovedPiece from to -> Chess.movePiece pos from to
-            CastleShort -> head $ Chess.castle' CastleShort pos -- todo head..
-            CastleLong -> head $ Chess.castle' CastleLong pos -- todo head..
-            Promotion from to piece -> Chess.movePiecePromote pos from to piece
-        tree = Chess.positionTree pos
-        isAmongLegalMoves = any (eqPosition moveAttempt) tree
-    if isAmongLegalMoves
-        then Right moveAttempt
-        else Left $ "Move not among legal moves OR incorrect color made the move: " <> s
+    playMove' move pos
+
 
 playMoves :: [String] -> Either String Position
 playMoves =

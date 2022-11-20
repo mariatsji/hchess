@@ -5,10 +5,10 @@ module Chess where
 import Control.Parallel (par, pseq)
 import Data.List
 import Data.Maybe
+import qualified Data.Set as Set
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
-import qualified Data.Set as Set
 
 data Status
     = WhiteToPlay
@@ -23,6 +23,34 @@ board = Square <$> [1 .. 8] <*> [1 .. 8]
 
 squareTo :: Square -> Int -> Int -> Square
 squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
+
+-- MovedPiece Square Square | Promotion Square Square Piece | CastleShort | CastleLong
+identifyMove :: Position -> Square -> Square -> Maybe Piece -> Move
+identifyMove pos from to mPromPiece =
+    let kingpos = kingPos (toPlay pos) -- todo reuse these
+        shortcastlekingpos = squareTo kingpos 0 2
+        longcastlekingpos = squareTo kingpos 0 (-2)
+        promRow = if toPlay pos == White then 8 else 1
+        isProm = pieceAt pos from == Just (Pawn (toPlay pos)) && row to == promRow
+     in case (isProm, mPromPiece) of
+            (True, Just piece) -> Promotion from to piece
+            _ ->
+                if from == kingpos && to == shortcastlekingpos then CastleShort
+                else if from == kingpos && to == longcastlekingpos then CastleLong
+                else MovedPiece from to
+
+playMove' :: Move -> Position -> Either String Position
+playMove' move pos = do
+    let moveAttempt = case move of
+            MovedPiece from to -> Chess.movePiece pos from to
+            CastleShort -> head $ Chess.castle' CastleShort pos -- todo head..
+            CastleLong -> head $ Chess.castle' CastleLong pos -- todo head..
+            Promotion from to piece -> Chess.movePiecePromote pos from to piece
+        tree = Chess.positionTree pos
+        isAmongLegalMoves = any (eqPosition moveAttempt) tree
+    if isAmongLegalMoves
+        then Right moveAttempt
+        else Left "Move not among legal moves"
 
 -- flips toPlay
 movePiece :: Position -> Square -> Square -> Position
@@ -97,12 +125,12 @@ canGoThere :: Position -> Square -> Square -> Bool
 canGoThere pos from to =
     let vacant = finalDestinationNotOccupiedBySelf pos to
         clear = all isNothing (fmap (pieceAt pos) (points from to))
-    in vacant && clear
+     in vacant && clear
 
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
 finalDestinationNotOccupiedBySelf pos to =
     let myColor = toPlay pos
-    in fmap colr (pieceAt pos to) /= Just myColor
+     in fmap colr (pieceAt pos to) /= Just myColor
 
 enemyAt :: Position -> Square -> Bool
 enemyAt pos to =
@@ -148,7 +176,7 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
                 ( \t ->
                     let fromSquare = s
                         toSquare = fst t
-                        promRow = if toPlay pos == White then 8 else 1
+                        promRow = if toPlay pos == White then 8 else 1 -- todo reuse
                      in case snd t of
                             Nothing ->
                                 if row toSquare == promRow
@@ -301,9 +329,9 @@ castle' move pos =
             _ -> doCastleLong (m pos) color -- todo illegal state if not castle move
         newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
         newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
-    in if hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck
-        then [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack]
-    else [] -- todo error state ?
+     in if hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck
+            then [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack]
+            else [] -- todo error state ?
 
 doCastleShort :: Snapshot -> Color -> Snapshot
 doCastleShort pos c =
@@ -406,10 +434,13 @@ determineStatus pos =
         isMate = isCheckMate pos ptree
      in if toPlay pos == White && isMate
             then WhiteIsMate
-        else if isMate
-            then BlackIsMate
-        else if isDraw pos ptree
-            then Remis
-        else if toPlay pos == White
-            then WhiteToPlay
-        else BlackToPlay
+            else
+                if isMate
+                    then BlackIsMate
+                    else
+                        if isDraw pos ptree
+                            then Remis
+                            else
+                                if toPlay pos == White
+                                    then WhiteToPlay
+                                    else BlackToPlay
