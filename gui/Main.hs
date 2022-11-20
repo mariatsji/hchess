@@ -10,7 +10,7 @@ import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
 
 import AI (edgeGreed)
-import Chess (movePiece, pieceAt)
+import Chess (pieceAt, identifyMove)
 import Control.Monad (when)
 import Data.Foldable (traverse_)
 import Data.Int (Int32)
@@ -19,6 +19,7 @@ import GHC.Conc (TVar, newTVarIO, readTVarIO, writeTVar)
 import GHC.Conc.Sync (atomically)
 import qualified GI.Gio.Objects.Application as Gio
 import Position
+import Move (playMove')
 
 data World = World
     { world :: Position
@@ -125,36 +126,41 @@ clickBegin fixed worldVar nrClicks x y =
         Nothing -> pure ()
 
 clickEnd :: Gtk.Fixed.Fixed -> TVar World -> Int32 -> Double -> Double -> IO ()
-clickEnd fixed worldVar nrClicks x y = case findSquare x y of
-    Just sq -> do
-        w@World {..} <- readTVarIO worldVar
-        case highlighted of
-            Just toSquare -> do
-                let newPos = movePiece world toSquare sq
-                    newWorld =
-                        w
-                            { world = newPos
-                            , highlighted = Nothing
-                            }
-                atomically $ do
-                    writeTVar worldVar newWorld
-                
-                drawWorld fixed worldVar
-                
-                case edgeGreed newPos 3 of
-                    Left (p, stat) -> print stat -- todo
-                    Right responsePos -> do
-                        let responseWorld =
-                                newWorld
-                                    { world = responsePos
+clickEnd fixed worldVar nrClicks x y =
+    case findSquare x y of
+        Just toSquare -> do
+            w@World {..} <- readTVarIO worldVar
+            case highlighted of
+                Just fromSquare -> do
+                    let move = identifyMove world fromSquare toSquare Nothing -- todo promotion piece
+                    print move
+                    case playMove' move world of
+                        Left s -> print s -- todo
+                        Right newPos -> do
+                            let newWorld =
+                                    w
+                                    { world = newPos
                                     , highlighted = Nothing
                                     }
-                        atomically $ do
-                            writeTVar worldVar responseWorld
-                        
-                        drawWorld fixed worldVar
-            Nothing -> pure ()
-    Nothing -> pure ()
+                            atomically $ do
+                                writeTVar worldVar newWorld
+                
+                            drawWorld fixed worldVar
+                            
+                            case edgeGreed newPos 3 of
+                                Left (p, stat) -> print stat -- todo
+                                Right responsePos -> do
+                                    let responseWorld =
+                                            newWorld
+                                                { world = responsePos
+                                                , highlighted = Nothing
+                                                }
+                                    atomically $ do
+                                        writeTVar worldVar responseWorld
+                                    
+                                    drawWorld fixed worldVar
+                Nothing -> pure ()
+        Nothing -> pure ()
 
 findSquare :: Double -> Double -> Maybe Square
 findSquare x y =

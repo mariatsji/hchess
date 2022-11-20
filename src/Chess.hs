@@ -28,8 +28,8 @@ squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 identifyMove :: Position -> Square -> Square -> Maybe Piece -> Move
 identifyMove pos from to mPromPiece =
     let kingpos = kingPos (toPlay pos) -- todo reuse these
-        shortcastlekingpos = squareTo kingpos 0 2
-        longcastlekingpos = squareTo kingpos 0 (-2)
+        shortcastlekingpos = squareTo kingpos 2 0
+        longcastlekingpos = squareTo kingpos (-2) 0
         promRow = if toPlay pos == White then 8 else 1
         isProm = pieceAt pos from == Just (Pawn (toPlay pos)) && row to == promRow
      in case (isProm, mPromPiece) of
