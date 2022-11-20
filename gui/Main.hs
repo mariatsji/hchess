@@ -10,16 +10,18 @@ import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
 
 import AI (edgeGreed)
-import Chess (pieceAt, identifyMove)
+import Chess (identifyMove, pieceAt)
 import Control.Monad (when)
-import Data.Foldable (traverse_)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
 import GHC.Conc (TVar, newTVarIO, readTVarIO, writeTVar)
 import GHC.Conc.Sync (atomically)
 import qualified GI.Gio.Objects.Application as Gio
-import Position
 import Move (playMove')
+import Position
+import Data.Foldable (traverse_)
+import Control.Concurrent (forkIO)
+import Data.Functor (void)
 
 data World = World
     { world :: Position
@@ -99,7 +101,6 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
         (xCoord c)
         (yCoord r)
 
-    -- draw piece on top maybe
     maybe
         (pure ())
         ( \piece -> do
@@ -138,13 +139,13 @@ clickEnd fixed worldVar nrClicks x y =
                         Left s -> print s -- todo
                         Right newPos -> do
                             let newWorld =
-                                    w
-                                    { world = newPos
-                                    , highlighted = Nothing
-                                    }
+                                        w
+                                            { world = newPos
+                                            , highlighted = Nothing
+                                            }
+
                             atomically $ do
-                                writeTVar worldVar newWorld
-                
+                                    writeTVar worldVar newWorld
                             drawWorld fixed worldVar
                             
                             case edgeGreed newPos 3 of
@@ -157,7 +158,7 @@ clickEnd fixed worldVar nrClicks x y =
                                                 }
                                     atomically $ do
                                         writeTVar worldVar responseWorld
-                                    
+
                                     drawWorld fixed worldVar
                 Nothing -> pure ()
         Nothing -> pure ()
