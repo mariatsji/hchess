@@ -170,6 +170,7 @@ executable hchess-gui
       TypeOperators
   build-depends:
       base ^>=4.15.1.0
+    , gi-gdk
     , gi-gtk >= 4.0.0
     , gi-gdkpixbuf >= 2.0.20
     , gi-gio

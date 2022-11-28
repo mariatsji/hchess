@@ -3,6 +3,7 @@
 module Chess where
 
 import Control.Parallel (par, pseq)
+import Control.Parallel.Strategies (NFData)
 import Data.List
 import Data.Maybe
 import qualified Data.Set as Set
@@ -16,7 +17,8 @@ data Status
     | Remis
     | WhiteIsMate
     | BlackIsMate
-    deriving (Eq, Ord, Show, Generic)
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving anyclass (NFData)
 
 board :: [Square]
 board = Square <$> [1 .. 8] <*> [1 .. 8]
@@ -35,9 +37,12 @@ identifyMove pos from to mPromPiece =
      in case (isProm, mPromPiece) of
             (True, Just piece) -> Promotion from to piece
             _ ->
-                if from == kingpos && to == shortcastlekingpos then CastleShort
-                else if from == kingpos && to == longcastlekingpos then CastleLong
-                else MovedPiece from to
+                if from == kingpos && to == shortcastlekingpos
+                    then CastleShort
+                    else
+                        if from == kingpos && to == longcastlekingpos
+                            then CastleLong
+                            else MovedPiece from to
 
 playMove' :: Move -> Position -> Either String Position
 playMove' move pos = do

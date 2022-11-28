@@ -5,33 +5,39 @@ import GI.GdkPixbuf.Enums (InterpType (InterpTypeBilinear))
 import qualified GI.GdkPixbuf.Objects.Pixbuf as Pixbuf
 import qualified GI.Gtk as Gtk
 import qualified GI.Gtk.Objects.Fixed as Gtk.Fixed
-import qualified GI.Gtk.Objects.GestureClick as GestureClick
-import qualified GI.Gtk.Objects.Widget as Widget
+--legacy drag, replace with DragSource!
+--import qualified GI.Gtk.Objects.GestureClick as GestureClick
+--import qualified GI.Gtk.Objects.Widget as Widget
 import qualified GI.Gtk.Objects.Window as Window
+import qualified GI.Gtk.Objects.DragSource as DragSource
+import GI.Gtk.Objects.Image (imageGetPaintable)
+import GI.Gdk.Flags (DragAction(..))
+import GI.Gdk.Objects.Drag (Drag(..))
 
 import AI (edgeGreed)
 import Chess (identifyMove, pieceAt)
 import Control.Monad (when)
+import Data.Foldable (traverse_)
+import Data.Functor (void)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
+import Data.Word (Word32)
 import GHC.Conc (TVar, newTVarIO, readTVarIO, writeTVar)
 import GHC.Conc.Sync (atomically)
 import qualified GI.Gio.Objects.Application as Gio
 import Move (playMove')
 import Position
-import Data.Foldable (traverse_)
-import Control.Concurrent (forkIO)
-import Data.Functor (void)
 
 data World = World
     { world :: Position
     , highlighted :: Maybe Square
     , humanPlayer :: Color
+    , tick :: Maybe Word32
     }
 
 main :: IO ()
 main = do
-    worldVar <- newTVarIO $ World startPosition Nothing White
+    worldVar <- newTVarIO $ World startPosition Nothing White Nothing
     app <- Gtk.applicationNew (Just appId) []
 
     Gio.onApplicationActivate app (appActivate app worldVar)
@@ -57,17 +63,24 @@ appActivate app worldVar = do
     Window.windowSetChild window (Just fixedArea)
 
     -- add event listener to drags
+    -- replacing this with dragsource
+    {--
     clickEvent <- GestureClick.gestureClickNew
     GestureClick.onGestureClickPressed clickEvent $ clickBegin fixedArea worldVar
     GestureClick.onGestureClickReleased clickEvent $ clickEnd fixedArea worldVar
     Widget.widgetAddController
         fixedArea
         clickEvent
+    --}
 
     drawWorld fixedArea worldVar
 
     Gtk.widgetShow fixedArea
     Gtk.widgetShow window
+
+dragBegin :: Drag -> IO () -- DragSource.DragSourceDragBeginCallback
+dragBegin drag = do
+    print "drag goin on!"
 
 drawWorld :: Gtk.Fixed.Fixed -> TVar World -> IO ()
 drawWorld fixedArea worldVar = do
@@ -75,6 +88,7 @@ drawWorld fixedArea worldVar = do
     traverse_
         (drawSquare fixedArea highlighted)
         (toList' (m world))
+    print "I just drew the world!"
 
 drawSquare :: Gtk.Fixed.Fixed -> Maybe Square -> (Square, Maybe Piece) -> IO ()
 drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
@@ -108,6 +122,15 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
             bufScaled <- Pixbuf.pixbufScaleSimple pieceBuf sizeScale sizeScale InterpTypeBilinear
             pieceImage <- Gtk.imageNewFromPixbuf bufScaled
             Gtk.imageSetPixelSize pieceImage sizeScale
+
+            dragSource <- DragSource.dragSourceNew
+            DragSource.dragSourceSetActions dragSource [DragActionCopy, DragActionMove, DragActionLink, DragActionAsk, AnotherDragAction 0]
+            DragSource.onDragSourceDragBegin dragSource dragBegin
+            mPaintable <- imageGetPaintable pieceImage
+            DragSource.dragSourceSetIcon
+                dragSource mPaintable 0 0
+            Gtk.widgetAddController fixed dragSource
+
             Gtk.Fixed.fixedPut
                 fixed
                 pieceImage
@@ -130,6 +153,7 @@ clickEnd :: Gtk.Fixed.Fixed -> TVar World -> Int32 -> Double -> Double -> IO ()
 clickEnd fixed worldVar nrClicks x y =
     case findSquare x y of
         Just toSquare -> do
+            print "callback triggered"
             w@World {..} <- readTVarIO worldVar
             case highlighted of
                 Just fromSquare -> do
@@ -139,29 +163,37 @@ clickEnd fixed worldVar nrClicks x y =
                         Left s -> print s -- todo
                         Right newPos -> do
                             let newWorld =
-                                        w
-                                            { world = newPos
-                                            , highlighted = Nothing
-                                            }
-
-                            atomically $ do
-                                    writeTVar worldVar newWorld
+                                    w
+                                        { world = newPos
+                                        , highlighted = Nothing
+                                        }
+                            atomically $ writeTVar worldVar newWorld
                             drawWorld fixed worldVar
-                            
-                            case edgeGreed newPos 3 of
-                                Left (p, stat) -> print stat -- todo
-                                Right responsePos -> do
-                                    let responseWorld =
-                                            newWorld
-                                                { world = responsePos
-                                                , highlighted = Nothing
-                                                }
-                                    atomically $ do
-                                        writeTVar worldVar responseWorld
-
-                                    drawWorld fixed worldVar
+                            void $ Gtk.widgetAddTickCallback fixed (computerThinking worldVar fixed)
+                            Gtk.widgetQueueDraw fixed
+                            print "clickEnd complete!"
                 Nothing -> pure ()
         Nothing -> pure ()
+
+computerThinking :: TVar World -> Gtk.Fixed.Fixed -> Gtk.Widget -> a -> IO Bool
+computerThinking worldVar fixed widget frameClock = do
+    w@World {..} <- readTVarIO worldVar
+    case edgeGreed world 3 of
+        Left (p, stat) ->
+            print stat -- todo
+        Right responsePos -> do
+            let responseWorld =
+                    w
+                        { world = responsePos
+                        , highlighted = Nothing
+                        }
+            atomically $ do
+                writeTVar worldVar responseWorld
+
+            drawWorld fixed worldVar
+            Gtk.widgetQueueDraw fixed
+            print "computer done thinking, repainted"
+    pure False
 
 findSquare :: Double -> Double -> Maybe Square
 findSquare x y =

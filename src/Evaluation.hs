@@ -6,10 +6,9 @@ module Evaluation (
 ) where
 
 import Chess
-import Control.Parallel (par)
+import Control.Parallel.Strategies (NFData)
 import Data.Foldable (foldl')
 import Data.Maybe (fromMaybe)
-import GHC.Conc (pseq)
 import GHC.Generics (Generic)
 import Position
 
@@ -18,13 +17,14 @@ data Evaluated = Evaluated
     , score :: Float
     , status :: Status
     }
-    deriving stock (Eq, Show)
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (NFData)
 
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
 
 evaluate' :: Position -> Evaluated
-evaluate' pos = 
+evaluate' pos =
     case determineStatus pos of
         WhiteIsMate -> Evaluated pos (-10000.0) WhiteIsMate
         BlackIsMate -> Evaluated pos 10000.0 BlackIsMate

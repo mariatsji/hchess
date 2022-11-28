@@ -4,6 +4,7 @@
 module Position where
 
 import Control.Monad.ST
+import Control.Parallel.Strategies (NFData)
 import Data.Aeson
 import Data.Bifunctor (first)
 import Data.List (find)
@@ -15,7 +16,7 @@ import Tree
 
 data Color = White | Black
     deriving stock (Eq, Ord, Enum, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (NFData, FromJSON, ToJSON)
 
 data Piece
     = Pawn Color
@@ -25,7 +26,7 @@ data Piece
     | Queen Color
     | King Color
     deriving stock (Eq, Ord, Show, Generic)
-    deriving anyclass (FromJSON, ToJSON)
+    deriving anyclass (NFData, FromJSON, ToJSON)
 
 type Col = Int
 type Row = Int
@@ -34,18 +35,21 @@ data Square = Square
     { col :: Col
     , row :: Row
     }
-    deriving stock (Eq, Ord)
+    deriving stock (Eq, Ord, Generic)
+    deriving anyclass (NFData)
 
 instance Show Square where
     show (Square col row) = toLetter col : show row
 
 -- todo hack
 toLetter :: Int -> Char
-toLetter c = ('x' : [ 'a' .. ]) !! c
+toLetter c = ('x' : ['a' ..]) !! c
 
 type Snapshot = Tree (Maybe Piece)
 
-data CastleStatus = CanCastleBoth | CanCastleA | CanCastleH | CanCastleNone deriving (Eq, Show, Generic)
+data CastleStatus = CanCastleBoth | CanCastleA | CanCastleH | CanCastleNone
+    deriving stock (Eq, Show, Generic)
+    deriving anyclass (NFData)
 
 data Position = Position
     { m :: Snapshot
@@ -55,19 +59,22 @@ data Position = Position
     , toPlay :: Color
     }
     deriving (Eq, Show, Generic)
+    deriving anyclass (NFData)
 
 data Move = MovedPiece Square Square | Promotion Square Square Piece | CastleShort | CastleLong
-    deriving stock (Eq)
+    deriving stock (Eq, Generic)
+    deriving anyclass (NFData)
 
 instance Show Move where
     show (MovedPiece from to) = "\"" <> show from <> "-" <> show to <> "\""
     show (Promotion from to piece) = "\"" <> show from <> "-" <> show to <> toOneChar piece <> "\""
-        where toOneChar :: Piece -> String
-              toOneChar (Queen _) = "Q"
-              toOneChar (Rook _) = "R"
-              toOneChar (Bishop _) = "B"
-              toOneChar (Knight _) = "K"
-              toOneChar _ = ""
+      where
+        toOneChar :: Piece -> String
+        toOneChar (Queen _) = "Q"
+        toOneChar (Rook _) = "R"
+        toOneChar (Bishop _) = "B"
+        toOneChar (Knight _) = "K"
+        toOneChar _ = ""
     show CastleShort = "\"O-O\""
     show CastleLong = "\"O-O-O\""
 

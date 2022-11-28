@@ -2,12 +2,15 @@
 
 module Tree where
 
+import Control.Parallel.Strategies (NFData)
 import Data.Bits
 import Data.Monoid
 import Data.Word
 import GHC.Generics
 
-data Tree a = Leaf a | Node (Tree a) (Tree a) deriving (Eq, Ord, Show, Generic)
+data Tree a = Leaf a | Node (Tree a) (Tree a)
+    deriving stock (Eq, Ord, Show, Generic)
+    deriving anyclass (NFData)
 
 instance Functor Tree where
     fmap f (Leaf x) = Leaf (f x)

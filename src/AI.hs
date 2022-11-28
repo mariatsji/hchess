@@ -15,11 +15,13 @@ import Chess (
  )
 import Control.Monad (Monad ((>>=)))
 import Control.Parallel (par, pseq)
+import Control.Parallel.Strategies (Eval, NFData, rdeepseq, rpar, rseq, runEval)
 import Data.Either (partitionEithers)
 import Data.Foldable (foldl')
 import Data.List (drop, find, length, sortBy)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Ord (Ord ((<), (>)))
+import qualified Debug.Trace as Debug
 import Evaluation (Evaluated (..), evaluate', getPosition)
 import Move (playMoves)
 import Position (
@@ -31,7 +33,6 @@ import Position (
     next,
  )
 import Printer (prettyE)
-import qualified Debug.Trace as Debug
 
 -- restore edgeGreed until oneStep is in place
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
@@ -59,7 +60,7 @@ edgeGreedCompat pos' depth broadness =
 dig :: Int -> Int -> Color -> Evaluated -> Evaluated
 dig depth broadness perspective ev@Evaluated {..} =
     let candidates = positionTree pos
-        evaluated = evaluate' <$> candidates
+        evaluated = evaluate' <-$-> candidates
      in if depth == 0
             then fromMaybe ev $ singleBest perspective evaluated
             else case find (terminallyGood perspective) evaluated of
@@ -69,14 +70,16 @@ dig depth broadness perspective ev@Evaluated {..} =
                      in fromMaybe ev $ singleBest perspective $ dig (depth - 1) broadness (next perspective) <$> furtherInspect
 
 -- par/pseq fmap
-paraMap :: (a -> b) -> [a] -> [b]
-paraMap f [] = []
-paraMap f (x : xs) =
-    let a = f x
-        as = paraMap f xs
-     in a `pseq` as `par` a : as
+paraMap :: (NFData a, NFData b) => (a -> b) -> [a] -> Eval [b]
+paraMap f [] = pure []
+paraMap f (x : xs) = do
+    a <- rpar (f x)
+    as <- paraMap f xs
+    rdeepseq as
+    pure $ a : as
 
-(<-$->) = paraMap
+(<-$->) :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
+(<-$->) f as = runEval $ paraMap f as
 infixl 4 <-$->
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
