@@ -60,6 +60,7 @@ library
     , attoparsec
     , bytestring
     , containers
+    , deepseq
     , parallel
     , text
     , transformers
@@ -70,7 +71,7 @@ library
 executable hchess-profiled
   main-is: Main.hs
   ghc-options:
-    -O1
+    -O2
     -fwarn-incomplete-patterns
     -fwarn-redundant-constraints
     -fwarn-unused-imports
@@ -112,7 +113,7 @@ executable hchess
     -fwarn-unused-imports
     -fwarn-unused-packages
     -threaded
-    "-with-rtsopts=-N6 --nonmoving-gc -M8G -A64M -qn4 -qb"
+    "-with-rtsopts=-N4"
   hs-source-dirs:
       app
   default-extensions:

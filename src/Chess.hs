@@ -2,14 +2,16 @@
 
 module Chess where
 
+import Control.DeepSeq (force)
 import Control.Parallel (par, pseq)
-import Control.Parallel.Strategies (NFData)
+import Control.Parallel.Strategies (NFData, Eval, rpar, rdeepseq, runEval)
 import Data.List
 import Data.Maybe
 import qualified Data.Set as Set
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
+import Control.Monad (join)
 
 data Status
     = WhiteToPlay
@@ -449,3 +451,16 @@ determineStatus pos =
                                 if toPlay pos == White
                                     then WhiteToPlay
                                     else BlackToPlay
+
+-- par/pseq fmap
+paraMap :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
+paraMap f [] = []
+paraMap f (x : xs) = do
+    let a = force $ f x
+        as = --force $ 
+            paraMap f xs
+    a `par` as `pseq` a : as
+
+(<-$->) :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
+(<-$->) = paraMap
+infixl 4 <-$->

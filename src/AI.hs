@@ -11,7 +11,7 @@ import Cache
 import Chess (
     Status (..),
     determineStatus,
-    positionTree,
+    positionTree, (<-$->),
  )
 import Control.Monad (Monad ((>>=)))
 import Control.Parallel (par, pseq)
@@ -68,19 +68,6 @@ dig depth broadness perspective ev@Evaluated {..} =
                 Nothing ->
                     let furtherInspect = best broadness perspective evaluated
                      in fromMaybe ev $ singleBest perspective $ dig (depth - 1) broadness (next perspective) <$> furtherInspect
-
--- par/pseq fmap
-paraMap :: (NFData a, NFData b) => (a -> b) -> [a] -> Eval [b]
-paraMap f [] = pure []
-paraMap f (x : xs) = do
-    a <- rpar (f x)
-    as <- paraMap f xs
-    rdeepseq as
-    pure $ a : as
-
-(<-$->) :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
-(<-$->) f as = runEval $ paraMap f as
-infixl 4 <-$->
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =
