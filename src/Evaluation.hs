@@ -11,6 +11,9 @@ import Data.Foldable (foldl')
 import Data.Maybe (fromMaybe)
 import GHC.Generics (Generic)
 import Position
+import Control.Parallel (par)
+import GHC.Conc (pseq)
+import Control.DeepSeq (force)
 
 data Evaluated = Evaluated
     { pos :: Position
@@ -34,10 +37,11 @@ evaluate' pos =
 -- CAF good?
 evaluate :: Position -> Float
 evaluate p =
-    foldl'
-        ( \acc mP ->
-            let val = maybe 0 valueOf mP
-             in acc `seq` acc + val
+    foldr
+        ( \mP acc ->
+            let val = force $ maybe 0 valueOf mP
+             in 
+                force acc `seq` val `par` acc `pseq` acc + val
         )
         0
         (m p)

@@ -78,7 +78,7 @@ executable hchess-profiled
     -fwarn-unused-packages
     -threaded
     -fprof-auto
-    "-with-rtsopts=-N4 -p -s -h -i0.1"
+    "-with-rtsopts=-N6 -p -s -h -i0.1"
   hs-source-dirs:
       profiled
   default-extensions:

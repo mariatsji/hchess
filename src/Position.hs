@@ -220,7 +220,9 @@ searchForPieces pos squarePred piecePred = catSndMaybes $ unHash <$.> searchIdx 
 fromList' :: [(Square, Piece)] -> Snapshot
 fromList' =
     foldr
-        (\(s, p) tree -> set tree (hash s) (pure p))
+        (\(s, p) tree -> 
+            set tree (hash s) (pure p)
+        )
         (empty64 Nothing)
 
 toList' :: Snapshot -> [(Square, Maybe Piece)]

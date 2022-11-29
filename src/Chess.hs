@@ -160,11 +160,6 @@ positionTree pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck 
 notSelfcheck :: Color -> Position -> Bool
 notSelfcheck col pos = not $ isInCheck (pos {toPlay = col})
 
-debugger :: IO ()
-debugger = do
-    let poses = positionTreeIgnoreCheck startPosition
-    print $ toPlay <$> poses
-
 -- flips toPlay in all positions! but.. does it flip when you are in check? correct.. has a bug in it
 positionTreeIgnoreCheck :: Position -> [Position]
 positionTreeIgnoreCheck pos =
@@ -454,13 +449,23 @@ determineStatus pos =
 
 -- par/pseq fmap
 paraMap :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
-paraMap f [] = []
-paraMap f (x : xs) = do
+paraMap _ [] = []
+paraMap f (x:xs) = do
     let a = force $ f x
-        as = --force $ 
-            paraMap f xs
+        as = paraMap f xs
     a `par` as `pseq` a : as
+
+paraJoin :: (NFData a, NFData b) => (a -> [b]) -> [a] -> [b]
+paraJoin _ [] = []
+paraJoin f (x:xs) = do
+    let bs = force $ f x
+        bss = paraJoin f xs
+    bs `par` bss `pseq` bs <> bss
 
 (<-$->) :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
 (<-$->) = paraMap
 infixl 4 <-$->
+
+(-=<<-) :: (NFData a, NFData b) => (a -> [b]) -> [a] -> [b]
+(-=<<-) = paraJoin
+infixr 1 -=<<-
