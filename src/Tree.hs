@@ -2,11 +2,14 @@
 
 module Tree where
 
+import Control.DeepSeq (force)
 import Control.Parallel.Strategies (NFData)
 import Data.Bits
 import Data.Monoid
 import Data.Word
 import GHC.Generics
+import Control.Parallel (par)
+import GHC.Conc (pseq)
 
 data Tree a = Leaf a | Node (Tree a) (Tree a)
     deriving stock (Eq, Ord, Show, Generic)
@@ -52,7 +55,11 @@ searchIdx tree' idxPred piecePred = go tree' idxPred piecePred []
     go (Leaf x) ip pp path =
         let bitify = bits6toNum path
          in [(bitify, x) | pp x && ip bitify]
-    go (Node l r) ip pp path = go l ip pp (False : path) <> go r ip pp (True : path)
+    go (Node l r) ip pp path = 
+        let a = go l ip pp (False : path)
+            b = go r ip pp (True : path)
+        in a <> b
+        --in a `par` b `pseq` a <> b
 
 bits6toNum :: [Bool] -> Word8
 bits6toNum [a, b, c, d, e, f] =

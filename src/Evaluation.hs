@@ -41,7 +41,8 @@ evaluate p =
         ( \mP acc ->
             let val = force $ maybe 0 valueOf mP
              in 
-                force acc `seq` val `par` acc `pseq` acc + val
+                --force acc `par` val `par` acc `pseq` acc + val
+                acc + val
         )
         0
         (m p)

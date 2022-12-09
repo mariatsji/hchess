@@ -13,6 +13,7 @@ import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
 import Tree
+import Control.DeepSeq (force)
 
 data Color = White | Black
     deriving stock (Eq, Ord, Enum, Show, Generic)

@@ -72,7 +72,7 @@ gameLoopHM moves pos depth = do
                         let move = findMove (m newPos) (m newPos2)
                         print move
                         Printer.pretty newPos2
-                        gameLoopHM (humanMove : move : moves) newPos2 depth
+                        gameLoopHM (move : humanMove : moves) newPos2 depth
                     Left (pos'', status') -> do
                         Printer.pretty pos''
                         print status'
