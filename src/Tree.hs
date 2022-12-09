@@ -1,15 +1,15 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Tree where
+module Tree (set, Tree, (?!), empty64, searchIdx, diff) where
 
 import Control.DeepSeq (force)
+import Control.Parallel (par)
 import Control.Parallel.Strategies (NFData)
 import Data.Bits
 import Data.Monoid
 import Data.Word
-import GHC.Generics
-import Control.Parallel (par)
 import GHC.Conc (pseq)
+import GHC.Generics
 
 data Tree a = Leaf a | Node (Tree a) (Tree a)
     deriving stock (Eq, Ord, Show, Generic)
@@ -48,18 +48,19 @@ search (Leaf x) pred' = [x | pred' x]
 search (Node l r) pred' = search l pred' <> search r pred'
 
 -- The two predicates are ANDed together - one based on Square and one based on Maybe Piece (could be smashed into one predicate, couldn't it?)
-searchIdx :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
+searchIdx :: NFData a => Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
 searchIdx tree' idxPred piecePred = go tree' idxPred piecePred []
   where
-    go :: Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
+    go :: NFData a => Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
     go (Leaf x) ip pp path =
         let bitify = bits6toNum path
          in [(bitify, x) | pp x && ip bitify]
-    go (Node l r) ip pp path = 
+    go (Node l r) ip pp path =
         let a = go l ip pp (False : path)
             b = go r ip pp (True : path)
-        in a <> b
-        --in a `par` b `pseq` a <> b
+         in a <> b
+
+-- in force a `par` force b `pseq` a <> b
 
 bits6toNum :: [Bool] -> Word8
 bits6toNum [a, b, c, d, e, f] =
@@ -86,5 +87,5 @@ empty64 = go 6
     go 0 x = Leaf x
     go n x = Node (go (n - 1) x) (go (n - 1) x)
 
-diff :: Eq a => Tree a -> Tree a -> [(Word8, a)]
+diff :: (NFData a, Eq a) => Tree a -> Tree a -> [(Word8, a)]
 diff a b = searchIdx b (\w8 -> a ?! w8 /= b ?! w8) (const True)
