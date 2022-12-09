@@ -23,6 +23,7 @@ source-repository head
 
 library
   exposed-modules:
+      Board
       Cache
       Chess
       Printer

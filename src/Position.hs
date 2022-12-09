@@ -12,7 +12,7 @@ import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, listToMaybe, mapMayb
 import Data.STRef
 import Data.Word
 import GHC.Generics (Generic)
-import Tree
+import Board
 import Control.DeepSeq (force)
 
 data Color = White | Black
@@ -46,7 +46,7 @@ instance Show Square where
 toLetter :: Int -> Char
 toLetter c = ('x' : ['a' ..]) !! c
 
-type Snapshot = Tree (Maybe Piece)
+type Snapshot = Board (Maybe Piece)
 
 data CastleStatus = CanCastleBoth | CanCastleA | CanCastleH | CanCastleNone
     deriving stock (Eq, Show, Generic)
