@@ -44,16 +44,17 @@ edgeGreed pos depth = edgeGreedCompat pos depth 200
 edgeGreedCompat :: Position -> Int -> Int -> Either (Position, Status) Position
 edgeGreedCompat pos' depth broadness =
     let status = determineStatus pos'
-     in if terminal status then Left (pos', status)
-        else
-            let perspective = toPlay pos'
-                candidates = positionTree pos'
-                ranked = dig depth broadness (toPlay pos') <$> candidates
-                chosen = singleBest (toPlay pos') ranked
-            in maybe
-                (error "")
-                (Right . oneStep pos' . pos)
-                chosen
+     in if terminal status
+            then Left (pos', status)
+            else
+                let perspective = toPlay pos'
+                    candidates = positionTree pos'
+                    ranked = dig depth broadness perspective <$> candidates
+                    chosen = singleBest perspective ranked
+                 in maybe
+                        (error "")
+                        (Right . oneStep pos' . pos)
+                        chosen
 
 terminal :: Status -> Bool
 terminal = \case
@@ -66,24 +67,17 @@ terminal = \case
 dig :: Int -> Int -> Color -> Position -> Evaluated
 dig depth broadness perspective pos' =
     let status = determineStatus pos'
-        in if terminal status then evaluate' pos'
-    else
-        let candidates = positionTree pos'
-            evaluated = evaluate' <-$-> candidates
-            furtherInspect = pos <$> best broadness perspective evaluated
-        in if depth == 0
-                then evaluate' pos'
-                else if depth == 1 then
-                    fromMaybe
-                        (error "no single best")
-                        (singleBest (next perspective) evaluated)
-                else
-                    fromMaybe
-                        (error $ "dig found no single best at depth " <> show depth <> " among " <> show (length candidates))
-                        ( singleBest
-                            perspective
-                            (dig (depth - 1) broadness (next perspective) <$> furtherInspect)
-                        )
+        candidates = positionTree pos'
+     in if terminal status
+            then evaluate' pos'
+            else
+                let evaluated =
+                        if depth == 1
+                            then evaluate' <-$-> candidates
+                            else dig (depth - 1) broadness (next perspective) <-$-> candidates -- these candidates are all as good as further dig sais they are
+                 in fromMaybe
+                        (error $ "no candidates at depth " <> show depth)
+                        (singleBest perspective evaluated)
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =

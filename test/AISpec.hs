@@ -32,6 +32,10 @@ spec = describe "AI" $ do
             evaluated = evaluate' <$> positionTree p
             [queenTake] = AI.best 1 Black evaluated -- it should take the queen here
         pieceAt (pos queenTake) (Square 8 5) `shouldBe` Just (Pawn Black) -- took the queen
+    it "finds different best for black and white" $ do
+        let Right p = playMoves ["e2-e4", "g7-g6", "d1-h5"]
+            evaluated = evaluate' <$> positionTree p
+        AI.best 1 Black evaluated `shouldNotBe` AI.best 1 White evaluated
     it "sorts a small positionTree for white" $ do
         let Right p = playMoves ["e2-e4", "f7-f5"]
             evaluated = evaluate' <$> positionTree p
