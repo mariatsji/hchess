@@ -37,3 +37,7 @@ spec = describe "AI" $ do
         evaluated = evaluate' <$> positionTree p
         [queenTake] = AI.best 1 White evaluated -- it should take the pawn here
     pieceAt (pos queenTake) (Square 6 5) `shouldBe` Just (Pawn White) -- took the pawn
+  it "digs up a response to a mate threat" $ do
+    let Right pos = playMoves ["e2-e4", "a7-a5", "f1-c4", "a5-a4", "d1-h5"]
+        Right best = AI.edgeGreed pos 3
+    length (gamehistory best) `shouldBe` 6

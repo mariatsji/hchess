@@ -1,15 +1,19 @@
 module Move (
     playMove,
     playMoves,
-    playMove'
+    playMove',
+    parsedMove
 ) where
 
 import Chess
 import Control.Applicative ((<|>))
 import Data.Attoparsec.Text (Parser, char, parseOnly, string)
 import Data.Char
-import Data.Text (pack)
+import Data.Text (pack, Text)
 import Position
+
+parsedMove :: Position -> Text -> Either String Move
+parsedMove pos = parseOnly $ moveParser pos
 
 moveParser :: Position -> Parser Move
 moveParser pos = promParser pos <|> castleParser <|> regularMoveParser

@@ -1,19 +1,19 @@
 module GameLoop where
 
 import AI (edgeGreed)
-import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus)
-import Move (playMove)
+import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playMove')
+import Data.Text (pack)
+import qualified Data.Text.IO as TIO
+import Move (parsedMove, playMove)
 import Position (
     Color (White),
     Move,
-    Position (m, toPlay),
+    Position (m, toPlay, gamehistory),
     findMove,
     startPosition,
  )
 import Printer (pretty)
 import System.Exit (exitSuccess)
-import qualified Data.Text.IO as TIO
-import Data.Text (pack)
 
 start :: String -> IO ()
 start "1" = do
@@ -57,30 +57,37 @@ gameLoopMM pos whiteDepth blackDepth = do
 
 gameLoopHM :: [Move] -> Position -> Int -> IO ()
 gameLoopHM moves pos depth = do
-    l <- getLine
-    case playMove l pos of
-        Left _ -> do
-            putStrLn "Could not parse move"
+    l <- TIO.getLine
+    case parsedMove pos l of
+        Left e -> do
+            putStrLn $ "Could not parse move: " <> e
             gameLoopHM moves pos depth
-        Right newPos -> do
-            let humanMove = findMove (m newPos) (m pos)
-            Printer.pretty newPos
-            let status = determineStatus newPos
-            if status == BlackToPlay
-                then case AI.edgeGreed newPos depth of
-                    Right newPos2 -> do
-                        let move = findMove (m newPos) (m newPos2)
-                        print move
-                        Printer.pretty newPos2
-                        gameLoopHM (move : humanMove : moves) newPos2 depth
-                    Left (pos'', status') -> do
-                        Printer.pretty pos''
-                        print status'
-                        flightRecorder moves
-                        exitSuccess
-                else do
-                    print status
-                    gameLoopHM (humanMove : moves) pos depth
+        Right humanMove -> do
+            case playMove' humanMove pos of
+                Left e -> do
+                    putStrLn $ "Could not play human move: " <> e
+                    gameLoopHM moves pos depth
+                Right newPos -> do
+                    Printer.pretty newPos
+                    let status = determineStatus newPos
+                    print $ "determine status : " <> show status
+                    if status == BlackToPlay
+                        then case AI.edgeGreed newPos depth of
+                            Right newPos2 -> do
+                                print$  "edgeGreed result Right: " <> show (length (gamehistory newPos2))
+                                let move = findMove (m newPos) (m newPos2)
+                                print move
+                                Printer.pretty newPos2
+                                gameLoopHM (move : humanMove : moves) newPos2 depth
+                            Left (pos'', status') -> do
+                                print$  "edgeGreed result Left: " <> show (length (gamehistory pos''))
+                                Printer.pretty pos''
+                                print status'
+                                flightRecorder moves
+                                exitSuccess
+                        else do
+                            print status
+                            gameLoopHM (humanMove : moves) pos depth
 
 gameLoopHH :: Position -> IO ()
 gameLoopHH pos = do

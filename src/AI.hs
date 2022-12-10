@@ -11,11 +11,13 @@ import Cache
 import Chess (
     Status (..),
     determineStatus,
-    positionTree, (<-$->),
+    positionTree,
+    (<-$->),
  )
 import Control.Monad (Monad ((>>=)))
 import Control.Parallel (par, pseq)
 import Control.Parallel.Strategies (Eval, NFData, rdeepseq, rpar, rseq, runEval)
+import Data.Bifunctor (first)
 import Data.Either (partitionEithers)
 import Data.Foldable (foldl')
 import Data.List (drop, find, length, sortBy)
@@ -43,19 +45,12 @@ edgeGreedCompat :: Position -> Int -> Int -> Either (Position, Status) Position
 edgeGreedCompat pos' depth broadness =
     let perspective = toPlay pos'
         evaluated = evaluate' pos'
-        resEither = filterOnlyPlayable $ dig depth broadness (toPlay pos') evaluated
-     in case resEither of
-            Right ev ->
-                case oneStep pos' (pos ev) of
-                    Left s -> Debug.trace s $ Left (pos ev, status ev)
-                    Right newPos -> Right newPos
-            x -> fmap pos x
-  where
-    filterOnlyPlayable :: Evaluated -> Either (Position, Status) Evaluated
-    filterOnlyPlayable ev@Evaluated {..} = case status of
-        WhiteToPlay -> Right ev
-        BlackToPlay -> Right ev
-        terminalStatus -> Left (pos, terminalStatus)
+        res = dig depth broadness (toPlay pos') evaluated
+        debugWrapLeft e = Debug.trace e (pos res, status res)
+     in case status res of
+            WhiteToPlay -> first debugWrapLeft $ oneStep pos' (pos res)
+            BlackToPlay -> first debugWrapLeft $ oneStep pos' (pos res)
+            terminal -> Left (pos res, terminal)
 
 dig :: Int -> Int -> Color -> Evaluated -> Evaluated
 dig depth broadness perspective ev@Evaluated {..} =
