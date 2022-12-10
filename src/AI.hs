@@ -65,22 +65,25 @@ terminal = \case
 -- get a deep score for one position
 dig :: Int -> Int -> Color -> Position -> Evaluated
 dig depth broadness perspective pos' =
-    let candidates = positionTree pos'
-        evaluated = evaluate' <-$-> candidates
-        furtherInspect = pos <$> best broadness perspective evaluated
-     in if depth == 0
-            then evaluate' pos'
-            else if depth == 1 then
-                fromMaybe
-                    (error "no single best")
-                    (singleBest (next perspective) evaluated)
-            else
-                fromMaybe
-                    (error $ "dig found no single best at depth " <> show depth <> " among " <> show (length candidates))
-                    ( singleBest
-                        perspective
-                        (dig (depth - 1) broadness (next perspective) <$> furtherInspect)
-                    )
+    let status = determineStatus pos'
+        in if terminal status then evaluate' pos'
+    else
+        let candidates = positionTree pos'
+            evaluated = evaluate' <-$-> candidates
+            furtherInspect = pos <$> best broadness perspective evaluated
+        in if depth == 0
+                then evaluate' pos'
+                else if depth == 1 then
+                    fromMaybe
+                        (error "no single best")
+                        (singleBest (next perspective) evaluated)
+                else
+                    fromMaybe
+                        (error $ "dig found no single best at depth " <> show depth <> " among " <> show (length candidates))
+                        ( singleBest
+                            perspective
+                            (dig (depth - 1) broadness (next perspective) <$> furtherInspect)
+                        )
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =
