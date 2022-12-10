@@ -57,12 +57,14 @@ dig depth broadness perspective ev@Evaluated {..} =
     let candidates = positionTree pos
         evaluated = evaluate' <-$-> candidates
      in if depth == 0
-            then fromMaybe ev $ singleBest perspective evaluated
-            else case singleBest perspective evaluated of
-                Just x -> x
-                Nothing ->
-                    let furtherInspect = best broadness perspective evaluated
-                     in fromMaybe ev $ singleBest perspective $ dig (depth - 1) broadness (next perspective) <$> furtherInspect
+            then fromMaybe (error $ "dig found no single best at depth 0 " <> show depth <> " among " <> show (length candidates)) $
+                singleBest perspective evaluated
+            else
+                let furtherInspect = best broadness perspective evaluated
+                 in fromMaybe (error $ "dig found no single best at depth " <> show depth <> " among " <> show (length candidates)) $
+                        singleBest
+                            perspective
+                            (dig (depth - 1) broadness (next perspective) <$> furtherInspect)
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =
