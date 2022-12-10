@@ -20,7 +20,7 @@ import Control.Parallel.Strategies (Eval, NFData, rdeepseq, rpar, rseq, runEval)
 import Data.Bifunctor (first)
 import Data.Either (partitionEithers)
 import Data.Foldable (foldl')
-import Data.List (drop, find, length, sortBy)
+import Data.List (drop, find, length, sortBy, elem)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Ord (Ord ((<), (>)))
 import qualified Debug.Trace as Debug
@@ -52,19 +52,30 @@ edgeGreedCompat pos' depth broadness =
             BlackToPlay -> first debugWrapLeft $ oneStep pos' (pos res)
             terminal -> Left (pos res, terminal)
 
+terminal :: Status -> Bool
+terminal = \case
+    WhiteIsMate -> True
+    BlackIsMate -> True
+    Remis -> True
+    _ -> False
+
 dig :: Int -> Int -> Color -> Evaluated -> Evaluated
 dig depth broadness perspective ev@Evaluated {..} =
-    let candidates = positionTree pos
-        evaluated = evaluate' <-$-> candidates
-     in if depth == 0
-            then fromMaybe (error $ "dig found no single best at depth 0 " <> show depth <> " among " <> show (length candidates)) $
-                singleBest perspective evaluated
-            else
-                let furtherInspect = best broadness perspective evaluated
-                 in fromMaybe (error $ "dig found no single best at depth " <> show depth <> " among " <> show (length candidates)) $
-                        singleBest
-                            perspective
-                            (dig (depth - 1) broadness (next perspective) <$> furtherInspect)
+    if terminal status then
+        ev
+    else 
+        -- if candidates is 0 here, there is a bug! empty position tree should only happen when incoming 
+        let candidates = positionTree pos
+            evaluated = evaluate' <-$-> candidates
+        in if depth == 0
+                then fromMaybe (error $ "dig found no single best at depth 0 " <> show depth <> " among " <> show (length candidates)) $
+                    singleBest perspective evaluated
+                else
+                    let furtherInspect = best broadness perspective evaluated
+                    in fromMaybe (error $ "dig found no single best at depth " <> show depth <> " among " <> show (length candidates)) $
+                            singleBest
+                                perspective
+                                (dig (depth - 1) broadness (next perspective) <$> furtherInspect)
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =
