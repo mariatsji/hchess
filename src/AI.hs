@@ -58,7 +58,7 @@ dig depth broadness perspective ev@Evaluated {..} =
         evaluated = evaluate' <-$-> candidates
      in if depth == 0
             then fromMaybe ev $ singleBest perspective evaluated
-            else case find (terminallyGood perspective) evaluated of
+            else case singleBest perspective evaluated of
                 Just x -> x
                 Nothing ->
                     let furtherInspect = best broadness perspective evaluated
@@ -67,11 +67,6 @@ dig depth broadness perspective ev@Evaluated {..} =
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =
     listToMaybe $ best 1 color cands
-
-terminallyGood :: Color -> Evaluated -> Bool
-terminallyGood color Evaluated {..} = case color of
-    White -> status == BlackIsMate
-    Black -> status == WhiteIsMate
 
 best :: Int -> Color -> [Evaluated] -> [Evaluated]
 best n perspective evals =
