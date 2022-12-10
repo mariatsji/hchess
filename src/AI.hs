@@ -20,7 +20,7 @@ import Control.Parallel.Strategies (Eval, NFData, rdeepseq, rpar, rseq, runEval)
 import Data.Bifunctor (first)
 import Data.Either (partitionEithers)
 import Data.Foldable (foldl')
-import Data.List (drop, find, length, sortBy, elem)
+import Data.List (drop, elem, find, length, sortBy)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Ord (Ord ((<), (>)))
 import qualified Debug.Trace as Debug
@@ -43,14 +43,17 @@ edgeGreed pos depth = edgeGreedCompat pos depth 200
 -- silly wrapper, this is not edgeGreed but dig..
 edgeGreedCompat :: Position -> Int -> Int -> Either (Position, Status) Position
 edgeGreedCompat pos' depth broadness =
-    let perspective = toPlay pos'
-        evaluated = evaluate' pos'
-        res = dig depth broadness (toPlay pos') evaluated
-        debugWrapLeft e = Debug.trace e (pos res, status res)
-     in case status res of
-            WhiteToPlay -> first debugWrapLeft $ oneStep pos' (pos res)
-            BlackToPlay -> first debugWrapLeft $ oneStep pos' (pos res)
-            terminal -> Left (pos res, terminal)
+    let status = determineStatus pos'
+     in if terminal status then Left (pos', status)
+        else
+            let perspective = toPlay pos'
+                candidates = positionTree pos'
+                ranked = dig depth broadness (toPlay pos') <$> candidates
+                chosen = singleBest (toPlay pos') ranked
+            in maybe
+                (error "")
+                (Right . oneStep pos' . pos)
+                chosen
 
 terminal :: Status -> Bool
 terminal = \case
@@ -59,23 +62,25 @@ terminal = \case
     Remis -> True
     _ -> False
 
-dig :: Int -> Int -> Color -> Evaluated -> Evaluated
-dig depth broadness perspective ev@Evaluated {..} =
-    if terminal status then
-        ev
-    else 
-        -- if candidates is 0 here, there is a bug! empty position tree should only happen when incoming 
-        let candidates = positionTree pos
-            evaluated = evaluate' <-$-> candidates
-        in if depth == 0
-                then fromMaybe (error $ "dig found no single best at depth 0 " <> show depth <> " among " <> show (length candidates)) $
-                    singleBest perspective evaluated
-                else
-                    let furtherInspect = best broadness perspective evaluated
-                    in fromMaybe (error $ "dig found no single best at depth " <> show depth <> " among " <> show (length candidates)) $
-                            singleBest
-                                perspective
-                                (dig (depth - 1) broadness (next perspective) <$> furtherInspect)
+-- get a deep score for one position
+dig :: Int -> Int -> Color -> Position -> Evaluated
+dig depth broadness perspective pos' =
+    let candidates = positionTree pos'
+        evaluated = evaluate' <-$-> candidates
+        furtherInspect = pos <$> best broadness perspective evaluated
+     in if depth == 0
+            then evaluate' pos'
+            else if depth == 1 then
+                fromMaybe
+                    (error "no single best")
+                    (singleBest (next perspective) evaluated)
+            else
+                fromMaybe
+                    (error $ "dig found no single best at depth " <> show depth <> " among " <> show (length candidates))
+                    ( singleBest
+                        perspective
+                        (dig (depth - 1) broadness (next perspective) <$> furtherInspect)
+                    )
 
 singleBest :: Color -> [Evaluated] -> Maybe Evaluated
 singleBest color cands =
@@ -106,14 +111,14 @@ sorter perspective (Evaluated posA scoreA statusA) (Evaluated posB scoreB status
             (_, _) -> compare scoreA scoreB -- black wants as negative as possible
 
 -- todo this throws away sooooo much info!
-oneStep :: Position -> Position -> Either String Position
+oneStep :: Position -> Position -> Position
 oneStep p (Position snpAdvanced ghAdvanced _ _ _) =
     let snp = m p
         gh = gamehistory p
         idx = (length ghAdvanced - length gh) - 1
      in case safeLookup idx (snpAdvanced : ghAdvanced) of
-            Nothing -> Left $ "Could not lookup oneStep, from gh length " <> show (length gh) <> " to length advanced " <> show (length ghAdvanced)
-            Just nextSnp -> Right $ mkPositionExpensive p nextSnp
+            Nothing -> error $ "Could not lookup oneStep, from gh length " <> show (length gh) <> " to length advanced " <> show (length ghAdvanced)
+            Just nextSnp -> mkPositionExpensive p nextSnp
 
 safeLookup :: Int -> [a] -> Maybe a
 safeLookup _ [] = Nothing

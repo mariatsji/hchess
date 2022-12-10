@@ -63,6 +63,7 @@ gameLoopHM moves pos depth = do
             putStrLn $ "Could not parse move: " <> e
             gameLoopHM moves pos depth
         Right humanMove -> do
+            --todo if findMove elem legalMoves blabalalb
             case playMove' humanMove pos of
                 Left e -> do
                     putStrLn $ "Could not play human move: " <> e

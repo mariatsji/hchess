@@ -16,13 +16,13 @@ spec = describe "AI" $ do
     it "successfully steps one point in a direction with oneStep with 1 look a head" $ do
         let p1 = startPosition
         let p2 = head $ positionTree p1
-        let Right os = oneStep p1 p2
-        oneStep p1 p2 `shouldBe` Right p2
+        let os = oneStep p1 p2
+        oneStep p1 p2 `shouldBe` p2
     it "successfully steps one point in a direction with oneStep based on 2 looks ahead" $ do
         let p1 = startPosition
         let p2 = head $ positionTree p1
         let p3 = head $ positionTree p2
-        oneStep p1 p3 `shouldBe` Right p2
+        oneStep p1 p3 `shouldBe` p2
     it "checks a rather specific oneStep function" $ do
         let Right p = playMoves ["e2-e4", "d7-d5", "e4-d5"]
         let Right best = AI.edgeGreed p 2
