@@ -3,6 +3,8 @@ module Evaluation (
     evaluate,
     getPosition,
     evaluate',
+    terminal,
+    deepEval
 ) where
 
 import Chess
@@ -25,6 +27,33 @@ data Evaluated = Evaluated
 
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
+
+deepEval :: Int -> Color -> Position -> Float
+deepEval depth perspective pos  =
+    let status = determineStatus pos
+        candidates = positionTree pos
+        evaluated = evaluate <-$-> candidates
+     in
+    if terminal status then score $ evaluate' pos
+    else if depth == 0 then
+         fromMaybe (error "Not terminal status, so there should be candidates at depth 0") $
+            singleBest' perspective evaluated
+    else
+        fromMaybe  (error "") $
+            singleBest' perspective $ deepEval (depth - 1) (next perspective) <-$-> candidates
+
+terminal :: Status -> Bool
+terminal = \case
+    WhiteIsMate -> True
+    BlackIsMate -> True
+    Remis -> True
+    _ -> False
+
+
+singleBest' :: Color -> [Float] -> Maybe Float
+singleBest' _ [] = Nothing
+singleBest' White fs = Just $ maximum fs
+singleBest' Black fs = Just $ minimum fs
 
 evaluate' :: Position -> Evaluated
 evaluate' pos =

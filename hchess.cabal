@@ -34,6 +34,7 @@ library
       Position
       Tree
       GameLoop
+      Tester
   hs-source-dirs:
       src
   default-extensions:
