@@ -10,6 +10,7 @@ import Chess (
     determineStatus,
     positionTree,
     (<-$->),
+    (<-&->),
  )
 import Control.Monad (Monad ((>>=)))
 import Control.Parallel (par, pseq)
@@ -43,6 +44,6 @@ edgeGreed pos' depth =
             else
                 let perspective = toPlay pos'
                     candidates = positionTree pos' -- white to move
-                    withScores = candidates <&> \p -> (p, deepEval depth (next perspective) p)
+                    withScores = candidates <-&-> \p -> (p, deepEval depth (next perspective) p)
                     (best, score) = if perspective == White then maximumBy (comparing snd) withScores else minimumBy (comparing snd) withScores
                  in Debug.traceShow (toPlay pos') $ Right best

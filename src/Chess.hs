@@ -458,3 +458,7 @@ paraMap f (x:xs) = do
 (<-$->) :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
 (<-$->) = paraMap
 infixl 4 <-$->
+
+(<-&->) :: (NFData a, NFData b) => [a] -> (a -> b) -> [b]
+(<-&->) = flip paraMap
+infixr 4 <-&->

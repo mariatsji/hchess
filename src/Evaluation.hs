@@ -39,8 +39,8 @@ deepEval depth perspective pos  =
          fromMaybe (error "Not terminal status, so there should be candidates at depth 0") $
             singleBest' perspective evaluated
     else
-        fromMaybe  (error "") $
-            singleBest' perspective $ deepEval (depth - 1) (next perspective) <-$-> candidates
+        fromMaybe  (error "Not terminal status, so there should be candidates at depth > 0") $
+            singleBest' perspective $ deepEval (depth - 1) (next perspective) <$> candidates
 
 terminal :: Status -> Bool
 terminal = \case
