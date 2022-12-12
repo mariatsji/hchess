@@ -174,7 +174,7 @@ positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
     Pawn _ ->
         let squares = filter (canGoThere pos s . fst) $ toSquaresPawn pos s
-            positions =
+            positions = squares >>=
                 ( \t ->
                     let fromSquare = s
                         toSquare = fst t
@@ -196,7 +196,6 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
                             Just s' ->
                                 [movePiece pos {m = removePieceAt snp s'} s toSquare] -- En passant
                 )
-                    =<< squares
          in positions
     Knight _ ->
         fmap
@@ -213,25 +212,26 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]
-toSquaresPawn pos s@(Square _ r)
+toSquaresPawn pos s@(Square c r)
     | toPlay pos == White =
         filter insideBoard' $
             [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2]
                 <> [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1]
                 <> [(squareTo s (-1) 1, Nothing) | enemyAt pos $ squareTo s (-1) 1]
                 <> [(squareTo s 1 1, Nothing) | enemyAt pos $ squareTo s 1 1]
-                <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
-                <> [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
+                <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0), c > 1]
+                <> [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0), c < 7]
     | otherwise =
         filter insideBoard' $
             [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)]
                 <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
                 <> [(squareTo s (-1) (-1), Nothing) | enemyAt pos $ squareTo s (-1) (-1)]
                 <> [(squareTo s 1 (-1), Nothing) | enemyAt pos $ squareTo s 1 (-1)]
-                <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0)]
-                <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0)]
+                <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0), c > 1]
+                <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0), c < 7]
 
 -- en passant
+-- the square arg is the spot the pawn just jumped to - opening up for en passant
 enPassant :: Position -> Square -> Bool
 enPassant (Position _ [] _ _ _) _ = False
 enPassant pos s@(Square c r)
@@ -455,17 +455,6 @@ paraMap f (x:xs) = do
         as = paraMap f xs
     a `par` as `pseq` a : as
 
-paraJoin :: (NFData a, NFData b) => (a -> [b]) -> [a] -> [b]
-paraJoin _ [] = []
-paraJoin f (x:xs) = do
-    let bs = force $ f x
-        bss = paraJoin f xs
-    bs `par` bss `pseq` bs <> bss
-
 (<-$->) :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
 (<-$->) = paraMap
 infixl 4 <-$->
-
-(-=<<-) :: (NFData a, NFData b) => (a -> [b]) -> [a] -> [b]
-(-=<<-) = paraJoin
-infixr 1 -=<<-

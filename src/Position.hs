@@ -251,6 +251,7 @@ findMove a b =
                 | Square 8 8 `elem` changedSquares -> CastleShort
                 | Square 1 8 `elem` changedSquares -> CastleLong
                 | otherwise -> error "could not determine position diff of length 4 that does not seem to be a castle"
+            3 -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares) -- todo dedicated Move for this? 
             2
                 | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece) (promtoPiece changedSquaresAndPiece)
                 | otherwise -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares)

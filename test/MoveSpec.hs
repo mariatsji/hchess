@@ -277,3 +277,6 @@ spec = do
           themove = findMove (m p1) (m p2)
       pieceAt p2 (Square 2 8) `shouldBe` Just (Knight White)
       themove `shouldBe` Promotion (Square 2 7) (Square 2 8) (Knight White)
+    it "finds enPassant" $ do
+      let Right p = playMoves ["b2-b4", "h7-h5", "b4-b5", "a7-a5"]
+      enPassant p (Square 1 5) `shouldBe` True
