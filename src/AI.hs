@@ -34,6 +34,7 @@ import Position (
  )
 import Printer (prettyE)
 
+-- black to move
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
 edgeGreed pos' depth =
     let status = determineStatus pos'
@@ -41,7 +42,7 @@ edgeGreed pos' depth =
             then Left (pos', status)
             else
                 let perspective = toPlay pos'
-                    candidates = positionTree pos'
-                    withScores = candidates <&> \p -> (p, deepEval depth perspective p)
+                    candidates = positionTree pos' -- white to move
+                    withScores = candidates <&> \p -> (p, deepEval depth (next perspective) p)
                     (best, score) = if perspective == White then maximumBy (comparing snd) withScores else minimumBy (comparing snd) withScores
-                 in Right best
+                 in Debug.traceShow (toPlay pos') $ Right best
