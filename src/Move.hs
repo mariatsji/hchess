@@ -1,7 +1,7 @@
 module Move (
     playMove,
     playMoves,
-    playMove',
+    playIfLegal,
     parsedMove
 ) where
 
@@ -72,7 +72,7 @@ playMove :: String -> Position -> Either String Position
 playMove s pos = do
     let color = toPlay pos
     move <- parseOnly (moveParser pos) (pack s)
-    playMove' move pos
+    playIfLegal move pos
 
 
 playMoves :: [String] -> Either String Position

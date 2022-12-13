@@ -46,14 +46,14 @@ identifyMove pos from to mPromPiece =
                             then CastleLong
                             else MovedPiece from to
 
-playMove' :: Move -> Position -> Either String Position
-playMove' move pos = do
+playIfLegal :: Move -> Position -> Either String Position
+playIfLegal move pos = do
     let moveAttempt = case move of
-            MovedPiece from to -> Chess.movePiece pos from to
-            CastleShort -> head $ Chess.castle' CastleShort pos -- todo head..
-            CastleLong -> head $ Chess.castle' CastleLong pos -- todo head..
-            Promotion from to piece -> Chess.movePiecePromote pos from to piece
-        tree = Chess.positionTree pos
+            MovedPiece from to -> movePiece pos from to
+            CastleShort -> head $ castle' CastleShort pos -- todo head..
+            CastleLong -> head $ castle' CastleLong pos -- todo head..
+            Promotion from to piece -> movePiecePromote pos from to piece
+        tree = positionTree pos
         isAmongLegalMoves = any (eqPosition moveAttempt) tree
     if isAmongLegalMoves
         then Right moveAttempt

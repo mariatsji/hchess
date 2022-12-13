@@ -1,7 +1,7 @@
 module GameLoop where
 
 import AI (edgeGreed)
-import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playMove', positionTree)
+import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, positionTree, playIfLegal)
 import Data.Text (pack)
 import qualified Data.Text.IO as TIO
 import Move (parsedMove, playMove)
@@ -89,12 +89,6 @@ gameLoopHM pos depth = do
                         else do
                             print status
                             gameLoopHM pos depth
-
-playIfLegal :: Move -> Position -> Either String Position
-playIfLegal move pos =
-    let legalMoves = positionTree pos
-     in playMove' move pos
-            >>= \p -> if p `elem` legalMoves then Right p else Left (show move <> " is ot a legal move in position")
 
 gameLoopHH :: Position -> IO ()
 gameLoopHH pos = do
