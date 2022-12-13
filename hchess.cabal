@@ -32,6 +32,7 @@ library
       Move
       AI
       Position
+      PGN
       Tree
       GameLoop
       Tester
@@ -64,10 +65,11 @@ library
     , bytestring
     , containers
     , deepseq
+    , multi-containers
+    , neat-interpolation
     , parallel
     , text
     , transformers
-    , multi-containers
     , utf8-string
   default-language: Haskell2010
 

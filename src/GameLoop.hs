@@ -66,7 +66,7 @@ gameLoopHM pos depth = do
         Right humanMove -> do
             case playIfLegal humanMove pos of
                 Left e -> do
-                    Printer.infoTexts ["You can't play this: ", e]
+                    Printer.infoTexts ["You can't play " <> show humanMove, e]
                     gameLoopHM pos depth
                 Right newPos -> do
                     flightRecorderAppend humanMove

@@ -43,8 +43,6 @@ line = do
 pretty :: Position -> IO ()
 pretty pos = do
     mapM_ UP.putStrLn $ prettyRow <$> rowify pos
-    putStrLn "-"
-    return ()
 
 prettyE :: Evaluated -> IO ()
 prettyE (Evaluated gh score status) = do
