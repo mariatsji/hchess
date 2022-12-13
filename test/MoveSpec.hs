@@ -7,7 +7,6 @@ import Move
 import Position
 import Printer
 import Test.Hspec
-import qualified Debug.Trace as Debug
 
 spec :: Spec
 spec = do

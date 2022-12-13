@@ -22,7 +22,6 @@ import Data.Functor ((<&>))
 import Data.List (drop, elem, find, length, sortBy)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Ord (Ord ((<), (>)), comparing)
-import qualified Debug.Trace as Debug
 import Evaluation (Evaluated (..), deepEval, evaluate, evaluate', getPosition, terminal)
 import Move (playMoves)
 import Position (
@@ -45,4 +44,4 @@ edgeGreed pos' depth =
                     candidates = positionTree pos' -- white to move
                     withScores = candidates <-&-> \p -> (p, deepEval depth (next perspective) p)
                     (best, score) = if perspective == White then maximumBy (comparing snd) withScores else minimumBy (comparing snd) withScores
-                 in Debug.traceShow (toPlay pos') $ Right best
+                 in Right best

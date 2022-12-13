@@ -1,8 +1,8 @@
 module GameLoop where
 
 import AI (edgeGreed)
-import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, positionTree, playIfLegal)
-import Data.Text (pack, Text, unpack)
+import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
+import Data.Text (Text, pack, unpack)
 import qualified Data.Text.IO as TIO
 import Move (parsedMove, playMove)
 import Position (
@@ -13,8 +13,8 @@ import Position (
     startPosition,
  )
 import qualified Printer
-import System.Exit (exitSuccess)
 import qualified System.Console.ANSI as ANSI
+import System.Exit (exitSuccess)
 
 start :: Text -> IO ()
 start "1" = do
@@ -22,12 +22,15 @@ start "1" = do
     Printer.prettyANSI startPosition
     gameLoopHH startPosition
 start "2" = do
-    Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q"
-                      , "Enter machine search depth (2-5) where 1 is faster and 5 is stronger" ]
+    Printer.infoTexts
+        [ "Examples of moves are e2-e4 O-O-O d7-d8Q"
+        , "Enter machine search depth (2-5) where 1 is faster and 5 is stronger"
+        ]
     l <- Printer.line
     let depth = read @Int (unpack l)
     TIO.writeFile "game.log" ""
     Printer.prettyANSI startPosition
+    Printer.clearInfo
     gameLoopHM startPosition depth
 start "3" = do
     Printer.infoTexts ["Enter white search depth (2-5) where 2 is faster and 5 is stronger", ""]
@@ -59,9 +62,10 @@ gameLoopMM pos whiteDepth blackDepth = do
 gameLoopHM :: Position -> Int -> IO ()
 gameLoopHM pos depth = do
     l <- Printer.line
+    Printer.clearInfo
     case parsedMove pos l of
         Left e -> do
-            Printer.infoTexts ["Could not parse move",  e]
+            Printer.infoTexts ["Could not parse move", e]
             gameLoopHM pos depth
         Right humanMove -> do
             case playIfLegal humanMove pos of
@@ -70,26 +74,24 @@ gameLoopHM pos depth = do
                     gameLoopHM pos depth
                 Right newPos -> do
                     flightRecorderAppend humanMove
+                    Printer.infoTexts ["thinking..", ""]
                     Printer.prettyANSI newPos
-                    let status = determineStatus newPos
-                    if status == BlackToPlay
-                        then case AI.edgeGreed newPos depth of
-                            Right newPos2 -> do
-                                let move = findMove (m newPos) (m newPos2)
-                                flightRecorderAppend move
-                                Printer.prettyANSI newPos2
-                                gameLoopHM newPos2 depth
-                            Left (pos'', status') -> do
-                                Printer.prettyANSI pos''
-                                Printer.infoTexts ["Game over: ", show status']
-                                exitSuccess
-                        else
-                            gameLoopHM pos depth
+                    case AI.edgeGreed newPos depth of
+                        Right newPos2 -> do
+                            let move = findMove (m newPos) (m newPos2)
+                            flightRecorderAppend move
+                            Printer.infoTexts [show move, ""]
+                            Printer.prettyANSI newPos2
+                            gameLoopHM newPos2 depth
+                        Left (pos'', status') -> do
+                            Printer.prettyANSI pos''
+                            Printer.infoTexts ["Game over: ", show status']
+                            exitSuccess
 
 gameLoopHH :: Position -> IO ()
 gameLoopHH pos = do
     Printer.prettyANSI pos
-    Printer.infoTexts [ "Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
+    Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
     l <- Printer.line
     case playMove l pos of
         Left s -> do

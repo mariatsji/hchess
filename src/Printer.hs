@@ -14,13 +14,21 @@ import GHC.IO.Handle (hFlush)
 
 infoTexts :: [String] -> IO ()
 infoTexts [s1, s2] = do
+    clearInfo
     ANSI.setCursorPosition infoLineX infoLineY
-    ANSI.clearLine
     putStr s1
     ANSI.setCursorPosition (infoLineX + 1) infoLineY
-    ANSI.clearLine
     putStr s2
 infoTexts _ = pure ()
+
+clearInfo :: IO ()
+clearInfo = do
+    ANSI.setCursorPosition 5 0
+    ANSI.clearFromCursorToScreenBeginning
+    ANSI.setCursorPosition infoLineX infoLineY
+    ANSI.clearLine
+    ANSI.setCursorPosition (infoLineX + 1) infoLineY
+    ANSI.clearLine
 
 infoLineX :: Int
 infoLineX = 20
