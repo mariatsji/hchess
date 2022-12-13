@@ -1,14 +1,14 @@
 module GameLoop where
 
 import AI (edgeGreed)
-import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playMove')
+import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playMove', positionTree)
 import Data.Text (pack)
 import qualified Data.Text.IO as TIO
 import Move (parsedMove, playMove)
 import Position (
     Color (White),
     Move,
-    Position (m, toPlay, gamehistory),
+    Position (gamehistory, m, toPlay),
     findMove,
     startPosition,
  )
@@ -27,7 +27,9 @@ start "2" = do
     l <- getLine
     let depth = read l :: Int
     Printer.pretty startPosition
-    gameLoopHM [] startPosition depth
+    putStrLn "Clearing earlier game.log"
+    TIO.writeFile "game.log" ""
+    gameLoopHM startPosition depth
 start "3" = do
     putStrLn "Enter white search depth (2-5) where 2 is faster and 5 is stronger"
     lw <- getLine
@@ -55,40 +57,44 @@ gameLoopMM pos whiteDepth blackDepth = do
             Printer.pretty pos'
             pure ()
 
-gameLoopHM :: [Move] -> Position -> Int -> IO ()
-gameLoopHM moves pos depth = do
+gameLoopHM :: Position -> Int -> IO ()
+gameLoopHM pos depth = do
     l <- TIO.getLine
     case parsedMove pos l of
         Left e -> do
             putStrLn $ "Could not parse move: " <> e
-            gameLoopHM moves pos depth
+            gameLoopHM pos depth
         Right humanMove -> do
-            --todo if findMove elem legalMoves blabalalb
-            case playMove' humanMove pos of
+            case playIfLegal humanMove pos of
                 Left e -> do
-                    putStrLn $ "Could not play human move: " <> e
-                    gameLoopHM moves pos depth
+                    putStrLn $ "You can't play this: " <> e
+                    gameLoopHM pos depth
                 Right newPos -> do
+                    flightRecorderAppend humanMove
                     Printer.pretty newPos
                     let status = determineStatus newPos
                     print $ "determine status : " <> show status
                     if status == BlackToPlay
                         then case AI.edgeGreed newPos depth of
                             Right newPos2 -> do
-                                print$  "edgeGreed result Right: " <> show (length (gamehistory newPos2))
                                 let move = findMove (m newPos) (m newPos2)
+                                flightRecorderAppend move
                                 print move
                                 Printer.pretty newPos2
-                                gameLoopHM (move : humanMove : moves) newPos2 depth
+                                gameLoopHM newPos2 depth
                             Left (pos'', status') -> do
-                                print$  "edgeGreed result Left: " <> show (length (gamehistory pos''))
                                 Printer.pretty pos''
                                 print status'
-                                flightRecorder moves
                                 exitSuccess
                         else do
                             print status
-                            gameLoopHM (humanMove : moves) pos depth
+                            gameLoopHM pos depth
+
+playIfLegal :: Move -> Position -> Either String Position
+playIfLegal move pos =
+    let legalMoves = positionTree pos
+     in playMove' move pos
+            >>= \p -> if p `elem` legalMoves then Right p else Left (show move <> " is ot a legal move in position")
 
 gameLoopHH :: Position -> IO ()
 gameLoopHH pos = do
@@ -110,8 +116,9 @@ gameLoopHH pos = do
                         print newStatus
                         exitSuccess
 
-flightRecorder :: [Move] -> IO ()
-flightRecorder moves = do
-    print "saving game.log"
-    let content = show $ reverse moves
-    TIO.writeFile "game.log" (pack content)
+flightRecorderAppend :: Move -> IO ()
+flightRecorderAppend move = do
+    let filename = "game.log"
+    print $ "saving" <> filename
+    existing <- TIO.readFile filename
+    TIO.writeFile filename (existing <> "\n" <> pack (show move))
