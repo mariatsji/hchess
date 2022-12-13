@@ -26,9 +26,9 @@ start "2" = do
         "Enter machine search depth (2-5) where 1 is faster and 5 is stronger"
     l <- getLine
     let depth = read l :: Int
-    Printer.pretty startPosition
     putStrLn "Clearing earlier game.log"
     TIO.writeFile "game.log" ""
+    Printer.pretty startPosition
     gameLoopHM startPosition depth
 start "3" = do
     putStrLn "Enter white search depth (2-5) where 2 is faster and 5 is stronger"
@@ -113,6 +113,5 @@ gameLoopHH pos = do
 flightRecorderAppend :: Move -> IO ()
 flightRecorderAppend move = do
     let filename = "game.log"
-    print $ "saving" <> filename
     existing <- TIO.readFile filename
     TIO.writeFile filename (existing <> "\n" <> pack (show move))
