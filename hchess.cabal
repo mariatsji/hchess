@@ -58,6 +58,7 @@ library
       TypeOperators
   build-depends:
       base ^>=4.15.1.0
+    , ansi-terminal
     , aeson
     , attoparsec
     , bytestring
@@ -138,6 +139,7 @@ executable hchess
       TypeOperators
   build-depends:
       base ^>=4.15.1.0
+    , ansi-terminal
     , hchess
   default-language: Haskell2010
 

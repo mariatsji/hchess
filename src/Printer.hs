@@ -3,9 +3,42 @@ module Printer where
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
 import Data.List
+import Data.Text (Text)
+import qualified Data.Text.IO as TIO
 import Evaluation
 import GHC.Exts
 import Position
+import qualified System.Console.ANSI as ANSI
+import System.IO (stdout)
+import GHC.IO.Handle (hFlush)
+
+infoTexts :: [String] -> IO ()
+infoTexts [s1, s2] = do
+    ANSI.setCursorPosition infoLineX infoLineY
+    ANSI.clearLine
+    putStr s1
+    ANSI.setCursorPosition (infoLineX + 1) infoLineY
+    ANSI.clearLine
+    putStr s2
+infoTexts _ = pure ()
+
+infoLineX :: Int
+infoLineX = 20
+
+infoLineY :: Int
+infoLineY = 0
+
+prettyANSI :: Position -> IO ()
+prettyANSI pos = do
+    ANSI.setCursorPosition 5 0
+    mapM_ UP.putStrLn $ prettyRow <$> rowify pos
+
+line :: IO Text
+line = do
+    ANSI.setCursorPosition 22 0
+    ANSI.clearLine
+    hFlush stdout
+    TIO.getLine
 
 pretty :: Position -> IO ()
 pretty pos = do

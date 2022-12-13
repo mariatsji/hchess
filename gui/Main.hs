@@ -15,7 +15,7 @@ import GI.Gdk.Flags (DragAction(..))
 import GI.Gdk.Objects.Drag (Drag(..))
 
 import AI (edgeGreed)
-import Chess (identifyMove, pieceAt)
+import Chess (identifyMove, pieceAt, playIfLegal)
 import Control.Monad (when)
 import Data.Foldable (traverse_)
 import Data.Functor (void)
@@ -25,7 +25,6 @@ import Data.Word (Word32)
 import GHC.Conc (TVar, newTVarIO, readTVarIO, writeTVar)
 import GHC.Conc.Sync (atomically)
 import qualified GI.Gio.Objects.Application as Gio
-import Move (playMove')
 import Position
 
 data World = World
@@ -159,7 +158,7 @@ clickEnd fixed worldVar nrClicks x y =
                 Just fromSquare -> do
                     let move = identifyMove world fromSquare toSquare Nothing -- todo promotion piece
                     print move
-                    case playMove' move world of
+                    case playIfLegal move world of
                         Left s -> print s -- todo
                         Right newPos -> do
                             let newWorld =

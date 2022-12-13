@@ -1,7 +1,6 @@
 module Move (
     playMove,
     playMoves,
-    playIfLegal,
     parsedMove
 ) where
 
@@ -68,14 +67,13 @@ pieceParser color = knightParser <|> bishopParser <|> rookParser <|> queenParser
     rookParser = Rook color <$ char 'R'
     queenParser = Queen color <$ char 'Q'
 
-playMove :: String -> Position -> Either String Position
+playMove :: Text -> Position -> Either String Position
 playMove s pos = do
-    let color = toPlay pos
-    move <- parseOnly (moveParser pos) (pack s)
+    move <- parseOnly (moveParser pos) s
     playIfLegal move pos
 
 
-playMoves :: [String] -> Either String Position
+playMoves :: [Text] -> Either String Position
 playMoves =
     foldl
         (\acc c -> acc >>= playMove c)

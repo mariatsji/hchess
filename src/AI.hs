@@ -33,7 +33,6 @@ import Position (
     mkPositionExpensive,
     next,
  )
-import Printer (prettyE)
 
 -- black to move
 edgeGreed :: Position -> Int -> Either (Position, Status) Position
