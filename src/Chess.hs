@@ -3,15 +3,15 @@
 module Chess where
 
 import Control.DeepSeq (force)
+import Control.Monad (join)
 import Control.Parallel (par, pseq)
-import Control.Parallel.Strategies (NFData, Eval, rpar, rdeepseq, runEval)
+import Control.Parallel.Strategies (Eval, NFData, rdeepseq, rpar, runEval)
 import Data.List
 import Data.Maybe
 import qualified Data.Set as Set
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
-import Control.Monad (join)
 
 data Status
     = WhiteToPlay
@@ -46,18 +46,25 @@ identifyMove pos from to mPromPiece =
                             then CastleLong
                             else MovedPiece from to
 
+-- todo express shorter plz
 playIfLegal :: Move -> Position -> Either String Position
 playIfLegal move pos = do
-    let moveAttempt = case move of
-            MovedPiece from to -> movePiece pos from to
-            CastleShort -> head $ castle' CastleShort pos -- todo head..
-            CastleLong -> head $ castle' CastleLong pos -- todo head..
-            Promotion from to piece -> movePiecePromote pos from to piece
-        tree = positionTree pos
-        isAmongLegalMoves = any (eqPosition moveAttempt) tree
-    if isAmongLegalMoves
-        then Right moveAttempt
-        else Left "Move not among legal moves"
+    case pieceAt pos (movedFrom move (toPlay pos)) of
+        Nothing -> Left "No piece at that from-square"
+        Just p ->
+            if colr p == toPlay pos
+                then
+                    let moveAttempt = case move of
+                            MovedPiece from to -> movePiece pos from to
+                            CastleShort -> head $ castle' CastleShort pos -- todo head..
+                            CastleLong -> head $ castle' CastleLong pos -- todo head..
+                            Promotion from to piece -> movePiecePromote pos from to piece
+                        tree = positionTree pos
+                        isAmongLegalMoves = any (eqPosition moveAttempt) tree
+                     in if isAmongLegalMoves
+                            then Right moveAttempt
+                            else Left "Move not among legal moves"
+                else Left "Sorry, that piece is not for you to move"
 
 -- flips toPlay
 movePiece :: Position -> Square -> Square -> Position
@@ -174,28 +181,29 @@ positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
     Pawn _ ->
         let squares = filter (canGoThere pos s . fst) $ toSquaresPawn pos s
-            positions = squares >>=
-                ( \t ->
-                    let fromSquare = s
-                        toSquare = fst t
-                        promRow = if toPlay pos == White then 8 else 1 -- todo reuse
-                     in case snd t of
-                            Nothing ->
-                                if row toSquare == promRow
-                                    then
-                                        let naive = movePiece pos fromSquare toSquare
-                                            snap = m naive
-                                            color = toPlay pos
-                                            replaced piece = naive {m = replacePieceAt snap toSquare piece}
-                                         in [ replaced (Rook color)
-                                            , replaced (Knight color)
-                                            , replaced (Bishop color)
-                                            , replaced (Queen color)
-                                            ]
-                                    else [movePiece pos fromSquare toSquare]
-                            Just s' ->
-                                [movePiece pos {m = removePieceAt snp s'} s toSquare] -- En passant
-                )
+            positions =
+                squares
+                    >>= ( \t ->
+                            let fromSquare = s
+                                toSquare = fst t
+                                promRow = if toPlay pos == White then 8 else 1 -- todo reuse
+                             in case snd t of
+                                    Nothing ->
+                                        if row toSquare == promRow
+                                            then
+                                                let naive = movePiece pos fromSquare toSquare
+                                                    snap = m naive
+                                                    color = toPlay pos
+                                                    replaced piece = naive {m = replacePieceAt snap toSquare piece}
+                                                 in [ replaced (Rook color)
+                                                    , replaced (Knight color)
+                                                    , replaced (Bishop color)
+                                                    , replaced (Queen color)
+                                                    ]
+                                            else [movePiece pos fromSquare toSquare]
+                                    Just s' ->
+                                        [movePiece pos {m = removePieceAt snp s'} s toSquare] -- En passant
+                        )
          in positions
     Knight _ ->
         fmap
@@ -450,7 +458,7 @@ determineStatus pos =
 -- par/pseq fmap
 paraMap :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
 paraMap _ [] = []
-paraMap f (x:xs) = do
+paraMap f (x : xs) = do
     let a = force $ f x
         as = paraMap f xs
     a `par` as `pseq` a : as

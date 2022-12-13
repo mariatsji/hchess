@@ -36,6 +36,6 @@ spec = describe "AI" $ do
                             ,"f3-g5" ,"a5-c3"
                             ,"d2-c3" ,"b6-b5"
                             ,"c3-g7" ,"f8-g7"
-                            ,"d2-d5" ]
+                            ,"e2-e5" ]
         let res = AI.edgeGreed pos 2
         res `shouldSatisfy` isRight

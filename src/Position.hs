@@ -66,6 +66,13 @@ data Move = MovedPiece Square Square | Promotion Square Square Piece | CastleSho
     deriving stock (Eq, Generic)
     deriving anyclass (NFData)
 
+-- need Color because of castle notation is colorless atm.. 
+movedFrom :: Move -> Color -> Square
+movedFrom (MovedPiece from _) _ = from
+movedFrom (Promotion from _ _) _ = from
+movedFrom _ White = Square 5 1
+movedFrom _ Black = Square 5 1
+
 instance Show Move where
     show (MovedPiece from to) = "\"" <> show from <> "-" <> show to <> "\""
     show (Promotion from to piece) = "\"" <> show from <> "-" <> show to <> toOneChar piece <> "\""
