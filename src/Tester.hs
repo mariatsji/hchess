@@ -33,6 +33,5 @@ testAI depth = do
         snp4 = replacePieceAt snp3 (Square 4 2) (Queen White)
         snp5 = replacePieceAt snp4 (Square 5 5) (Knight Black)
         pos = emptyBoard { m = snp5, toPlay = Black, castleStatusWhite = CanCastleNone, castleStatusBlack = CanCastleNone, gamehistory = [snp4, snp3, snp2, snp2, snp] }
-    traverse_
-        pretty $
+    pretty $ fst $
         AI.edgeGreed pos depth
