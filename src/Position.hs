@@ -73,6 +73,15 @@ movedFrom (Promotion from _ _) _ = from
 movedFrom _ White = Square 5 1
 movedFrom _ Black = Square 5 1
 
+-- need Color because of castle notation is colorless atm.. 
+movedTo :: Move -> Color -> Square
+movedTo (MovedPiece _ to) _ = to
+movedTo (Promotion _ to _) _ = to
+movedTo CastleShort White = Square 7 1
+movedTo CastleShort Black = Square 7 8
+movedTo CastleLong White = Square 3 1
+movedTo CastleLong Black = Square 3 8
+
 instance Show Move where
     show (MovedPiece from to) = "\"" <> show from <> "-" <> show to <> "\""
     show (Promotion from to piece) = "\"" <> show from <> "-" <> show to <> toOneChar piece <> "\""

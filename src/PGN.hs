@@ -2,36 +2,19 @@ module PGN where
 
 import NeatInterpolation
 
-import Position (Move)
-import Data.Text (Text)
+import Board (searchIdx)
+import Chess (Status (..), determineStatus, isCheckMate, isInCheck, pieceAt, playIfLegal, positionTree)
+import Data.Maybe (fromMaybe)
+import Data.Text (Text, pack)
+import Move (playMoves)
+import Position (CastleStatus (CanCastleBoth), Color (..), Move (..), Piece (..), Position (..), Snapshot, Square (..), colr, findMove, next, pieceAt', startPosition)
 
-type Title = Text
-
-data Result = W | B | R
-
-data PgnMove = Todo
-
-data Pgn = Pgn {
-    title :: Title,
-    result :: Result,
-    moves :: [PgnMove]
-}
-
-convert :: Move -> PgnMove
-convert = undefined
-
-pgn :: Move -> Pgn -> Pgn
-pgn move prev =
-    let existing = moves prev
-    in prev { moves = existing <> [convert move] }
-
-renderPgn :: Pgn -> Text
-renderPgn Pgn{..} =
-    let res = renderResult result
-        mo = renderMoves moves
-    in
-    [text|
-        [Event "$title"]
+renderPgn :: Position -> Text
+renderPgn pos' =
+    let res = renderResult pos'
+        mo = renderMoves pos'
+     in [text|
+        [Event "hChess match"]
         [Site "In front of computer"]
         [Date "2022-12-13"]
         [Round "1"]
@@ -42,17 +25,81 @@ renderPgn Pgn{..} =
         $mo $res
     |]
 
-renderMoves :: [PgnMove] -> Text
-renderMoves _ = [text| 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 {This opening is called the Ruy Lopez.} 
-4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7
-11. c4 c6 12. cxb5 axb5 13. Nc3 Bb7 14. Bg5 b4 15. Nb1 h6 16. Bh4 c5 17. dxe5
-Nxe4 18. Bxe7 Qxe7 19. exd6 Qf6 20. Nbd2 Nxd6 21. Nc4 Nxc4 22. Bxc4 Nb6
-23. Ne5 Rae8 24. Bxf7+ Rxf7 25. Nxf7 Rxe1+ 26. Qxe1 Kxf7 27. Qe3 Qg5 28. Qxg5
-hxg5 29. b3 Ke6 30. a3 Kd6 31. axb4 cxb4 32. Ra5 Nd5 33. f3 Bc8 34. Kf2 Bf5
-35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5 40. Rd6 Kc5 41. Ra6
-Nf2 42. g4 Bd3 43. Re6 1/2-1/2 |]
+renderMoves :: Position -> Text
+renderMoves Position {..} =
+    let indices = repeatEntries [1 ..]
+        snapshots = reverse gamehistory `zip` indices
+     in go snapshots
+  where
+    go [] = ""
+    go [(from, i)] = renderNr i i
+    go ((from, i) : (to, j) : more) = renderNr i j <> renderMove from to <> " " <> go ((to, j) : more)
 
-renderResult :: Result -> Text
-renderResult W = "1-0"
-renderResult B = "0-1"
-renderREsult R = "1/2-1/2"
+
+renderNr :: Int -> Int -> Text
+renderNr i j = if i == j then pack $ show i <> ". " else ""
+
+repeatEntries :: [a] -> [a]
+repeatEntries [] = []
+repeatEntries (x : xs) = x : x : repeatEntries xs
+
+renderMove :: Snapshot -> Snapshot -> Text
+renderMove from to =
+    let move' = findMove from to
+     in case move' of
+            CastleShort -> "O-O"
+            CastleLong -> "O-O-O"
+            MovedPiece fromSq toSq ->
+                let fromPiece' = fromPiece from fromSq
+                    fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
+                 in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderCheck to fromColor' -- todo duplication
+            Promotion fromSq toSq piece ->
+                let fromPiece' = fromPiece from fromSq
+                    fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
+                 in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderProm piece <> renderCheck to fromColor'
+
+renderCheck :: Snapshot -> Color -> Text
+renderCheck snp mover =
+    let fakePos =
+            Position
+                { m = snp
+                , gamehistory = [m startPosition]
+                , castleStatusWhite = CanCastleBoth
+                , castleStatusBlack = CanCastleBoth
+                , toPlay = next mover
+                }
+     in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck fakePos then "!" else ""
+
+renderProm :: Piece -> Text
+renderProm = (<>) "=" . renderPiece
+
+renderTakes :: Snapshot -> Snapshot -> Text
+renderTakes from to =
+    if countPieces from White == countPieces to White && countPieces from Black == countPieces to Black then "" else "x"
+  where
+    countPieces :: Snapshot -> Color -> Int
+    countPieces s c = length $ searchIdx s (const True) (\mp -> fmap colr mp == Just c)
+
+renderPiece :: Piece -> Text
+renderPiece = \case
+    Pawn _ -> ""
+    Knight _ -> "N"
+    Bishop _ -> "B"
+    Rook _ -> "R"
+    Queen _ -> "Q"
+    King _ -> "K"
+
+fromPiece :: Snapshot -> Square -> Piece
+fromPiece snp s = fromMaybe (error "PGN found no fromPiece in snapshot") (pieceAt' snp s)
+
+renderResult :: Position -> Text
+renderResult pos = case determineStatus pos of
+    WhiteIsMate -> "0-1"
+    BlackIsMate -> "1-0"
+    Remis -> "1/2-1/2"
+    _ -> "*"
+
+pgnTester :: IO ()
+pgnTester = do
+    let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
+    print $ renderPgn testPos
