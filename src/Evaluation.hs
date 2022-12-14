@@ -4,18 +4,19 @@ module Evaluation (
     getPosition,
     evaluate',
     terminal,
-    deepEval
+    deepEval,
 ) where
 
+import Board (searchIdx)
 import Chess
+import Control.DeepSeq (force)
+import Control.Parallel (par)
 import Control.Parallel.Strategies (NFData)
 import Data.Foldable (foldl')
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
+import GHC.Conc (pseq)
 import GHC.Generics (Generic)
 import Position
-import Control.Parallel (par)
-import GHC.Conc (pseq)
-import Control.DeepSeq (force)
 
 data Evaluated = Evaluated
     { pos :: Position
@@ -29,18 +30,21 @@ getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
 
 deepEval :: Int -> Color -> Position -> Float
-deepEval depth perspective pos  =
+deepEval depth perspective pos =
     let status = determineStatus pos
         candidates = positionTree pos
         evaluated = evaluate <-$-> candidates
-     in
-    if terminal status then score $ evaluate' pos
-    else if depth == 0 then
-         fromMaybe (error "Not terminal status, so there should be candidates at depth 0") $
-            singleBest' perspective evaluated
-    else
-        fromMaybe  (error "Not terminal status, so there should be candidates at depth > 0") $
-            singleBest' perspective $ deepEval (depth - 1) (next perspective) <$> candidates
+     in if terminal status
+            then score $ evaluate' pos
+            else
+                if depth == 0
+                    then
+                        fromMaybe (error "Not terminal status, so there should be candidates at depth 0") $
+                            singleBest' perspective evaluated
+                    else
+                        fromMaybe (error "Not terminal status, so there should be candidates at depth > 0") $
+                            singleBest' perspective $
+                                deepEval (depth - 1) (next perspective) <$> candidates
 
 terminal :: Status -> Bool
 terminal = \case
@@ -48,7 +52,6 @@ terminal = \case
     BlackIsMate -> True
     Remis -> True
     _ -> False
-
 
 singleBest' :: Color -> [Float] -> Maybe Float
 singleBest' _ [] = Nothing
@@ -66,20 +69,42 @@ evaluate' pos =
 -- CAF good?
 evaluate :: Position -> Float
 evaluate p =
-    foldr
-        ( \mP acc ->
-            let val = force $ maybe 0 valueOf mP
-             in 
-                --force acc `par` val `par` acc `pseq` acc + val
-                acc + val
-        )
-        0
-        (m p)
+    let l = toList' $ m p
+     in foldr
+            ( \(s, mP) acc ->
+                case mP of
+                    Nothing -> acc
+                    Just pie ->
+                        let pieceVal = force $ valueOf pie
+                            impactVal = force $ impactArea (m p) pie s
+                         in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
+            )
+            0
+            (toList' (m p))
 
 valueOf :: Piece -> Float
-valueOf (Pawn c) = (if c == Black then (-1) else 1) * 1.0
-valueOf (Knight c) = (if c == Black then (-1) else 1) * 3.0
-valueOf (Bishop c) = (if c == Black then (-1) else 1) * 3.0
-valueOf (Rook c) = (if c == Black then (-1) else 1) * 5.0
-valueOf (Queen c) = (if c == Black then (-1) else 1) * 9.0
-valueOf (King c) = (if c == Black then (-1) else 1) * 100.0
+valueOf (Pawn c) = colorFactor c * 1.0
+valueOf (Knight c) = colorFactor c * 3.0
+valueOf (Bishop c) = colorFactor c * 3.0
+valueOf (Rook c) = colorFactor c * 5.0
+valueOf (Queen c) = colorFactor c * 9.0
+valueOf (King c) = colorFactor c * 100.0
+
+colorFactor :: Color -> Float
+colorFactor c = if c == Black then (-1) else 1
+
+impactArea :: Snapshot -> Piece -> Square -> Float
+impactArea _ (Pawn _) _ = 0
+impactArea _ (King _) _ = 0
+impactArea snp (Knight c) s =
+    let reachables = fromIntegral . length $ filter (finalDestinationNotOccupiedBySelf' snp c) (toSquaresKnight s)
+     in colorFactor c * reachables * 0.01
+impactArea snp (Bishop c) s =
+    let reachables = fromIntegral . length $ filter (canGoThere' snp c s) (toSquaresBishop s)
+     in colorFactor c * reachables * 0.01
+impactArea snp (Rook c) s =
+    let reachables = fromIntegral . length $ filter (canGoThere' snp c s) (toSquaresRook s)
+     in colorFactor c * reachables * 0.01
+impactArea snp (Queen c) s =
+    let reachables = fromIntegral . length $ filter (canGoThere' snp c s) (toSquaresQueen s)
+     in colorFactor c * reachables * 0.01

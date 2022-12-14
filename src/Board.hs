@@ -18,6 +18,7 @@ empty64 :: a -> Board a
 empty64 a = IMap.fromList $ [0..63] `zip` repeat a
 
 -- tune this
+-- flaw: when a is a Maybe piece we are given back (Square, Maybe Piece), even though we e.g. found Just piece
 searchIdx :: NFData a => Board a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
 searchIdx s idxPred piecePred =
     [0 .. 63 :: Word8]

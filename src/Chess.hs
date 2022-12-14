@@ -141,10 +141,18 @@ canGoThere pos from to =
         clear = all isNothing (fmap (pieceAt pos) (points from to))
      in vacant && clear
 
+canGoThere' :: Snapshot -> Color -> Square -> Square -> Bool
+canGoThere' snp myColor from to =
+    let vacant = finalDestinationNotOccupiedBySelf' snp myColor to
+        clear = all isNothing (fmap (pieceAt' snp) (points from to))
+     in vacant && clear
+
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
-finalDestinationNotOccupiedBySelf pos to =
-    let myColor = toPlay pos
-     in fmap colr (pieceAt pos to) /= Just myColor
+finalDestinationNotOccupiedBySelf Position {..} = finalDestinationNotOccupiedBySelf' m toPlay
+
+finalDestinationNotOccupiedBySelf' :: Snapshot -> Color -> Square -> Bool
+finalDestinationNotOccupiedBySelf' snp myColor to =
+    fmap colr (pieceAt' snp to) /= Just myColor
 
 enemyAt :: Position -> Square -> Bool
 enemyAt pos to =
