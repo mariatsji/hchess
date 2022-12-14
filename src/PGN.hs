@@ -8,6 +8,7 @@ import Data.Maybe (fromMaybe)
 import Data.Text (Text, pack)
 import Move (playMoves)
 import Position (CastleStatus (CanCastleBoth), Color (..), Move (..), Piece (..), Position (..), Snapshot, Square (..), colr, findMove, next, pieceAt', startPosition)
+import qualified Data.Text.IO as TIO
 
 renderPgn :: Position -> Text
 renderPgn pos' =
@@ -28,11 +29,12 @@ renderPgn pos' =
 renderMoves :: Position -> Text
 renderMoves Position {..} =
     let indices = repeatEntries [1 ..]
-        snapshots = reverse gamehistory `zip` indices
+        snapshots = reverse (m : gamehistory) `zip` indices
      in go snapshots
   where
     go [] = ""
     go [(from, i)] = renderNr i i
+    go [(from, i), (to, j)] = renderNr i j <> renderMove from to
     go ((from, i) : (to, j) : more) = renderNr i j <> renderMove from to <> " " <> go ((to, j) : more)
 
 
@@ -103,3 +105,8 @@ pgnTester :: IO ()
 pgnTester = do
     let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
     print $ renderPgn testPos
+
+pgnWriteTest :: IO ()
+pgnWriteTest = do
+    let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
+    TIO.writeFile "game.pgn" (renderPgn testPos)

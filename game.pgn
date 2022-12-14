@@ -1,0 +1,9 @@
+[Event "hChess match"]
+[Site "In front of computer"]
+[Date "2022-12-13"]
+[Round "1"]
+[White "Humanoid Contender"]
+[Black "Computer"]
+[Result = "1-0"]
+
+1. e2e3 f7f6 2. f2f4 g7g5 3. Qd1h5# 1-0
