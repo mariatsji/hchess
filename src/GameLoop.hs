@@ -4,6 +4,7 @@ import AI (edgeGreed)
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
 import Data.Text (Text, pack, unpack)
 import qualified Data.Text.IO as TIO
+import Evaluation (terminal)
 import Move (parsedMove, playMove)
 import Position (
     Color (White),
@@ -15,7 +16,6 @@ import Position (
 import qualified Printer
 import qualified System.Console.ANSI as ANSI
 import System.Exit (exitSuccess)
-import Evaluation (terminal)
 
 start :: Text -> IO ()
 start "1" = do
@@ -50,16 +50,18 @@ gameLoopMM pos whiteDepth blackDepth = do
             if toPlay pos == White
                 then whiteDepth
                 else blackDepth
-    let (pos', status) = AI.edgeGreed pos depth
-    if terminal status then do
-        Printer.infoTexts ["Game over: ", show status]
-        Printer.prettyANSI pos'
-        pure ()
-    else do
-        let move = findMove (m pos) (m pos')
-        Printer.prettyANSI pos'
-        gameLoopMM pos' whiteDepth blackDepth
-            
+        (pos', status) = AI.edgeGreed pos depth
+    maybe
+        ( do
+            Printer.infoTexts ["Game over: ", show status]
+            exitSuccess
+        )
+        ( \responsePos -> do
+            let move = findMove (m pos) (m responsePos)
+            Printer.prettyANSI responsePos
+            gameLoopMM responsePos whiteDepth blackDepth
+        )
+        pos'
 
 gameLoopHM :: Position -> Int -> IO ()
 gameLoopHM pos depth = do
@@ -78,18 +80,20 @@ gameLoopHM pos depth = do
                     flightRecorderAppend humanMove
                     Printer.infoTexts ["thinking..", ""]
                     Printer.prettyANSI newPos
-                    let (newPos2, status') = AI.edgeGreed newPos depth
-                    if terminal status' then do
-                        Printer.prettyANSI newPos2
-                        Printer.infoTexts ["Game over: ", show status']
-                        exitSuccess
-                    else do
-                        let move = findMove (m newPos) (m newPos2)
-                        flightRecorderAppend move
-                        Printer.infoTexts [show move, ""]
-                        Printer.prettyANSI newPos2
-                        gameLoopHM newPos2 depth
-                            
+                    let (aiReplyPosM, status') = AI.edgeGreed newPos depth
+                    maybe
+                        ( do
+                            Printer.infoTexts ["Game over: ", show status']
+                            exitSuccess
+                        )
+                        ( \responsePos -> do
+                            let move = findMove (m newPos) (m responsePos)
+                            flightRecorderAppend move
+                            Printer.infoTexts [show move, ""]
+                            Printer.prettyANSI responsePos
+                            gameLoopHM responsePos depth
+                        )
+                        aiReplyPosM
 
 gameLoopHH :: Position -> IO ()
 gameLoopHH pos = do

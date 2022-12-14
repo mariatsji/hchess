@@ -29,11 +29,12 @@ import Position (
  )
 
 -- black to move
-edgeGreed :: Position -> Int -> (Position, Status)
+edgeGreed :: Position -> Int -> (Maybe Position, Status)
 edgeGreed pos' depth =
     let perspective = toPlay pos'
         candidates = positionTree pos' -- white to move
         withScores = candidates <-&-> \p -> (p, deepEval depth (next perspective) p)
         (best, score) = if perspective == White then maximumBy (comparing snd) withScores else minimumBy (comparing snd) withScores
-    in (best, determineStatus best)
-                
+     in if null candidates
+            then (Nothing, determineStatus pos')
+            else (Just best, determineStatus best)
