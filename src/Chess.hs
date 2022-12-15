@@ -3,12 +3,10 @@
 module Chess where
 
 import Control.DeepSeq (force)
-import Control.Monad (join)
 import Control.Parallel (par, pseq)
-import Control.Parallel.Strategies (Eval, NFData, rdeepseq, rpar, runEval)
+import Control.Parallel.Strategies (NFData)
 import Data.List
 import Data.Maybe
-import qualified Data.Set as Set
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
@@ -347,9 +345,10 @@ castle' move pos =
             _ -> doCastleLong (m pos) color -- todo illegal state if not castle move
         newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
         newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
-     in if hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck
-            then [mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack]
-            else [] -- todo error state ?
+     in ( [ mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack
+          | hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck -- todo error state ?
+          ]
+        )
 
 doCastleShort :: Snapshot -> Color -> Snapshot
 doCastleShort pos c =
@@ -390,10 +389,10 @@ homeRow White = 1
 homeRow Black = 8
 
 willNotPassCheck :: Position -> Square -> Square -> Bool
-willNotPassCheck pos kingPos rookPos =
+willNotPassCheck pos kingPos' rookPos =
     let king = King $ toPlay pos
-        squares = if col rookPos == 8 then points kingPos rookPos else points kingPos (rookPos {col = 7})
-        asPos square = pos {m = replacePieceAt (removePieceAt (m pos) kingPos) square king}
+        squares = if col rookPos == 8 then points kingPos' rookPos else points kingPos' (rookPos {col = 7})
+        asPos square = pos {m = replacePieceAt (removePieceAt (m pos) kingPos') square king}
      in not $ any isInCheck $ asPos <$> squares
 
 insideBoard :: Square -> Bool

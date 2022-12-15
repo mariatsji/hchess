@@ -22,6 +22,7 @@ source-repository head
   location: https://github.com/githubuser/hchess
 
 library
+  ghc-options: -Wall
   exposed-modules:
       Board
       Cache
@@ -77,10 +78,7 @@ executable hchess-profiled
   main-is: Main.hs
   ghc-options:
     -O2
-    -fwarn-incomplete-patterns
-    -fwarn-redundant-constraints
-    -fwarn-unused-imports
-    -fwarn-unused-packages
+    -Wall
     -threaded
     -fprof-auto
     "-with-rtsopts=-N6 -p -s -h -i0.1"
@@ -113,10 +111,7 @@ executable hchess
   main-is: Main.hs
   ghc-options:
     -O2
-    -fwarn-incomplete-patterns
-    -fwarn-redundant-constraints
-    -fwarn-unused-imports
-    -fwarn-unused-packages
+    -Wall
     -threaded
     "-with-rtsopts=-N4"
   hs-source-dirs:
@@ -145,48 +140,9 @@ executable hchess
     , hchess
   default-language: Haskell2010
 
-executable hchess-gui
-  main-is: Main.hs
-  ghc-options:
-    -O2
-    -fwarn-incomplete-patterns
-    -fwarn-redundant-constraints
-    -fwarn-unused-imports
-    -fwarn-unused-packages
-    -threaded
-    "-with-rtsopts=-N6 --nonmoving-gc -M8G -A64M -qn4 -qb"
-  hs-source-dirs:
-      gui
-  default-extensions:
-      BlockArguments
-      DataKinds
-      DeriveAnyClass
-      DeriveGeneric
-      DerivingStrategies
-      DerivingVia
-      GeneralisedNewtypeDeriving
-      LambdaCase
-      OverloadedStrings
-      QuasiQuotes
-      RecordWildCards
-      ScopedTypeVariables
-      StandaloneDeriving
-      TupleSections
-      TypeApplications
-      TypeFamilies
-      TypeOperators
-  build-depends:
-      base ^>=4.15.1.0
-    , gi-gdk
-    , gi-gtk >= 4.0.0
-    , gi-gdkpixbuf >= 2.0.20
-    , gi-gio
-    , hchess
-    , text
-  default-language: Haskell2010
-
 test-suite hchess-test
   type: exitcode-stdio-1.0
+  ghc-options: -W
   main-is: Main.hs
   other-modules:
       AISpec

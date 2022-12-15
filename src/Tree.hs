@@ -2,14 +2,11 @@
 
 module Tree (set, Tree, (?!), empty64, searchIdx, diff) where
 
-import Control.DeepSeq (force)
-import Control.Parallel (par)
 import Control.Parallel.Strategies (NFData)
-import Data.Bits
-import Data.Monoid
-import Data.Word
-import GHC.Conc (pseq)
-import GHC.Generics
+import Data.Bits (Bits (shift, testBit))
+import Data.Monoid (Sum (Sum, getSum))
+import Data.Word (Word8)
+import GHC.Generics (Generic)
 
 data Tree a = Leaf a | Node (Tree a) (Tree a)
     deriving stock (Eq, Ord, Show, Generic)
@@ -43,10 +40,6 @@ set (Node l r) i y =
 
 infixr 9 ?!
 
-search :: Tree a -> (a -> Bool) -> [a]
-search (Leaf x) pred' = [x | pred' x]
-search (Node l r) pred' = search l pred' <> search r pred'
-
 -- The two predicates are ANDed together - one based on Square and one based on Maybe Piece (could be smashed into one predicate, couldn't it?)
 searchIdx :: NFData a => Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
 searchIdx tree' idxPred piecePred = go tree' idxPred piecePred []
@@ -72,13 +65,6 @@ bits6toNum [a, b, c, d, e, f] =
             <> (if b then Sum 16 else Sum 0)
             <> (if a then Sum 32 else Sum 0)
 bits6toNum x = error $ "Cannot consider " <> show x <> " as 6 bits"
-
-bits6toNum' :: [Bool] -> Word8
-bits6toNum' bits = go bits 5 0
-  where
-    go :: [Bool] -> Word8 -> Word8 -> Word8
-    go (b : bs) pos acc = (if b then 2 ^ pos else 0) + go bs (pred pos) acc
-    go [] _ acc = acc
 
 empty64 :: a -> Tree a
 empty64 = go 6

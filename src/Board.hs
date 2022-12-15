@@ -1,10 +1,8 @@
 module Board (Board, set, (?!), empty64, searchIdx, diff) where
 
 import Control.DeepSeq (NFData)
-import Data.Foldable (toList)
 import qualified Data.IntMap.Strict as IMap
 import Data.Word (Word8)
-import GHC.Generics (Generic)
 
 type Board a = IMap.IntMap a
 

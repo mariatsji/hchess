@@ -9,6 +9,8 @@
 
 # Start app with GUI
 
+on ice for now, wont work yet
+
     nix-shell
     cabal run hchess-gui
 

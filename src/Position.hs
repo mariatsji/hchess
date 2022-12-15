@@ -3,17 +3,14 @@
 
 module Position where
 
-import Control.Monad.ST
+import Board
 import Control.Parallel.Strategies (NFData)
 import Data.Aeson
 import Data.Bifunctor (first)
 import Data.List (find)
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, listToMaybe, mapMaybe)
-import Data.STRef
-import Data.Word
+import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
+import Data.Word ( Word8 )
 import GHC.Generics (Generic)
-import Board
-import Control.DeepSeq (force)
 
 data Color = White | Black
     deriving stock (Eq, Ord, Enum, Show, Generic)
@@ -66,14 +63,14 @@ data Move = MovedPiece Square Square | Promotion Square Square Piece | CastleSho
     deriving stock (Eq, Generic)
     deriving anyclass (NFData)
 
--- need Color because of castle notation is colorless atm.. 
+-- need Color because of castle notation is colorless atm..
 movedFrom :: Move -> Color -> Square
 movedFrom (MovedPiece from _) _ = from
 movedFrom (Promotion from _ _) _ = from
 movedFrom _ White = Square 5 1
 movedFrom _ Black = Square 5 8
 
--- need Color because of castle notation is colorless atm.. 
+-- need Color because of castle notation is colorless atm..
 movedTo :: Move -> Color -> Square
 movedTo (MovedPiece _ to) _ = to
 movedTo (Promotion _ to _) _ = to
@@ -114,7 +111,7 @@ mkPositionExpensive :: Position -> Snapshot -> Position
 mkPositionExpensive pos@(Position snpa _ csw csb _) snpb =
     let colorWhoMoved = next (toPlay pos)
      in case findMove snpa snpb of
-            MovedPiece from to -> case snpb ?! hash from of
+            MovedPiece from _ -> case snpb ?! hash from of
                 Just (King White) ->
                     mkPosition pos snpb CanCastleNone csb
                 Just (Rook White) ->
@@ -237,7 +234,7 @@ searchForPieces pos squarePred piecePred = catSndMaybes $ unHash <$.> searchIdx 
 fromList' :: [(Square, Piece)] -> Snapshot
 fromList' =
     foldr
-        (\(s, p) tree -> 
+        ( \(s, p) tree ->
             set tree (hash s) (pure p)
         )
         (empty64 Nothing)
@@ -267,7 +264,7 @@ findMove a b =
                 | Square 8 8 `elem` changedSquares -> CastleShort
                 | Square 1 8 `elem` changedSquares -> CastleLong
                 | otherwise -> error "could not determine position diff of length 4 that does not seem to be a castle"
-            3 -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares) -- todo dedicated Move for this? 
+            3 -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares) -- todo dedicated Move for this?
             2
                 | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece) (promtoPiece changedSquaresAndPiece)
                 | otherwise -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares)

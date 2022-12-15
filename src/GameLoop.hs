@@ -1,6 +1,6 @@
 module GameLoop where
 
-import AI (edgeGreed)
+import AI (bestDeepEval)
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
 import Data.Text (Text, pack, unpack)
 import qualified Data.Text.IO as TIO
@@ -50,7 +50,7 @@ gameLoopMM pos whiteDepth blackDepth = do
             if toPlay pos == White
                 then whiteDepth
                 else blackDepth
-        (pos', status) = AI.edgeGreed pos depth
+        (pos', status) = AI.bestDeepEval pos depth
     maybe
         ( do
             Printer.infoTexts ["Game over: ", show status]
@@ -80,7 +80,7 @@ gameLoopHM pos depth = do
                     flightRecorderAppend humanMove
                     Printer.infoTexts ["thinking..", ""]
                     Printer.prettyANSI newPos
-                    let (aiReplyPosM, status') = AI.edgeGreed newPos depth
+                    let (aiReplyPosM, status') = AI.bestDeepEval newPos depth
                     maybe
                         ( do
                             Printer.infoTexts ["Game over: ", show status']

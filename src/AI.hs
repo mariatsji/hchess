@@ -1,36 +1,26 @@
 module AI (
-    edgeGreed,
+    bestDeepEval,
 ) where
 
-import Cache
 import Chess (
     Status (..),
     determineStatus,
     positionTree,
-    (<-$->),
     (<-&->),
  )
-import Control.Monad (Monad ((>>=)))
-import Control.Parallel (par, pseq)
-import Control.Parallel.Strategies (Eval, NFData, rdeepseq, rpar, rseq, runEval)
-import Data.Foldable (foldl', maximumBy, minimumBy)
+import Data.Foldable (maximumBy, minimumBy)
 import Data.Functor ((<&>))
-import Data.List (drop, elem, find, length, sortBy)
-import Data.Ord (Ord ((<), (>)), comparing)
-import Evaluation (Evaluated (..), deepEval, evaluate, evaluate', getPosition, terminal)
-import Move (playMoves)
+import Data.Ord (comparing)
+import Evaluation (deepEval)
 import Position (
     Color (..),
-    Move,
-    Position (Position, gamehistory, m, toPlay),
-    findMove,
-    mkPositionExpensive,
+    Position (Position, toPlay),
     next,
  )
 
 -- black to move
-edgeGreed :: Position -> Int -> (Maybe Position, Status)
-edgeGreed pos' depth =
+bestDeepEval :: Position -> Int -> (Maybe Position, Status)
+bestDeepEval pos' depth =
     let perspective = toPlay pos'
         candidates = positionTree pos' -- white to move
         withScores = candidates <-&-> \p -> (p, deepEval depth (next perspective) p)

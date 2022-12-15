@@ -1,14 +1,26 @@
 module PGN where
 
-import NeatInterpolation
-
 import Board (searchIdx)
-import Chess (Status (..), determineStatus, isCheckMate, isInCheck, pieceAt, playIfLegal, positionTree)
+import Chess (Status (..), determineStatus, isCheckMate, isInCheck, positionTree)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text, pack)
-import Move (playMoves)
-import Position (CastleStatus (CanCastleBoth), Color (..), Move (..), Piece (..), Position (..), Snapshot, Square (..), colr, findMove, next, pieceAt', startPosition)
 import qualified Data.Text.IO as TIO
+import Move (playMoves)
+import NeatInterpolation
+import Position (
+    CastleStatus (CanCastleBoth),
+    Color (..),
+    Move (..),
+    Piece (..),
+    Position (..),
+    Snapshot,
+    Square (..),
+    colr,
+    findMove,
+    next,
+    pieceAt',
+    startPosition,
+ )
 
 renderPgn :: Position -> Text
 renderPgn pos' =
@@ -33,10 +45,9 @@ renderMoves Position {..} =
      in go snapshots
   where
     go [] = ""
-    go [(from, i)] = renderNr i i
+    go [(_, i)] = renderNr i i
     go [(from, i), (to, j)] = renderNr i j <> renderMove from to
     go ((from, i) : (to, j) : more) = renderNr i j <> renderMove from to <> " " <> go ((to, j) : more)
-
 
 renderNr :: Int -> Int -> Text
 renderNr i j = if i == j then pack $ show i <> ". " else ""

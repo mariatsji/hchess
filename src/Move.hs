@@ -1,15 +1,21 @@
 module Move (
     playMove,
     playMoves,
-    parsedMove
+    parsedMove,
 ) where
 
-import Chess
+import Chess (playIfLegal)
 import Control.Applicative ((<|>))
 import Data.Attoparsec.Text (Parser, char, parseOnly, string)
-import Data.Char
-import Data.Text (pack, Text)
-import Position
+import Data.Text (Text)
+import Position (
+    Color,
+    Move (..),
+    Piece (Bishop, Knight, Queen, Rook),
+    Position (toPlay),
+    Square (Square),
+    startPosition,
+ )
 
 parsedMove :: Position -> Text -> Either String Move
 parsedMove pos = parseOnly $ moveParser pos
@@ -71,7 +77,6 @@ playMove :: Text -> Position -> Either String Position
 playMove s pos = do
     move <- parseOnly (moveParser pos) s
     playIfLegal move pos
-
 
 playMoves :: [Text] -> Either String Position
 playMoves =

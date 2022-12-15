@@ -14,7 +14,7 @@ import GI.Gtk.Objects.Image (imageGetPaintable)
 import GI.Gdk.Flags (DragAction(..))
 import GI.Gdk.Objects.Drag (Drag(..))
 
-import AI (edgeGreed)
+import AI (bestDeepEval)
 import Chess (identifyMove, pieceAt, playIfLegal)
 import Control.Monad (when)
 import Data.Foldable (traverse_)
@@ -177,10 +177,10 @@ clickEnd fixed worldVar nrClicks x y =
 computerThinking :: TVar World -> Gtk.Fixed.Fixed -> Gtk.Widget -> a -> IO Bool
 computerThinking worldVar fixed widget frameClock = do
     w@World {..} <- readTVarIO worldVar
-    case edgeGreed world 3 of
-        Left (p, stat) ->
+    case bestDeepEval world 3 of
+        (Nothing, stat) ->
             print stat -- todo
-        Right responsePos -> do
+        (Just responsePos, status) -> do
             let responseWorld =
                     w
                         { world = responsePos
