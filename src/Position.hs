@@ -71,7 +71,7 @@ movedFrom :: Move -> Color -> Square
 movedFrom (MovedPiece from _) _ = from
 movedFrom (Promotion from _ _) _ = from
 movedFrom _ White = Square 5 1
-movedFrom _ Black = Square 5 1
+movedFrom _ Black = Square 5 8
 
 -- need Color because of castle notation is colorless atm.. 
 movedTo :: Move -> Color -> Square
