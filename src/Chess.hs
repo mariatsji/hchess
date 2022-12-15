@@ -6,7 +6,7 @@ import Control.DeepSeq (force)
 import Control.Parallel (par, pseq)
 import Control.Parallel.Strategies (NFData)
 import Data.List
-import Data.Maybe ( isNothing )
+import Data.Maybe (isNothing)
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
@@ -23,6 +23,7 @@ data Status
 board :: [Square]
 board = Square <$> [1 .. 8] <*> [1 .. 8]
 
+-- col row
 squareTo :: Square -> Int -> Int -> Square
 squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
@@ -69,11 +70,11 @@ movePiece :: Position -> Square -> Square -> Position
 movePiece pos@(Position m' _ _ _ tp) from@(Square fc _) to@(Square tc tr)
     | pieceAt pos from == Just (Pawn White) && (fc /= tc) && vacantAt pos to =
         let newSnapshot =
-                movePiece' (removePieceAt m' (Square tc (tr - 1))) from to
+                movePiece' (removePieceAt m' (Square tc (tr - 1))) from to -- todo danger (tr - 1)
          in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos)
     | pieceAt pos from == Just (Pawn Black) && (fc /= tc) && vacantAt pos to =
         let newSnapshot =
-                movePiece' (removePieceAt m' (Square tc (tr + 1))) from to
+                movePiece' (removePieceAt m' (Square tc (tr + 1))) from to -- todo danger (tr + 1)
          in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos)
     | otherwise =
         let newSnapshot = movePiece' m' from to
@@ -228,21 +229,19 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
 toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]
 toSquaresPawn pos s@(Square c r)
     | toPlay pos == White =
-        filter insideBoard' $
-            [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2]
-                <> [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1]
-                <> [(squareTo s (-1) 1, Nothing) | enemyAt pos $ squareTo s (-1) 1]
-                <> [(squareTo s 1 1, Nothing) | enemyAt pos $ squareTo s 1 1]
-                <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0), c > 1]
-                <> [(squareTo s 1 1, Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0), c < 7]
+        [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2]
+            <> [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1]
+            <> [(squareTo s (-1) 1, Nothing) | c > 1, enemyAt pos $ squareTo s (-1) 1]
+            <> [(squareTo s 1 1, Nothing) | c < 8, enemyAt pos $ squareTo s 1 1]
+            <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | c > 1, enPassant pos (squareTo s (-1) 0)]
+            <> [(squareTo s 1 1, Just (squareTo s 1 0)) | c < 8, enPassant pos (squareTo s 1 0)]
     | otherwise =
-        filter insideBoard' $
-            [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)]
-                <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
-                <> [(squareTo s (-1) (-1), Nothing) | enemyAt pos $ squareTo s (-1) (-1)]
-                <> [(squareTo s 1 (-1), Nothing) | enemyAt pos $ squareTo s 1 (-1)]
-                <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | enPassant pos (squareTo s (-1) 0), c > 1]
-                <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | enPassant pos (squareTo s 1 0), c < 7]
+        [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)]
+            <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
+            <> [(squareTo s (-1) (-1), Nothing) | c > 1, enemyAt pos $ squareTo s (-1) (-1)]
+            <> [(squareTo s 1 (-1), Nothing) | c < 8, enemyAt pos $ squareTo s 1 (-1)]
+            <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | c > 1, enPassant pos (squareTo s (-1) 0), c > 1]
+            <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | c < 8, enPassant pos (squareTo s 1 0), c < 7]
 
 -- en passant
 -- the square arg is the spot the pawn just jumped to - opening up for en passant
@@ -408,9 +407,9 @@ isInCheck pos =
         White ->
             let whiteKingPos = searchForPieces pos (const True) (== King White)
              in case whiteKingPos of
-                    [(kingSquare, _)] ->
+                    [(kingSquare@(Square c _), _)] ->
                         let cangothere = canGoThere pos kingSquare
-                            checkByPawn = pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
+                            checkByPawn = c > 1 && pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
                             checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKnight kingSquare)
                             checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
                             checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
@@ -420,9 +419,9 @@ isInCheck pos =
         Black ->
             let blackKingPos = searchForPieces pos (const True) (== King Black)
              in case blackKingPos of
-                    [(kingSquare, _)] ->
+                    [(kingSquare@(Square c _), _)] ->
                         let cangothere = canGoThere pos kingSquare
-                            checkByPawn = pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
+                            checkByPawn = c > 1 && pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
                             checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight kingSquare
                             checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
                             checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)

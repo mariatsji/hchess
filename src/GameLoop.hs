@@ -53,18 +53,18 @@ gameLoopHM pos depth = do
                     gameLoopHM pos depth
                 Right newPos -> do
                     Printer.infoTexts ["thinking..", ""]
+                    record newPos
                     Printer.prettyANSI newPos
                     let (aiReplyPosM, status') = AI.bestDeepEval newPos depth
                     maybe
                         ( do
                             Printer.infoTexts ["Game over: ", show status']
-                            record newPos
                             exitSuccess
                         )
                         ( \responsePos -> do
-                            record responsePos
                             let move = findMove (m newPos) (m responsePos)
                             Printer.infoTexts [show move, ""]
+                            record responsePos
                             Printer.prettyANSI responsePos
                             gameLoopHM responsePos depth
                         )
@@ -75,6 +75,7 @@ gameLoopMM pos whiteDepth blackDepth = do
     let record p = do
             let filepath = "machine-" <> show whiteDepth <> "-machine-" <> show blackDepth <> ".pgn"
             flightRecorder filepath p
+    record pos            
     Printer.prettyANSI pos
     let depth =
             if toPlay pos == White
@@ -84,13 +85,12 @@ gameLoopMM pos whiteDepth blackDepth = do
     maybe
         ( do
             Printer.infoTexts ["Game over: ", show status]
-            record pos
             exitSuccess
         )
         ( \responsePos -> do
-            record responsePos
             let move = findMove (m pos) (m responsePos)
             Printer.infoTexts [show move, ""]
+            record responsePos
             Printer.prettyANSI responsePos
             gameLoopMM responsePos whiteDepth blackDepth
         )
@@ -98,6 +98,8 @@ gameLoopMM pos whiteDepth blackDepth = do
 
 gameLoopHH :: Position -> IO ()
 gameLoopHH pos = do
+    let record = flightRecorder "human-vs-human.pgn"
+    record pos
     Printer.prettyANSI pos
     l <- Printer.line
     case playMove l pos of
