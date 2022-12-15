@@ -2,16 +2,16 @@ module GameLoop where
 
 import AI (bestDeepEval)
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal)
-import Data.Text (Text, pack, unpack)
+import Data.Text (Text, unpack)
 import qualified Data.Text.IO as TIO
 import Move (parsedMove, playMove)
 import Position (
     Color (White),
-    Move,
     Position (m, toPlay),
     findMove,
     startPosition,
  )
+import PGN
 import qualified Printer
 import System.Exit (exitSuccess)
 
@@ -48,18 +48,17 @@ gameLoopHM pos depth = do
                     Printer.infoTexts ["You can't play " <> show humanMove, "Valid examples: e2-e4 O-O-O e7-d8Q"]
                     gameLoopHM pos depth
                 Right newPos -> do
-                    flightRecorderAppend humanMove
                     Printer.infoTexts ["thinking..", ""]
                     Printer.prettyANSI newPos
                     let (aiReplyPosM, status') = AI.bestDeepEval newPos depth
                     maybe
                         ( do
                             Printer.infoTexts ["Game over: ", show status']
+                            flightRecorder "human-vs-machine.pgn" newPos
                             exitSuccess
                         )
                         ( \responsePos -> do
                             let move = findMove (m newPos) (m responsePos)
-                            flightRecorderAppend move
                             Printer.infoTexts [show move, ""]
                             Printer.prettyANSI responsePos
                             gameLoopHM responsePos depth
@@ -77,6 +76,8 @@ gameLoopMM pos whiteDepth blackDepth = do
     maybe
         ( do
             Printer.infoTexts ["Game over: ", show status]
+            let filepath = "machine-" <> show whiteDepth <> "-machine-" <> show blackDepth <> ".pgn"
+            flightRecorder filepath pos
             exitSuccess
         )
         ( \responsePos -> do
@@ -104,10 +105,10 @@ gameLoopHH pos = do
                             else gameLoopHH pos'
                     else do
                         Printer.infoTexts ["Game over: ", show newStatus]
+                        flightRecorder "human-vs-human.pgn" pos'
                         exitSuccess
 
-flightRecorderAppend :: Move -> IO ()
-flightRecorderAppend move = do
-    let filename = "game.log"
-    existing <- TIO.readFile filename
-    TIO.writeFile filename (existing <> "\n" <> pack (show move))
+flightRecorder :: FilePath -> Position -> IO ()
+flightRecorder file pos = do
+    let content = renderPgn pos
+    TIO.writeFile file content
