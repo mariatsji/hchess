@@ -3,12 +3,12 @@ module Cache (Cache, fresh, mkKey, insert, lookup') where
 import Data.Coerce (coerce)
 import Data.Multimap (Multimap)
 import qualified Data.Multimap as M
-import Evaluation
-import Position (Color, Position (Position, m, toPlay), Snapshot, hash)
+import Evaluation (Evaluated)
+import Position (Color, Position (m, toPlay), Snapshot)
 
 type Key = (Snapshot, Color)
 
-newtype Cache = Cache {unCache :: Multimap Key Evaluated}
+newtype Cache = Cache ( Multimap Key Evaluated )
 
 fresh :: Cache
 fresh = Cache M.empty
@@ -31,7 +31,7 @@ insert pos vals cache =
             else cache
 
 multiInsert :: Key -> [Evaluated] -> Cache -> Cache
-multiInsert k [] c = c
+multiInsert _ [] c = c
 multiInsert k (e : es) c =
     coerce $
         M.insert k e $

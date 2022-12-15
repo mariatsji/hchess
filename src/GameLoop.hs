@@ -1,20 +1,18 @@
 module GameLoop where
 
 import AI (bestDeepEval)
-import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
+import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal)
 import Data.Text (Text, pack, unpack)
 import qualified Data.Text.IO as TIO
-import Evaluation (terminal)
 import Move (parsedMove, playMove)
 import Position (
     Color (White),
     Move,
-    Position (gamehistory, m, toPlay),
+    Position (m, toPlay),
     findMove,
     startPosition,
  )
 import qualified Printer
-import qualified System.Console.ANSI as ANSI
 import System.Exit (exitSuccess)
 
 start :: Text -> IO ()
@@ -58,6 +56,7 @@ gameLoopMM pos whiteDepth blackDepth = do
         )
         ( \responsePos -> do
             let move = findMove (m pos) (m responsePos)
+            Printer.infoTexts [show move, ""]
             Printer.prettyANSI responsePos
             gameLoopMM responsePos whiteDepth blackDepth
         )

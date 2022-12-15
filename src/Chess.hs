@@ -6,7 +6,7 @@ import Control.DeepSeq (force)
 import Control.Parallel (par, pseq)
 import Control.Parallel.Strategies (NFData)
 import Data.List
-import Data.Maybe
+import Data.Maybe ( isNothing )
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)

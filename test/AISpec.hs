@@ -1,12 +1,10 @@
 module AISpec where
 
 import AI
-import Chess
 import Evaluation
 import Move
 import Position
 import Test.Hspec
-import Data.Either (isRight)
 
 spec :: Spec
 spec = describe "AI" $ do
@@ -16,7 +14,7 @@ spec = describe "AI" $ do
         e `shouldSatisfy` (< 1.1)
     it "digs up a response to a mate threat" $ do
         let Right pos = playMoves ["e2-e4", "a7-a5", "f1-c4", "a5-a4", "d1-h5"]
-            (Just best, status) = AI.bestDeepEval pos 1
+            (Just best, _) = AI.bestDeepEval pos 1
         length (gamehistory best) `shouldBe` 6
     {- it "does not panic in the face of mate" $ do
         let Right pos = playMoves [

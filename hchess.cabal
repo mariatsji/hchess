@@ -36,7 +36,6 @@ library
       PGN
       Tree
       GameLoop
-      Tester
   hs-source-dirs:
       src
   default-extensions:
