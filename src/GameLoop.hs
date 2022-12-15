@@ -5,13 +5,13 @@ import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal)
 import Data.Text (Text, unpack)
 import qualified Data.Text.IO as TIO
 import Move (parsedMove, playMove)
+import PGN
 import Position (
     Color (White),
     Position (m, toPlay),
     findMove,
     startPosition,
  )
-import PGN
 import qualified Printer
 import System.Exit (exitSuccess)
 
@@ -20,7 +20,7 @@ start "1" = do
     Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
     gameLoopHH startPosition
 start "2" = do
-    Printer.infoTexts [ "Enter machine search depth (2-5) where 1 is faster and 5 is stronger" , "" ]
+    Printer.infoTexts ["Enter machine search depth (2-5) where 1 is faster and 5 is stronger", ""]
     l <- Printer.line
     let depth = read @Int (unpack l)
     gameLoopHM startPosition depth
@@ -36,6 +36,10 @@ start _ = exitSuccess
 
 gameLoopHM :: Position -> Int -> IO ()
 gameLoopHM pos depth = do
+    let record p = do
+            let filepath = "human-machine-" <> show depth <> ".pgn"
+            flightRecorder filepath p
+    record pos
     Printer.prettyANSI pos
     l <- Printer.line
     case parsedMove pos l of
@@ -45,7 +49,7 @@ gameLoopHM pos depth = do
         Right humanMove -> do
             case playIfLegal humanMove pos of
                 Left _ -> do
-                    Printer.infoTexts ["You can't play " <> show humanMove, "Valid examples: e2-e4 O-O-O e7-d8Q"]
+                    Printer.infoTexts ["You can't play " <> show humanMove, "Valid syntax: e2-e4 O-O-O e7-d8Q"]
                     gameLoopHM pos depth
                 Right newPos -> do
                     Printer.infoTexts ["thinking..", ""]
@@ -54,10 +58,11 @@ gameLoopHM pos depth = do
                     maybe
                         ( do
                             Printer.infoTexts ["Game over: ", show status']
-                            flightRecorder "human-vs-machine.pgn" newPos
+                            record newPos
                             exitSuccess
                         )
                         ( \responsePos -> do
+                            record responsePos
                             let move = findMove (m newPos) (m responsePos)
                             Printer.infoTexts [show move, ""]
                             Printer.prettyANSI responsePos
@@ -67,6 +72,9 @@ gameLoopHM pos depth = do
 
 gameLoopMM :: Position -> Int -> Int -> IO ()
 gameLoopMM pos whiteDepth blackDepth = do
+    let record p = do
+            let filepath = "machine-" <> show whiteDepth <> "-machine-" <> show blackDepth <> ".pgn"
+            flightRecorder filepath p
     Printer.prettyANSI pos
     let depth =
             if toPlay pos == White
@@ -76,11 +84,11 @@ gameLoopMM pos whiteDepth blackDepth = do
     maybe
         ( do
             Printer.infoTexts ["Game over: ", show status]
-            let filepath = "machine-" <> show whiteDepth <> "-machine-" <> show blackDepth <> ".pgn"
-            flightRecorder filepath pos
+            record pos
             exitSuccess
         )
         ( \responsePos -> do
+            record responsePos
             let move = findMove (m pos) (m responsePos)
             Printer.infoTexts [show move, ""]
             Printer.prettyANSI responsePos
@@ -94,7 +102,7 @@ gameLoopHH pos = do
     l <- Printer.line
     case playMove l pos of
         Left _ -> do
-            Printer.infoTexts ["You can't play that.", "Valid examples: e2-e4 O-O-O e7-d8Q"]
+            Printer.infoTexts ["You can't play that.", "Valid syntax: e2-e4 O-O-O e7-d8Q"]
             gameLoopHH pos
         Right pos' ->
             let newStatus = determineStatus pos'
