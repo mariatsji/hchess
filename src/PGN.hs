@@ -10,7 +10,6 @@ import Data.Maybe (fromMaybe)
 import Data.Scientific (toBoundedInteger)
 import Data.Text (Text, pack)
 import qualified Data.Text.IO as TIO
-import qualified Debug.Trace as Debug
 import Move (playMoves, squareParser)
 import NeatInterpolation
 import Position (
@@ -27,7 +26,6 @@ import Position (
     pieceAt',
     startPosition,
  )
-import Printer (pretty)
 
 renderPgn :: Position -> Text
 renderPgn pos' =
@@ -139,7 +137,7 @@ parsePgn = AT.parseOnly pgnParser
         either
             fail
             pure
-            (Debug.trace (show (length ms)) $ playMoves (pack . show <$> ms))
+            (playMoves (pack . show <$> ms))
     metaLine = AT.char '[' *> AT.manyTill' AT.anyChar (AT.char ']')
 
 movesParser :: Parser [Move]

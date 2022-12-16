@@ -148,6 +148,7 @@ test-suite hchess-test
       AISpec
       CacheSpec
       MoveSpec
+      PGNSpec
   hs-source-dirs:
       test
   default-extensions:
