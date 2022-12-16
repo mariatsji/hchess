@@ -2,6 +2,7 @@ module Move (
     playMove,
     playMoves,
     parsedMove,
+    squareParser
 ) where
 
 import Chess (playIfLegal)
