@@ -121,4 +121,4 @@ gameLoopHH pos = do
 flightRecorder :: FilePath -> Position -> IO ()
 flightRecorder file pos = do
     let content = renderPgn pos
-    TIO.writeFile file content
+    TIO.writeFile ("pgn/" <> file) content

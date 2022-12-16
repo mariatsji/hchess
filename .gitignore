@@ -9,3 +9,4 @@ dist-newstyle
 result
 *.log
 *.pgn
+pgn/*
