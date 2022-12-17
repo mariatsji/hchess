@@ -80,8 +80,8 @@ movedTo CastleLong White = Square 3 1
 movedTo CastleLong Black = Square 3 8
 
 instance Show Move where
-    show (MovedPiece from to) = "\"" <> show from <> "-" <> show to <> "\""
-    show (Promotion from to piece) = "\"" <> show from <> "-" <> show to <> toOneChar piece <> "\""
+    show (MovedPiece from to) = show from <> "-" <> show to
+    show (Promotion from to piece) = show from <> "-" <> show to <> toOneChar piece
       where
         toOneChar :: Piece -> String
         toOneChar (Queen _) = "Q"
@@ -89,8 +89,8 @@ instance Show Move where
         toOneChar (Bishop _) = "B"
         toOneChar (Knight _) = "K"
         toOneChar _ = ""
-    show CastleShort = "\"O-O\""
-    show CastleLong = "\"O-O-O\""
+    show CastleShort = "O-O"
+    show CastleLong = "O-O-O"
 
 next :: Color -> Color
 next White = Black

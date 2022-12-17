@@ -1,7 +1,9 @@
 module GameLoop where
 
 import AI (bestDeepEval)
+import AppContext (App, AppContext (analysis))
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal)
+import Control.Monad.IO.Class (liftIO)
 import Data.Text (Text, unpack)
 import qualified Data.Text.IO as TIO
 import Move (parsedMove, playMove)
@@ -14,8 +16,9 @@ import Position (
  )
 import qualified Printer
 import System.Exit (exitSuccess)
+import Control.Monad.Trans.Reader (asks)
 
-start :: Text -> IO ()
+start :: Text -> App ()
 start "1" = do
     Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
     gameLoopHH startPosition
@@ -32,10 +35,11 @@ start "3" = do
     lb <- Printer.line
     let bdepth = read @Int (unpack lb)
     gameLoopMM startPosition wdepth bdepth
-start _ = exitSuccess
+start _ = exit
 
-gameLoopHM :: Position -> Int -> IO ()
+gameLoopHM :: Position -> Int -> App ()
 gameLoopHM pos depth = do
+    showAnalysis <- asks analysis
     let record p = do
             let filepath = "human-machine-" <> show depth <> ".pgn"
             flightRecorder filepath p
@@ -55,48 +59,49 @@ gameLoopHM pos depth = do
                     Printer.infoTexts ["thinking..", ""]
                     record newPos
                     Printer.prettyANSI newPos
-                    let (aiReplyPosM, status') = AI.bestDeepEval newPos depth
+                    let (aiReplyPosM, scoreM, status') = AI.bestDeepEval newPos depth
                     maybe
                         ( do
                             Printer.infoTexts ["Game over: ", show status']
-                            exitSuccess
+                            exit
                         )
                         ( \responsePos -> do
                             let move = findMove (m newPos) (m responsePos)
-                            Printer.infoTexts [show move, ""]
+                            Printer.infoTexts [show move, if showAnalysis then show scoreM else ""]
                             record responsePos
                             Printer.prettyANSI responsePos
                             gameLoopHM responsePos depth
                         )
                         aiReplyPosM
 
-gameLoopMM :: Position -> Int -> Int -> IO ()
+gameLoopMM :: Position -> Int -> Int -> App ()
 gameLoopMM pos whiteDepth blackDepth = do
+    showAnalysis <- asks analysis
     let record p = do
             let filepath = "machine-" <> show whiteDepth <> "-machine-" <> show blackDepth <> ".pgn"
             flightRecorder filepath p
-    record pos            
+    record pos
     Printer.prettyANSI pos
     let depth =
             if toPlay pos == White
                 then whiteDepth
                 else blackDepth
-        (pos', status) = AI.bestDeepEval pos depth
+        (pos', scoreM, status) = AI.bestDeepEval pos depth
     maybe
         ( do
             Printer.infoTexts ["Game over: ", show status]
-            exitSuccess
+            exit
         )
         ( \responsePos -> do
             let move = findMove (m pos) (m responsePos)
-            Printer.infoTexts [show move, ""]
+            Printer.infoTexts [show move, if showAnalysis then show scoreM else ""]
             record responsePos
             Printer.prettyANSI responsePos
             gameLoopMM responsePos whiteDepth blackDepth
         )
         pos'
 
-gameLoopHH :: Position -> IO ()
+gameLoopHH :: Position -> App ()
 gameLoopHH pos = do
     let record = flightRecorder "human-vs-human.pgn"
     record pos
@@ -111,14 +116,17 @@ gameLoopHH pos = do
              in if newStatus == WhiteToPlay || newStatus == BlackToPlay
                     then
                         if l == ""
-                            then exitSuccess
+                            then exit
                             else gameLoopHH pos'
                     else do
                         Printer.infoTexts ["Game over: ", show newStatus]
                         flightRecorder "human-vs-human.pgn" pos'
-                        exitSuccess
+                        exit
 
-flightRecorder :: FilePath -> Position -> IO ()
-flightRecorder file pos = do
+exit :: App ()
+exit = liftIO exitSuccess
+
+flightRecorder :: FilePath -> Position -> App ()
+flightRecorder file pos = liftIO $ do
     let content = renderPgn pos
     TIO.writeFile ("pgn/" <> file) content

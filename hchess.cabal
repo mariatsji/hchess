@@ -24,6 +24,7 @@ source-repository head
 library
   ghc-options: -Wall
   exposed-modules:
+      AppContext
       Board
       Cache
       Chess
@@ -138,6 +139,7 @@ executable hchess
       base ^>=4.15.1.0
     , ansi-terminal
     , hchess
+    , transformers
   default-language: Haskell2010
 
 test-suite hchess-test

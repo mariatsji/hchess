@@ -11,18 +11,21 @@ import Position
 import qualified System.Console.ANSI as ANSI
 import System.IO (stdout)
 import GHC.IO.Handle (hFlush)
+import AppContext (App)
+import Control.Monad.IO.Class (liftIO)
 
-infoTexts :: [String] -> IO ()
+infoTexts :: [String] -> App ()
 infoTexts [s1, s2] = do
     clearInfo
-    ANSI.setCursorPosition infoLineX infoLineY
-    putStr s1
-    ANSI.setCursorPosition (infoLineX + 1) infoLineY
-    putStr s2
+    liftIO $ do
+        ANSI.setCursorPosition infoLineX infoLineY
+        putStr s1
+        ANSI.setCursorPosition (infoLineX + 1) infoLineY
+        putStr s2
 infoTexts _ = pure ()
 
-clearInfo :: IO ()
-clearInfo = do
+clearInfo :: App ()
+clearInfo = liftIO $ do
     ANSI.setCursorPosition 5 0
     ANSI.clearFromCursorToScreenBeginning
     ANSI.setCursorPosition infoLineX infoLineY
@@ -36,17 +39,18 @@ infoLineX = 20
 infoLineY :: Int
 infoLineY = 0
 
-prettyANSI :: Position -> IO ()
-prettyANSI pos = do
+prettyANSI :: Position -> App ()
+prettyANSI pos = liftIO $ do
     ANSI.setCursorPosition 5 0
     mapM_ UP.putStrLn $ prettyRow <$> rowify pos
 
-line :: IO Text
+line :: App Text
 line = do
-    ANSI.setCursorPosition 22 0
-    ANSI.clearLine
-    hFlush stdout
-    TIO.getLine
+    liftIO $ do
+        ANSI.setCursorPosition 22 0
+        ANSI.clearLine
+        hFlush stdout
+        TIO.getLine
 
 pretty :: Position -> IO ()
 pretty pos = do
