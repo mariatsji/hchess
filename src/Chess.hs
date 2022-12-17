@@ -26,7 +26,7 @@ board = Square <$> [1 .. 8] <*> [1 .. 8]
 
 -- col row
 squareTo :: Square -> Int -> Int -> Square
-squareTo s@(Square c r) cols rows =
+squareTo (Square c r) cols rows =
     let newC = c + cols
         newR = r + rows
     in if newC < 1 || newC > 8 || newR < 1 || newR > 8
