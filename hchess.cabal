@@ -177,5 +177,7 @@ test-suite hchess-test
     base ^>=4.15.1.0
     , hchess
     , hspec
+    , neat-interpolation
+    , text
   default-language: Haskell2010
 
