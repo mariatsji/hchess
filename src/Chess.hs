@@ -7,10 +7,10 @@ import Control.Parallel (par, pseq)
 import Control.Parallel.Strategies (NFData)
 import Data.List
 import Data.Maybe (isNothing)
+import qualified Debug.Trace as Debug
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
-import qualified Debug.Trace as Debug
 
 data Status
     = WhiteToPlay
@@ -26,7 +26,12 @@ board = Square <$> [1 .. 8] <*> [1 .. 8]
 
 -- col row
 squareTo :: Square -> Int -> Int -> Square
-squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
+squareTo s@(Square c r) cols rows =
+    let newC = c + cols
+        newR = r + rows
+    in if newC < 1 || newC > 8 || newR < 1 || newR > 8
+        then Debug.trace ("Dbg: " <> show s) (Square newC newR)
+        else Square newC newR
 
 -- MovedPiece Square Square | Promotion Square Square Piece | CastleShort | CastleLong
 identifyMove :: Position -> Square -> Square -> Maybe Piece -> Move
@@ -166,9 +171,12 @@ makeMoves :: Position -> [(Square, Square)] -> Position
 makeMoves = foldl (uncurry . movePiece)
 
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt po s@(Square c r) = if c < 1 || c > 8 || r < 1 || r > 9
-    then Debug.trace ("Dbg: " <> show s) go po s else go po s
-    where go = pieceAt' . m
+pieceAt po s@(Square c r) =
+    if c < 1 || c > 8 || r < 1 || r > 8
+        then Debug.trace ("Dbg: " <> show s) go po s
+        else go po s
+  where
+    go = pieceAt' . m
 
 positionTree :: Position -> [Position]
 positionTree pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
