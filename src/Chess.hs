@@ -10,6 +10,7 @@ import Data.Maybe (isNothing)
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
+import qualified Debug.Trace as Debug
 
 data Status
     = WhiteToPlay
@@ -164,9 +165,10 @@ vacantAt pos t = isNothing $ pieceAt pos t
 makeMoves :: Position -> [(Square, Square)] -> Position
 makeMoves = foldl (uncurry . movePiece)
 
--- CAF now? would be nice
 pieceAt :: Position -> Square -> Maybe Piece
-pieceAt = pieceAt' . m
+pieceAt po s@(Square c r) = if c < 1 || c > 8 || r < 1 || r > 9
+    then Debug.trace ("Dbg: " <> show s) go po s else go po s
+    where go = pieceAt' . m
 
 positionTree :: Position -> [Position]
 positionTree pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
@@ -407,9 +409,9 @@ isInCheck pos =
         White ->
             let whiteKingPos = searchForPieces pos (const True) (== King White)
              in case whiteKingPos of
-                    [(kingSquare@(Square c _), _)] ->
+                    [(kingSquare@(Square c r), _)] ->
                         let cangothere = canGoThere pos kingSquare
-                            checkByPawn = c > 1 && pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
+                            checkByPawn = c > 1 && r < 7 && pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && r < 7 && pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
                             checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKnight kingSquare)
                             checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
                             checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
@@ -419,14 +421,18 @@ isInCheck pos =
         Black ->
             let blackKingPos = searchForPieces pos (const True) (== King Black)
              in case blackKingPos of
-                    [(kingSquare@(Square c _), _)] ->
+                    [(kingSquare@(Square c r), _)] ->
                         let cangothere = canGoThere pos kingSquare
-                            checkByPawn = c > 1 && pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
+                            checkByPawn = c > 1 && r > 2 && pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && r > 2 && pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
                             checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight kingSquare
                             checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
                             checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
                             checkByKing = any ((Just (King White) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare)
-                         in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
+                         in checkByPawn
+                                || checkByKnight
+                                || checkByRookQueen
+                                || checkByBishopQueen
+                                || checkByKing
                     _ -> False
 
 isCheckMate :: Position -> [Position] -> Bool

@@ -82,7 +82,7 @@ executable hchess-profiled
     -Wall
     -threaded
     -fprof-auto
-    "-with-rtsopts=-N6 -p -s -h -i0.1"
+    "-with-rtsopts=-N6 -xc -p -s -h -i0.1"
   hs-source-dirs:
       profiled
   default-extensions:
@@ -106,6 +106,8 @@ executable hchess-profiled
   build-depends:
       base ^>=4.15.1.0
     , hchess
+    , neat-interpolation
+    , text
   default-language: Haskell2010
 
 executable hchess
