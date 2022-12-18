@@ -106,7 +106,8 @@ colorFactor :: Color -> Float
 colorFactor c = if c == Black then (-1) else 1
 
 impactArea :: Snapshot -> Piece -> Square -> Float
-impactArea _ (Pawn _) _ = 0
+impactArea _ (Pawn White) (Square _ r) = 0.005 * fromIntegral r
+impactArea _ (Pawn Black) (Square _ r) = (-0.005) * fromIntegral ( 9 - r ) 
 impactArea _ (King _) _ = 0
 impactArea snp (Knight c) s =
     let reachables = fromIntegral . length $ filter (finalDestinationNotOccupiedBySelf' snp c) (toSquaresKnight s)

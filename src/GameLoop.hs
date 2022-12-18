@@ -4,9 +4,11 @@ import AI (bestDeepEval)
 import AppContext (App, AppContext (analysis))
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Reader (asks)
 import Data.Text (Text, unpack)
 import qualified Data.Text.IO as TIO
 import Move (parsedMove, playMove)
+import Numeric (showFFloat)
 import PGN
 import Position (
     Color (White),
@@ -16,7 +18,6 @@ import Position (
  )
 import qualified Printer
 import System.Exit (exitSuccess)
-import Control.Monad.Trans.Reader (asks)
 
 start :: Text -> App ()
 start "1" = do
@@ -67,12 +68,18 @@ gameLoopHM pos depth = do
                         )
                         ( \responsePos -> do
                             let move = findMove (m newPos) (m responsePos)
-                            Printer.infoTexts [show move, if showAnalysis then show scoreM else ""]
+                            Printer.infoTexts [show move, if showAnalysis then prettyScore scoreM else ""]
                             record responsePos
                             Printer.prettyANSI responsePos
                             gameLoopHM responsePos depth
                         )
                         aiReplyPosM
+
+prettyScore :: Maybe Float -> String
+prettyScore Nothing = ""
+prettyScore (Just s) = formatFloatN s
+  where
+    formatFloatN floatNum = showFFloat (Just 2) floatNum ""
 
 gameLoopMM :: Position -> Int -> Int -> App ()
 gameLoopMM pos whiteDepth blackDepth = do
@@ -94,7 +101,7 @@ gameLoopMM pos whiteDepth blackDepth = do
         )
         ( \responsePos -> do
             let move = findMove (m pos) (m responsePos)
-            Printer.infoTexts [show move, if showAnalysis then show scoreM else ""]
+            Printer.infoTexts [show move, if showAnalysis then prettyScore scoreM else ""]
             record responsePos
             Printer.prettyANSI responsePos
             gameLoopMM responsePos whiteDepth blackDepth
