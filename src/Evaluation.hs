@@ -13,6 +13,7 @@ import Chess (
     determineStatus,
     finalDestinationNotOccupiedBySelf',
     positionTree,
+    threefoldrepetition,
     toSquaresBishop,
     toSquaresKnight,
     toSquaresQueen,
@@ -78,17 +79,20 @@ evaluate' pos =
 -- CAF good?
 evaluate :: Position -> Float
 evaluate p =
-    foldr
-        ( \(s, mP) acc ->
-            case mP of
-                Nothing -> acc
-                Just pie ->
-                    let pieceVal = force $ valueOf pie
-                        impactVal = force $ impactArea (m p) pie s
-                     in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
-        )
-        0
-        (toList' (m p))
+    if threefoldrepetition p
+        then 0.0
+        else
+            foldr
+                ( \(s, mP) acc ->
+                    case mP of
+                        Nothing -> acc
+                        Just pie ->
+                            let pieceVal = force $ valueOf pie
+                                impactVal = force $ impactArea (m p) pie s
+                             in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
+                )
+                0
+                (toList' (m p))
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = colorFactor c * 1.0

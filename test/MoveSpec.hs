@@ -7,6 +7,7 @@ import Move
 import Position
 import Printer
 import Test.Hspec
+import Board (diff)
 
 spec :: Spec
 spec = do

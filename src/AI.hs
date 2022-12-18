@@ -17,7 +17,7 @@ import Position (Color (White), Position (toPlay), next)
 bestDeepEval :: Position -> Int -> (Maybe Position, Maybe Float, Status)
 bestDeepEval pos' depth =
     let perspective = toPlay pos'
-        candidates = positionTree pos' -- white to move
+        candidates = positionTree pos' -- threefold?
         withScores = candidates <-&-> \p -> (p, deepEval depth (next perspective) p)
         (best, score) = if perspective == White then maximumBy (comparing snd) withScores else minimumBy (comparing snd) withScores
      in if null candidates

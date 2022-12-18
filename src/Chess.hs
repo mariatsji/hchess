@@ -2,6 +2,7 @@
 
 module Chess where
 
+import Board (diff)
 import Control.DeepSeq (force)
 import Control.Parallel (par, pseq)
 import Control.Parallel.Strategies (NFData)
@@ -11,6 +12,7 @@ import qualified Debug.Trace as Debug
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
+import qualified Data.Set as Set
 
 data Status
     = WhiteToPlay
@@ -26,12 +28,13 @@ board = Square <$> [1 .. 8] <*> [1 .. 8]
 
 -- col row
 squareTo :: Square -> Int -> Int -> Square
-squareTo (Square c r) cols rows =
-    let newC = c + cols
+squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
+
+{-     let newC = c + cols
         newR = r + rows
     in if newC < 1 || newC > 8 || newR < 1 || newR > 8
         then Debug.trace ("Dbg: " <> show (Square newC newR)) (Square newC newR)
-        else Square newC newR
+        else Square newC newR -}
 
 -- MovedPiece Square Square | Promotion Square Square Piece | CastleShort | CastleLong
 identifyMove :: Position -> Square -> Square -> Maybe Piece -> Move
@@ -250,27 +253,19 @@ toSquaresPawn pos s@(Square c r)
             <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
             <> [(squareTo s (-1) (-1), Nothing) | c > 1, enemyAt pos $ squareTo s (-1) (-1)]
             <> [(squareTo s 1 (-1), Nothing) | c < 8, enemyAt pos $ squareTo s 1 (-1)]
-            <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | c > 1, enPassant pos (squareTo s (-1) 0), c > 1]
-            <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | c < 8, enPassant pos (squareTo s 1 0), c < 7]
+            <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | c > 1, enPassant pos (squareTo s (-1) 0)]
+            <> [(squareTo s 1 (-1), Just (squareTo s 1 0)) | c < 8, enPassant pos (squareTo s 1 0)]
 
 -- en passant
--- the square arg is the spot the pawn just jumped to - opening up for en passant
+-- the square arg is the capture square
 enPassant :: Position -> Square -> Bool
-enPassant (Position _ [] _ _ _) _ = False
-enPassant pos s@(Square c r)
-    | toPlay pos == White =
-        (r == 5) && pieceAt pos s == Just (Pawn Black) && jumpedHereJustNow pos s
-    | otherwise =
-        (r == 4) && pieceAt pos s == Just (Pawn White) && jumpedHereJustNow pos s
-  where
-    piece = Just $ Pawn (toPlay pos)
-    fromSquare = if toPlay pos == White then Square c 7 else Square c 2
-    jumpedHereJustNow :: Position -> Square -> Bool
-    jumpedHereJustNow _ _ =
-        not $
-            length (gamehistory pos) < 3
-                && let prevSnapshot = gamehistory pos !! 1
-                    in pieceAt' prevSnapshot fromSquare == piece && pieceAt' (m pos) s == piece && isNothing (pieceAt' prevSnapshot s)
+enPassant Position {..} captureSquare@(Square _ r) =
+    let rightRow = r == if toPlay == White then 5 else 4
+        di = m `diff` head gamehistory
+        fromSquare = squareTo captureSquare 0 (if toPlay == White then 2 else -2)
+        opPawn = Just $ Pawn (next toPlay)
+        jumpedHereJustNow = Set.fromList di == Set.fromList [(hash fromSquare, opPawn), (hash captureSquare, Nothing)]
+     in not (null gamehistory) && rightRow && jumpedHereJustNow
 
 -- knights
 toSquaresKnight :: Square -> [Square]
@@ -450,7 +445,9 @@ isDraw :: Position -> [Position] -> Bool
 isDraw pos ptree = threefoldrepetition pos || isPatt pos ptree
 
 threefoldrepetition :: Position -> Bool
-threefoldrepetition (Position m' gh _ _ _) = length gh > 5 && length (filter (== m') gh) > 2
+threefoldrepetition Position {..} =
+    let occurrences = length $ filter (== m) gamehistory
+     in occurrences > 2
 
 eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _ _ _ _) (Position m2 _ _ _ _) = m1 == m2
