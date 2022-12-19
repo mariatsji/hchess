@@ -70,7 +70,7 @@ gameLoopHM pos depth = do
                             exit
                         )
                         ( \responsePos -> do
-                            Printer.render world {wPos = Just responsePos, wScore = scoreM}
+                            Printer.render world {wInfo = ["White's move",""], wPos = Just responsePos, wScore = scoreM}
                             record responsePos
                             gameLoopHM responsePos depth
                         )
