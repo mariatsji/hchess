@@ -1,27 +1,55 @@
-module Printer where
+module Printer (pretty, prettyE, render, infoTexts, line) where
 
+import AppContext (App, AppContext (analysis), World (..))
+import Control.Monad (when)
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Reader (asks)
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
 import Data.List
 import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Evaluation
 import GHC.Exts
+import GHC.IO.Handle (hFlush)
+import Numeric (showFFloat)
 import Position
 import qualified System.Console.ANSI as ANSI
 import System.IO (stdout)
-import GHC.IO.Handle (hFlush)
-import AppContext (App)
-import Control.Monad.IO.Class (liftIO)
 
-infoTexts :: [String] -> App ()
+render :: World -> App ()
+render World {..} = do
+    title wTitle
+    maybe (pure ()) prettyANSI wPos
+    renderScore wScore
+    infoTexts wInfo
+
+renderScore :: Maybe Float -> App ()
+renderScore Nothing = pure ()
+renderScore (Just s) = do
+    showAnalysis <- asks analysis
+    liftIO $ do
+        ANSI.setCursorPosition 16 0
+        when showAnalysis $ putStrLn $ formatFloatN s
+  where
+    formatFloatN floatNum = showFFloat (Just 2) floatNum ""
+
+title :: Text -> App ()
+title t = do
+    liftIO $ do
+        ANSI.setCursorPosition 1 0
+        ANSI.clearFromCursorToScreenBeginning
+        putStrLn $ T.unpack t
+
+infoTexts :: [Text] -> App ()
 infoTexts [s1, s2] = do
     clearInfo
     liftIO $ do
         ANSI.setCursorPosition infoLineX infoLineY
-        putStr s1
+        putStrLn $ T.unpack s1
         ANSI.setCursorPosition (infoLineX + 1) infoLineY
-        putStr s2
+        putStrLn $ T.unpack s2
 infoTexts _ = pure ()
 
 clearInfo :: App ()
@@ -34,7 +62,7 @@ clearInfo = liftIO $ do
     ANSI.clearLine
 
 infoLineX :: Int
-infoLineX = 20
+infoLineX = 15
 
 infoLineY :: Int
 infoLineY = 0
@@ -61,9 +89,6 @@ prettyE (Evaluated gh score status) = do
     pretty gh
     putStrLn $ "score : " ++ show score
     putStrLn $ "status : " ++ show status
-
-prettyEs :: [Evaluated] -> IO ()
-prettyEs = mapM_ prettyE
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
 rowify pos = reverse $ sortBy colSort <$> groupWith (\(Square _ r, _) -> r) (toList' (m pos))
