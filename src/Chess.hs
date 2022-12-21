@@ -145,7 +145,8 @@ pieceAt po s@(Square c r) =
     go = pieceAt' . m
 
 positionTree :: Position -> [Position]
-positionTree pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
+positionTree = go
+    where go pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
 
 notSelfcheck :: Color -> Position -> Bool
 notSelfcheck col pos = not $ isInCheck (m pos) col

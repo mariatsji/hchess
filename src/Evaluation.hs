@@ -14,7 +14,7 @@ import Chess (
     threefoldrepetition,
     toSquaresBishop',
     toSquaresKnight',
-    toSquaresQueen' ,
+    toSquaresQueen',
     toSquaresRook',
     (<-$->),
  )
@@ -74,23 +74,24 @@ evaluate' pos =
         Remis -> Evaluated pos 0 Remis
         playOn -> Evaluated pos (evaluate pos) playOn
 
--- CAF good?
 evaluate :: Position -> Float
-evaluate p =
-    if threefoldrepetition p
-        then 0.0
-        else
-            foldr
-                ( \(w, mP) acc ->
-                    case mP of
-                        Nothing -> acc
-                        Just pie ->
-                            let pieceVal = force $ valueOf pie
-                                impactVal = force $ impactArea (m p) pie (unHash w)
-                             in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
-                )
-                0
-                (toList' (m p))
+evaluate = go
+  where
+    go p =
+        if threefoldrepetition p
+            then 0.0
+            else
+                foldr
+                    ( \(w, mP) acc ->
+                        case mP of
+                            Nothing -> acc
+                            Just pie ->
+                                let pieceVal = force $ valueOf pie
+                                    impactVal = force $ impactArea (m p) pie (unHash w)
+                                 in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
+                    )
+                    0
+                    (toList' (m p))
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = colorFactor c * 1.0
@@ -105,7 +106,7 @@ colorFactor c = if c == Black then (-1) else 1
 
 impactArea :: Snapshot -> Piece -> Square -> Float
 impactArea _ (Pawn White) (Square _ r) = 0.005 * fromIntegral r
-impactArea _ (Pawn Black) (Square _ r) = (-0.005) * fromIntegral ( 9 - r ) 
+impactArea _ (Pawn Black) (Square _ r) = (-0.005) * fromIntegral (9 - r)
 impactArea _ (King _) _ = 0
 impactArea snp (Knight c) s =
     let reachables = fromIntegral . length $ toSquaresKnight' snp c s
