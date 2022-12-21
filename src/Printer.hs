@@ -54,7 +54,7 @@ infoTexts _ = pure ()
 
 clearInfo :: App ()
 clearInfo = liftIO $ do
-    ANSI.setCursorPosition 5 0
+    ANSI.setCursorPosition 4 0
     ANSI.clearFromCursorToScreenBeginning
     ANSI.setCursorPosition infoLineX infoLineY
     ANSI.clearLine
