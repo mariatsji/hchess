@@ -196,7 +196,7 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
                         )
          in positions
     Knight _ ->
-        fmap (movePiece pos s) ( toSquaresKnight' (m pos) (toPlay pos) s)
+        fmap (movePiece pos s) (toSquaresKnight' (m pos) (toPlay pos) s)
     Bishop _ ->
         fmap (movePiece pos s) (toSquaresBishop' (m pos) (toPlay pos) s)
     Rook _ ->
@@ -393,31 +393,19 @@ isInCheck :: Snapshot -> Color -> Bool
 isInCheck snp myColr =
     let kinPo = searchIdx snp (const True) (\mP -> mP == Just (King myColr))
         hashed (w8, x) = (unHash w8, x)
-    in case myColr of
-        White ->
-            case hashed <$> kinPo of
-                    [(kingSquare@(Square c r), _)] ->
-                        let checkByPawn = c > 1 && r < 7 && pieceAt' snp (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && r < 7 && pieceAt' snp (squareTo kingSquare 1 1) == Just (Pawn Black)
-                            checkByKnight = any ((Just (Knight Black) ==) . pieceAt' snp) $ toSquaresKnight' snp White kingSquare
-                            checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt' snp) $ toSquaresRook' snp White kingSquare
-                            checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt' snp) $ toSquaresBishop' snp White kingSquare
-                            checkByKing = any ((Just (King Black) ==) . pieceAt' snp) $ toSquaresKing' snp White kingSquare
-                         in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
-                    _ -> False
-        Black ->
-            case hashed <$> kinPo of
-                    [(kingSquare@(Square c r), _)] ->
-                        let checkByPawn = c > 1 && r > 2 && pieceAt' snp (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && r > 2 && pieceAt' snp (squareTo kingSquare 1 (-1)) == Just (Pawn White)
-                            checkByKnight = any ((Just (Knight White) ==) . pieceAt' snp) $ toSquaresKnight' snp Black kingSquare
-                            checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt' snp) $ toSquaresRook' snp Black kingSquare
-                            checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt' snp) $ toSquaresBishop' snp Black kingSquare
-                            checkByKing = any ((Just (King White) ==) . pieceAt' snp) $ toSquaresKing' snp Black kingSquare
-                         in checkByPawn
-                                || checkByKnight
-                                || checkByRookQueen
-                                || checkByBishopQueen
-                                || checkByKing
-                    _ -> False
+        opColr = next myColr
+        dangerSquares (Square c r) = filter insideBoard case myColr of
+            White -> [Square (c - 1) (r + 1), Square (c + 1) (r + 1)]
+            Black -> [Square (c - 1) (r - 1), Square (c + 1) (r - 1)]
+     in case hashed <$> kinPo of
+            [(kingSquare, _)] ->
+                let checkByPawn = elem (Just (Pawn opColr)) (pieceAt' snp <$> dangerSquares kingSquare)
+                    checkByKnight = any ((Just (Knight opColr) ==) . pieceAt' snp) $ toSquaresKnight' snp myColr kingSquare
+                    checkByRookQueen = any ((`elem` [Just (Rook opColr), Just (Queen opColr)]) . pieceAt' snp) $ toSquaresRook' snp myColr kingSquare
+                    checkByBishopQueen = any ((`elem` [Just (Bishop opColr), Just (Queen opColr)]) . pieceAt' snp) $ toSquaresBishop' snp myColr kingSquare
+                    checkByKing = any ((Just (King opColr) ==) . pieceAt' snp) $ toSquaresKing' snp myColr kingSquare
+                 in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
+            _ -> False
 
 isCheckMate :: Position -> [Position] -> Bool
 isCheckMate pos positiontree = null positiontree && isInCheck (m pos) (toPlay pos)
