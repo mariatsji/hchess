@@ -22,15 +22,15 @@ start "1" = do
     Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
     gameLoopHH startPosition
 start "2" = do
-    Printer.infoTexts ["Enter machine search depth (2-5) where 1 is faster and 5 is stronger", ""]
+    Printer.infoTexts ["Enter machine search depth (1-3) where 1 is faster and 3 is stronger", ""]
     l <- Printer.line
     let depth = read @Int (unpack l)
     gameLoopHM startPosition depth
 start "3" = do
-    Printer.infoTexts ["Enter white search depth (2-5) where 2 is faster and 5 is stronger", ""]
+    Printer.infoTexts ["Enter white search depth (1-3) where 2 is faster and 3 is stronger", ""]
     lw <- Printer.line
     let wdepth = read @Int (unpack lw)
-    Printer.infoTexts ["Enter black search depth (2-5) where 2 is faster and 5 is stronger", ""]
+    Printer.infoTexts ["Enter black search depth (1-3) where 2 is faster and 3 is stronger", ""]
     lb <- Printer.line
     let bdepth = read @Int (unpack lb)
     gameLoopMM startPosition wdepth bdepth
