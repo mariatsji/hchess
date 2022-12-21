@@ -149,12 +149,6 @@ canGoThere pos from to =
         clear = all isNothing (fmap (pieceAt pos) (points from to))
      in vacant && clear
 
-canGoThere' :: Snapshot -> Color -> Square -> Square -> Bool
-canGoThere' snp myColor from to =
-    let vacant = finalDestinationNotOccupiedBySelf' snp myColor to
-        clear = all isNothing (fmap (pieceAt' snp) (points from to))
-     in vacant && clear
-
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
 finalDestinationNotOccupiedBySelf Position {..} = finalDestinationNotOccupiedBySelf' m toPlay
 
@@ -230,13 +224,13 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
             (movePiece pos s)
             (filter (finalDestinationNotOccupiedBySelf pos) $ toSquaresKnight s)
     Bishop _ ->
-        fmap (movePiece pos s) (toSquaresBishop' pos s)
+        fmap (movePiece pos s) (toSquaresBishop' (m pos) (toPlay pos) s)
     Rook _ ->
-        fmap (movePiece pos s) (toSquaresRook' pos s)
+        fmap (movePiece pos s) (toSquaresRook' (m pos) (toPlay pos) s)
     Queen _ ->
-        fmap (movePiece pos s) (toSquaresQueen' pos s)
+        fmap (movePiece pos s) (toSquaresQueen' (m pos) (toPlay pos) s)
     King _ ->
-        fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
+        fmap (movePiece pos s) (toSquaresKing' (m pos) (toPlay pos) s)
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]
@@ -282,60 +276,51 @@ toSquaresKnight s =
         , squareTo s (-2) (-1)
         ]
 
--- bishops
-toSquaresBishop :: Square -> [Square]
-toSquaresBishop s@(Square c r) =
-    let maxDown = r - 1
-        maxUp = 8 - r
-        maxLeft = c - 1
-        maxRight = 8 - c
-        a' = fmap (\x -> squareTo s x x) [1 .. min maxUp maxRight]
-        b' = fmap (\x -> squareTo s x (-x)) [1 .. min maxDown maxRight]
-        c' = fmap (\x -> squareTo s (-x) (-x)) [1 .. min maxDown maxLeft]
-        d' = fmap (\x -> squareTo s (-x) x) [1 .. min maxLeft maxUp]
-     in a' <> b' <> c' <> d'
+toSquaresRook' :: Snapshot -> Color -> Square -> [Square]
+toSquaresRook' snp myCol (Square c r) =
+    let up = digger id succ [] snp (Square c (succ r)) myCol
+        right = digger succ id [] snp (Square (succ c) r) myCol
+        down = digger id pred [] snp (Square c (pred r)) myCol
+        left = digger pred id [] snp (Square (pred c) r) myCol
+     in up <> right <> down <> left
 
--- rooks
-toSquaresRook :: Square -> [Square]
-toSquaresRook s@(Square c r) =
-    let maxDown = 1 - r
-        maxUp = 8 - r
-        maxLeft = 1 - c
-        maxRight = 8 - c
-        lane = fmap (squareTo s 0) [maxDown .. maxUp]
-        row = fmap (\c' -> squareTo s c' 0) [maxLeft .. maxRight]
-     in lane <> row
+toSquaresBishop' :: Snapshot -> Color -> Square -> [Square]
+toSquaresBishop' snp myCol (Square c r) =
+    let ne = digger succ succ [] snp (Square (succ c) (succ r)) myCol
+        se = digger succ pred [] snp (Square (succ c) (pred r)) myCol
+        sw = digger pred pred [] snp (Square (pred c) (pred r)) myCol
+        nw = digger pred succ [] snp (Square (pred c) (succ r)) myCol
+     in ne <> se <> sw <> nw
 
-toSquaresRook' :: Position -> Square -> [Square]
-toSquaresRook' pos (Square c r) =
-    let up = digger id succ    [] pos (Square c (succ r))
-        right = digger succ id [] pos (Square (succ c) r)
-        down = digger id pred  [] pos (Square c (pred r))
-        left = digger pred id  [] pos (Square (pred c) r)
-    in up <> right <> down <> left
+toSquaresQueen' :: Snapshot -> Color -> Square -> [Square]
+toSquaresQueen' snp myCol s = toSquaresRook' snp myCol s <> toSquaresBishop' snp myCol s
 
-toSquaresBishop' :: Position -> Square -> [Square]
-toSquaresBishop' pos (Square c r) =
-    let ne = digger succ succ [] pos (Square (succ c) (succ r))
-        se = digger succ pred [] pos (Square (succ c) (pred r))
-        sw = digger pred pred [] pos (Square (pred c) (pred r))
-        nw = digger pred succ [] pos (Square (pred c) (succ r))
-    in ne <> se <> sw <> nw
+toSquaresKing' :: Snapshot -> Color -> Square -> [Square]
+toSquaresKing' snp myCol (Square c r) =
+    let okSquare zq = case pieceAt' snp zq of
+            Nothing -> True
+            Just pie -> colr pie == next myCol
+     in [ Square c' r'
+        | c' <- [pred c, c, succ c]
+        , r' <- [pred r, r, succ r]
+        , r' > 0
+        , c' > 0
+        , r' < 9
+        , c' < 9
+        , (c', r') /= (c, r)
+        , okSquare (Square c' r')
+        ]
 
-toSquaresQueen' :: Position -> Square -> [Square]
-toSquaresQueen' pos s = toSquaresRook' pos s <> toSquaresBishop' pos s
-
-digger :: (Int -> Int) -> (Int -> Int) -> [Square] -> Position -> Square -> [Square]
-digger nextCol nextRow acc pos (Square c r)
-    | r > 0, r < 9, c > 0, c < 9 =
-        acc <> case pieceAt pos (Square c r) of
-            Nothing -> Square c r : digger nextCol nextRow acc pos (Square (nextCol c) (nextRow r))
-            Just p -> ([Square c r | colr p == next (toPlay pos)])
+digger :: (Int -> Int) -> (Int -> Int) -> [Square] -> Snapshot -> Square -> Color -> [Square]
+digger nextCol nextRow acc snp (Square c r) color
+    | r > 0
+    , r < 9
+    , c > 0
+    , c < 9 =
+        acc <> case pieceAt' snp (Square c r) of
+            Nothing -> Square c r : digger nextCol nextRow acc snp (Square (nextCol c) (nextRow r)) color
+            Just p -> ([Square c r | colr p == next color])
     | otherwise = acc
-
--- queens
-toSquaresQueen :: Square -> [Square]
-toSquaresQueen s = toSquaresBishop s <> toSquaresRook s
 
 -- kings
 toSquaresKing :: Square -> [Square]
@@ -440,24 +425,22 @@ isInCheck pos =
             let whiteKingPos = searchForPieces pos (const True) (== King White)
              in case whiteKingPos of
                     [(kingSquare@(Square c r), _)] ->
-                        let cangothere = canGoThere pos kingSquare
-                            checkByPawn = c > 1 && r < 7 && pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && r < 7 && pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
-                            checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKnight kingSquare)
-                            checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
-                            checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
-                            checkByKing = any ((Just (King Black) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare) -- todo move this check to canGoThere.. case I am a King piece -> check if causes check, else ..
+                        let checkByPawn = c > 1 && r < 7 && pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && r < 7 && pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
+                            checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ toSquaresKnight kingSquare
+                            checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ toSquaresRook' (m pos) White kingSquare
+                            checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ toSquaresBishop' (m pos) White kingSquare
+                            checkByKing = any ((Just (King Black) ==) . pieceAt pos) $ toSquaresKing' (m pos) White kingSquare
                          in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
                     _ -> False
         Black ->
             let blackKingPos = searchForPieces pos (const True) (== King Black)
              in case blackKingPos of
                     [(kingSquare@(Square c r), _)] ->
-                        let cangothere = canGoThere pos kingSquare
-                            checkByPawn = c > 1 && r > 2 && pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && r > 2 && pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
+                        let checkByPawn = c > 1 && r > 2 && pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && r > 2 && pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
                             checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight kingSquare
-                            checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresRook kingSquare)
-                            checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ filter cangothere (toSquaresBishop kingSquare)
-                            checkByKing = any ((Just (King White) ==) . pieceAt pos) $ filter cangothere (toSquaresKing kingSquare)
+                            checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ toSquaresRook' (m pos) Black kingSquare
+                            checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ toSquaresBishop' (m pos) Black kingSquare
+                            checkByKing = any ((Just (King White) ==) . pieceAt pos) $ toSquaresKing' (m pos) Black kingSquare
                          in checkByPawn
                                 || checkByKnight
                                 || checkByRookQueen

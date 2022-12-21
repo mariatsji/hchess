@@ -9,15 +9,14 @@ module Evaluation (
 
 import Chess (
     Status (BlackIsMate, Remis, WhiteIsMate),
-    canGoThere',
     determineStatus,
     finalDestinationNotOccupiedBySelf',
     positionTree,
     threefoldrepetition,
-    toSquaresBishop,
+    toSquaresBishop',
     toSquaresKnight,
-    toSquaresQueen,
-    toSquaresRook,
+    toSquaresQueen' ,
+    toSquaresRook',
     (<-$->),
  )
 import Control.DeepSeq (force)
@@ -113,11 +112,11 @@ impactArea snp (Knight c) s =
     let reachables = fromIntegral . length $ filter (finalDestinationNotOccupiedBySelf' snp c) (toSquaresKnight s)
      in colorFactor c * reachables * 0.01
 impactArea snp (Bishop c) s =
-    let reachables = fromIntegral . length $ filter (canGoThere' snp c s) (toSquaresBishop s)
+    let reachables = fromIntegral . length $ toSquaresBishop' snp c s
      in colorFactor c * reachables * 0.01
 impactArea snp (Rook c) s =
-    let reachables = fromIntegral . length $ filter (canGoThere' snp c s) (toSquaresRook s)
+    let reachables = fromIntegral . length $ toSquaresRook' snp c s
      in colorFactor c * reachables * 0.01
 impactArea snp (Queen c) s =
-    let reachables = fromIntegral . length $ filter (canGoThere' snp c s) (toSquaresQueen s)
+    let reachables = fromIntegral . length $ toSquaresQueen' snp c s
      in colorFactor c * reachables * 0.01
