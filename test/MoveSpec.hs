@@ -46,12 +46,6 @@ spec = do
       let newP = Move.playMove "e2-e4" startPosition
       newP `shouldSatisfy` isRight
       newP `shouldNotBe` Right startPosition
-    it "does not step on own pieces" $ do
-      let b = canGoThere startPosition (Square 1 1) (Square 1 2)
-      b `shouldBe` (False :: Bool)
-    it "lets pawns move ahead from startpos" $ do
-      let b = canGoThere startPosition (Square 5 2) (Square 5 4)
-      b `shouldBe` (True :: Bool)
     it "knows when destination square is occupied by own color" $ do
       let b = finalDestinationNotOccupiedBySelf startPosition (Square 1 2)
       b `shouldBe` (False :: Bool)

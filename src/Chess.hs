@@ -142,13 +142,6 @@ points (Square c1 r1) (Square c2 r2)
                     else reverse [r2 + 1 .. r1 - 1]
          in uncurry Square <$> cs `zip` rs
 
--- todo delete this, just check pawns manually
-canGoThere :: Position -> Square -> Square -> Bool
-canGoThere pos from to =
-    let vacant = finalDestinationNotOccupiedBySelf pos to
-        clear = all isNothing (fmap (pieceAt pos) (points from to))
-     in vacant && clear
-
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
 finalDestinationNotOccupiedBySelf Position {..} = finalDestinationNotOccupiedBySelf' m toPlay
 
@@ -351,7 +344,13 @@ castle' move pos =
             _ -> longRookPos color -- todo illegal state if not castle move
         hasKingAtHome = pieceAt pos kingSquare == Just (King color)
         hasRookAtHome = pieceAt pos rookSquare == Just (Rook color)
-        vacantBetweenKingAndRook = vacantBetween pos kingSquare rookSquare
+        relevantSquares = case (color, move) of
+            (White, CastleShort) -> [Square 6 1, Square 7 1]
+            (White, CastleLong) -> [Square 2 1, Square 3 1, Square 4 1]
+            (Black, CastleShort) -> [Square 6 8, Square 7 8]
+            (Black, CastleLong) -> [Square 2 8, Square 3 8, Square 4 8]
+            _ -> []
+        vacantBetweenKingAndRook = all (vacantAt pos) relevantSquares
         isNotInCheck = not (isInCheck pos)
         wontPassCheck = willNotPassCheck pos kingSquare rookSquare
         newSnapshot = case move of
@@ -385,9 +384,6 @@ doCastleLong pos c =
         )
         (Square 4 (homeRow c))
         (Rook c)
-
-vacantBetween :: Position -> Square -> Square -> Bool
-vacantBetween pos from to = all (vacantAt pos) $ points from to
 
 kingPos :: Color -> Square
 kingPos c = Square 5 (homeRow c)
