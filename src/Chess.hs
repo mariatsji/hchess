@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric, BangPatterns #-}
 
 module Chess where
 
@@ -289,11 +289,11 @@ toSquaresKing' snp myCol (Square c r) =
         ]
 
 digger :: (Int -> Int) -> (Int -> Int) -> [Square] -> Snapshot -> Square -> Color -> [Square]
-digger nextCol nextRow acc snp (Square c r) color
+digger nextCol nextRow !acc snp (Square c r) color
     | insideBoard (Square c r) =
         acc <> case pieceAt' snp (Square c r) of
             Nothing -> Square c r : digger nextCol nextRow acc snp (Square (nextCol c) (nextRow r)) color
-            Just p -> ([Square c r | colr p == next color])
+            Just p -> [Square c r | colr p == next color]
     | otherwise = acc
 
 -- kings
