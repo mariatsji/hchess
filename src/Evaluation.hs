@@ -10,11 +10,10 @@ module Evaluation (
 import Chess (
     Status (BlackIsMate, Remis, WhiteIsMate),
     determineStatus,
-    finalDestinationNotOccupiedBySelf',
     positionTree,
     threefoldrepetition,
     toSquaresBishop',
-    toSquaresKnight,
+    toSquaresKnight',
     toSquaresQueen' ,
     toSquaresRook',
     (<-$->),
@@ -109,7 +108,7 @@ impactArea _ (Pawn White) (Square _ r) = 0.005 * fromIntegral r
 impactArea _ (Pawn Black) (Square _ r) = (-0.005) * fromIntegral ( 9 - r ) 
 impactArea _ (King _) _ = 0
 impactArea snp (Knight c) s =
-    let reachables = fromIntegral . length $ filter (finalDestinationNotOccupiedBySelf' snp c) (toSquaresKnight s)
+    let reachables = fromIntegral . length $ toSquaresKnight' snp c s
      in colorFactor c * reachables * 0.01
 impactArea snp (Bishop c) s =
     let reachables = fromIntegral . length $ toSquaresBishop' snp c s

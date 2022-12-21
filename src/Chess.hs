@@ -142,7 +142,7 @@ points (Square c1 r1) (Square c2 r2)
                     else reverse [r2 + 1 .. r1 - 1]
          in uncurry Square <$> cs `zip` rs
 
--- todo par?
+-- todo delete this, just check pawns manually
 canGoThere :: Position -> Square -> Square -> Bool
 canGoThere pos from to =
     let vacant = finalDestinationNotOccupiedBySelf pos to
@@ -194,7 +194,7 @@ positionTreeIgnoreCheck pos =
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
 positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
     Pawn _ ->
-        let squares = filter (canGoThere pos s . fst) $ toSquaresPawn pos s
+        let squares = toSquaresPawn pos s
             positions =
                 squares
                     >>= ( \t ->
@@ -220,9 +220,7 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
                         )
          in positions
     Knight _ ->
-        fmap
-            (movePiece pos s)
-            (filter (finalDestinationNotOccupiedBySelf pos) $ toSquaresKnight s)
+        fmap (movePiece pos s) ( toSquaresKnight' (m pos) (toPlay pos) s)
     Bishop _ ->
         fmap (movePiece pos s) (toSquaresBishop' (m pos) (toPlay pos) s)
     Rook _ ->
@@ -236,15 +234,15 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
 toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]
 toSquaresPawn pos s@(Square c r)
     | toPlay pos == White =
-        [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos $ squareTo s 0 2]
-            <> [(squareTo s 0 1, Nothing) | vacantAt pos $ squareTo s 0 1]
+        [(squareTo s 0 2, Nothing) | r == 2, vacantAt pos (Square c (r + 1)), vacantAt pos (Square c (r + 2))]
+            <> [(squareTo s 0 1, Nothing) | vacantAt pos (Square c (r + 1))]
             <> [(squareTo s (-1) 1, Nothing) | c > 1, enemyAt pos $ squareTo s (-1) 1]
             <> [(squareTo s 1 1, Nothing) | c < 8, enemyAt pos $ squareTo s 1 1]
             <> [(squareTo s (-1) 1, Just (squareTo s (-1) 0)) | c > 1, enPassant pos (squareTo s (-1) 0)]
             <> [(squareTo s 1 1, Just (squareTo s 1 0)) | c < 8, enPassant pos (squareTo s 1 0)]
     | otherwise =
-        [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos $ squareTo s 0 (-2)]
-            <> [(squareTo s 0 (-1), Nothing) | vacantAt pos $ squareTo s 0 (-1)]
+        [(squareTo s 0 (-2), Nothing) | r == 7, vacantAt pos (Square c (r - 1)), vacantAt pos (Square c (r - 2))]
+            <> [(squareTo s 0 (-1), Nothing) | vacantAt pos (Square c (r - 1))]
             <> [(squareTo s (-1) (-1), Nothing) | c > 1, enemyAt pos $ squareTo s (-1) (-1)]
             <> [(squareTo s 1 (-1), Nothing) | c < 8, enemyAt pos $ squareTo s 1 (-1)]
             <> [(squareTo s (-1) (-1), Just (squareTo s (-1) 0)) | c > 1, enPassant pos (squareTo s (-1) 0)]
@@ -262,18 +260,24 @@ enPassant Position {..} captureSquare@(Square _ r) =
      in not (null gamehistory) && rightRow && jumpedHereJustNow
 
 -- knights
-toSquaresKnight :: Square -> [Square]
-toSquaresKnight s =
-    filter
-        insideBoard
-        [ squareTo s (-1) 2
-        , squareTo s (-1) (-2)
-        , squareTo s 1 2
-        , squareTo s 1 (-2)
-        , squareTo s 2 1
-        , squareTo s 2 (-1)
-        , squareTo s (-2) 1
-        , squareTo s (-2) (-1)
+toSquaresKnight' :: Snapshot -> Color -> Square -> [Square]
+toSquaresKnight' snp myCol (Square c r) =
+    let okSquare zq =
+            insideBoard zq && case pieceAt' snp zq of
+                Nothing -> True
+                Just pie -> colr pie == next myCol
+     in [ s
+        | s <-
+            [ Square (c - 1) (r - 2)
+            , Square (c - 1) (r + 2)
+            , Square (c - 2) (r - 1)
+            , Square (c - 2) (r + 1)
+            , Square (c + 1) (r - 2)
+            , Square (c + 1) (r + 2)
+            , Square (c - 2) (r - 1)
+            , Square (c - 2) (r + 1)
+            ]
+        , okSquare s
         ]
 
 toSquaresRook' :: Snapshot -> Color -> Square -> [Square]
@@ -303,20 +307,14 @@ toSquaresKing' snp myCol (Square c r) =
      in [ Square c' r'
         | c' <- [pred c, c, succ c]
         , r' <- [pred r, r, succ r]
-        , r' > 0
-        , c' > 0
-        , r' < 9
-        , c' < 9
+        , insideBoard (Square c' r')
         , (c', r') /= (c, r)
         , okSquare (Square c' r')
         ]
 
 digger :: (Int -> Int) -> (Int -> Int) -> [Square] -> Snapshot -> Square -> Color -> [Square]
 digger nextCol nextRow acc snp (Square c r) color
-    | r > 0
-    , r < 9
-    , c > 0
-    , c < 9 =
+    | insideBoard (Square c r) =
         acc <> case pieceAt' snp (Square c r) of
             Nothing -> Square c r : digger nextCol nextRow acc snp (Square (nextCol c) (nextRow r)) color
             Just p -> ([Square c r | colr p == next color])
@@ -426,7 +424,7 @@ isInCheck pos =
              in case whiteKingPos of
                     [(kingSquare@(Square c r), _)] ->
                         let checkByPawn = c > 1 && r < 7 && pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && r < 7 && pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
-                            checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ toSquaresKnight kingSquare
+                            checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ toSquaresKnight' (m pos) White kingSquare
                             checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ toSquaresRook' (m pos) White kingSquare
                             checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ toSquaresBishop' (m pos) White kingSquare
                             checkByKing = any ((Just (King Black) ==) . pieceAt pos) $ toSquaresKing' (m pos) White kingSquare
@@ -437,7 +435,7 @@ isInCheck pos =
              in case blackKingPos of
                     [(kingSquare@(Square c r), _)] ->
                         let checkByPawn = c > 1 && r > 2 && pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && r > 2 && pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
-                            checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight kingSquare
+                            checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight' (m pos) Black kingSquare
                             checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ toSquaresRook' (m pos) Black kingSquare
                             checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ toSquaresBishop' (m pos) Black kingSquare
                             checkByKing = any ((Just (King White) ==) . pieceAt pos) $ toSquaresKing' (m pos) Black kingSquare
