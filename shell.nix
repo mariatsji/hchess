@@ -9,6 +9,7 @@ let haskellStuff = with pkgs;
             haskellPackages.implicit-hie
             ghcid
             haskellPackages.fourmolu
+            haskellPackages.hp2pretty
         ];
     tools = with pkgs;
         [ 
