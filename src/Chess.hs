@@ -8,11 +8,11 @@ import Control.Parallel (par, pseq)
 import Control.Parallel.Strategies (NFData)
 import Data.List
 import Data.Maybe (isNothing)
+import qualified Data.Set as Set
 import qualified Debug.Trace as Debug
 import GHC.Generics (Generic)
 import Position
 import Prelude hiding (foldr)
-import qualified Data.Set as Set
 
 data Status
     = WhiteToPlay
@@ -230,11 +230,11 @@ positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
             (movePiece pos s)
             (filter (finalDestinationNotOccupiedBySelf pos) $ toSquaresKnight s)
     Bishop _ ->
-        fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresBishop s)
+        fmap (movePiece pos s) (toSquaresBishop' pos s)
     Rook _ ->
-        fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresRook s)
+        fmap (movePiece pos s) (toSquaresRook' pos s)
     Queen _ ->
-        fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresQueen s)
+        fmap (movePiece pos s) (toSquaresQueen' pos s)
     King _ ->
         fmap (movePiece pos s) (filter (canGoThere pos s) $ toSquaresKing s)
 
@@ -305,6 +305,33 @@ toSquaresRook s@(Square c r) =
         lane = fmap (squareTo s 0) [maxDown .. maxUp]
         row = fmap (\c' -> squareTo s c' 0) [maxLeft .. maxRight]
      in lane <> row
+
+toSquaresRook' :: Position -> Square -> [Square]
+toSquaresRook' pos (Square c r) =
+    let up = digger id succ    [] pos (Square c (succ r))
+        right = digger succ id [] pos (Square (succ c) r)
+        down = digger id pred  [] pos (Square c (pred r))
+        left = digger pred id  [] pos (Square (pred c) r)
+    in up <> right <> down <> left
+
+toSquaresBishop' :: Position -> Square -> [Square]
+toSquaresBishop' pos (Square c r) =
+    let ne = digger succ succ [] pos (Square (succ c) (succ r))
+        se = digger succ pred [] pos (Square (succ c) (pred r))
+        sw = digger pred pred [] pos (Square (pred c) (pred r))
+        nw = digger pred succ [] pos (Square (pred c) (succ r))
+    in ne <> se <> sw <> nw
+
+toSquaresQueen' :: Position -> Square -> [Square]
+toSquaresQueen' pos s = toSquaresRook' pos s <> toSquaresBishop' pos s
+
+digger :: (Int -> Int) -> (Int -> Int) -> [Square] -> Position -> Square -> [Square]
+digger nextCol nextRow acc pos (Square c r)
+    | r > 0, r < 9, c > 0, c < 9 =
+        acc <> case pieceAt pos (Square c r) of
+            Nothing -> Square c r : digger nextCol nextRow acc pos (Square (nextCol c) (nextRow r))
+            Just p -> ([Square c r | colr p == next (toPlay pos)])
+    | otherwise = acc
 
 -- queens
 toSquaresQueen :: Square -> [Square]
