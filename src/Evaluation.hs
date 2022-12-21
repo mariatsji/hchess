@@ -75,9 +75,9 @@ evaluate' pos =
         playOn -> Evaluated pos (evaluate pos) playOn
 
 evaluate :: Position -> Float
-evaluate = go
+evaluate = caf
   where
-    go p =
+    caf p =
         if threefoldrepetition p
             then 0.0
             else
