@@ -81,12 +81,12 @@ evaluate p =
         then 0.0
         else
             foldr
-                ( \(s, mP) acc ->
+                ( \(w, mP) acc ->
                     case mP of
                         Nothing -> acc
                         Just pie ->
                             let pieceVal = force $ valueOf pie
-                                impactVal = force $ impactArea (m p) pie s
+                                impactVal = force $ impactArea (m p) pie (unHash w)
                              in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
                 )
                 0

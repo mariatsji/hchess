@@ -239,8 +239,11 @@ fromList' =
         )
         (empty64 Nothing)
 
-toList' :: Snapshot -> [(Square, Maybe Piece)]
-toList' snp = unHash <$.> searchIdx snp (const True) (const True)
+toList' :: Snapshot -> [(Word8, Maybe Piece)]
+toList' snp = searchIdx snp (const True) (const True)
+
+toList'' :: Snapshot -> [(Square, Maybe Piece)]
+toList'' snp = unHash <$.> searchIdx snp (const True) (const True)
 
 catSndMaybes :: [(a, Maybe b)] -> [(a, b)]
 catSndMaybes = mapMaybe sequenceA

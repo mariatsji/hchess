@@ -91,7 +91,7 @@ prettyE (Evaluated gh score status) = do
     putStrLn $ "status : " ++ show status
 
 rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify pos = reverse $ sortBy colSort <$> groupWith (\(Square _ r, _) -> r) (toList' (m pos))
+rowify pos = reverse $ sortBy colSort <$> groupWith (\(Square _ r, _) -> r) (toList'' (m pos))
   where
     colSort :: (Square, Maybe Piece) -> (Square, Maybe Piece) -> Ordering
     colSort (s1, _) (s2, _) = compare s1 s2
