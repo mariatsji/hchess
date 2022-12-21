@@ -250,8 +250,8 @@ toSquaresKnight' snp myCol (Square c r) =
             , Square (c - 2) (r + 1)
             , Square (c + 1) (r - 2)
             , Square (c + 1) (r + 2)
-            , Square (c - 2) (r - 1)
-            , Square (c - 2) (r + 1)
+            , Square (c + 2) (r - 1)
+            , Square (c + 2) (r + 1)
             ]
         , okSquare s
         ]

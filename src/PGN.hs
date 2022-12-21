@@ -201,3 +201,16 @@ whiteBlackParser = do
 
 intParser :: Parser Int
 intParser = fromMaybe 0 . toBoundedInteger <$> AT.scientific
+
+testPgn :: Text
+testPgn = [text|
+[Event "hChess match"]
+[Site "In front of computer"]
+[Date "2022-12-13"]
+[Round "1"]
+[White "Humanoid Contender"]
+[Black "Computer"]
+[Result "*"]
+
+1. e2e4 e7e5 2. f2f4 e5xf4 3. Ng1f3 Qd8h4! *
+|]
