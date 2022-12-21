@@ -125,23 +125,6 @@ mkNewCastleStatus pos Black from = case from of
         _ -> CanCastleNone
     _ -> castleStatusBlack pos
 
-points :: Square -> Square -> [Square]
-points (Square c1 r1) (Square c2 r2)
-    | c1 == c2 =
-        Square c1 <$> [min r1 r2 + 1 .. max r1 r2 - 1]
-    | r1 == r2 =
-        flip Square r1 <$> [min c1 c2 + 1 .. max c1 c2 - 1]
-    | otherwise =
-        let cs =
-                if c1 < c2
-                    then [c1 + 1 .. c2 - 1]
-                    else reverse [c2 + 1 .. c1 - 1]
-            rs =
-                if r1 < r2
-                    then [r1 + 1 .. r2 - 1]
-                    else reverse [r2 + 1 .. r1 - 1]
-         in uncurry Square <$> cs `zip` rs
-
 finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
 finalDestinationNotOccupiedBySelf Position {..} = finalDestinationNotOccupiedBySelf' m toPlay
 
