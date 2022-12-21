@@ -86,7 +86,7 @@ renderCheck snp mover =
                 , castleStatusBlack = CanCastleBoth
                 , toPlay = next mover
                 }
-     in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck fakePos then "!" else ""
+     in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck snp (next mover) then "!" else ""
 
 renderProm :: Piece -> Text
 renderProm = (<>) "=" . renderPiece

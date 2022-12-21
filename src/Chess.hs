@@ -2,7 +2,7 @@
 
 module Chess where
 
-import Board (diff)
+import Board (diff, searchIdx)
 import Control.DeepSeq (force)
 import Control.Parallel (par, pseq)
 import Control.Parallel.Strategies (NFData)
@@ -172,7 +172,7 @@ positionTree :: Position -> [Position]
 positionTree pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
 
 notSelfcheck :: Color -> Position -> Bool
-notSelfcheck col pos = not $ isInCheck (pos {toPlay = col})
+notSelfcheck col pos = not $ isInCheck (m pos) col
 
 -- flips toPlay in all positions! but.. does it flip when you are in check? correct.. has a bug in it
 positionTreeIgnoreCheck :: Position -> [Position]
@@ -351,8 +351,9 @@ castle' move pos =
             (Black, CastleLong) -> [Square 2 8, Square 3 8, Square 4 8]
             _ -> []
         vacantBetweenKingAndRook = all (vacantAt pos) relevantSquares
-        isNotInCheck = not (isInCheck pos)
-        wontPassCheck = willNotPassCheck pos kingSquare rookSquare
+        fakesnp s = removePieceAt (replacePieceAt (m pos) s (King color)) kingSquare
+        isNotInCheck = not (isInCheck (m pos) color)
+        wontPassCheck = all (\snp' -> not $ isInCheck snp' color) (fakesnp <$> relevantSquares)
         newSnapshot = case move of
             CastleShort -> doCastleShort (m pos) color
             _ -> doCastleLong (m pos) color -- todo illegal state if not castle move
@@ -398,13 +399,6 @@ homeRow :: Color -> Int
 homeRow White = 1
 homeRow Black = 8
 
-willNotPassCheck :: Position -> Square -> Square -> Bool
-willNotPassCheck pos kingPos' rookPos =
-    let king = King $ toPlay pos
-        squares = if col rookPos == 8 then points kingPos' rookPos else points kingPos' (rookPos {col = 7})
-        asPos square = pos {m = replacePieceAt (removePieceAt (m pos) kingPos') square king}
-     in not $ any isInCheck $ asPos <$> squares
-
 insideBoard :: Square -> Bool
 insideBoard (Square c r) = c >= 1 && c <= 8 && r >= 1 && r <= 8
 
@@ -412,29 +406,29 @@ insideBoard' :: (Square, Maybe Square) -> Bool
 insideBoard' (s, Nothing) = insideBoard s
 insideBoard' (s, Just s2) = insideBoard s && insideBoard s2
 
-isInCheck :: Position -> Bool
-isInCheck pos =
-    case toPlay pos of
+isInCheck :: Snapshot -> Color -> Bool
+isInCheck snp myColr =
+    let kinPo = searchIdx snp (const True) (\mP -> mP == Just (King myColr))
+        hashed (w8, x) = (unHash w8, x)
+    in case myColr of
         White ->
-            let whiteKingPos = searchForPieces pos (const True) (== King White)
-             in case whiteKingPos of
+            case hashed <$> kinPo of
                     [(kingSquare@(Square c r), _)] ->
-                        let checkByPawn = c > 1 && r < 7 && pieceAt pos (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && r < 7 && pieceAt pos (squareTo kingSquare 1 1) == Just (Pawn Black)
-                            checkByKnight = any ((Just (Knight Black) ==) . pieceAt pos) $ toSquaresKnight' (m pos) White kingSquare
-                            checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt pos) $ toSquaresRook' (m pos) White kingSquare
-                            checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt pos) $ toSquaresBishop' (m pos) White kingSquare
-                            checkByKing = any ((Just (King Black) ==) . pieceAt pos) $ toSquaresKing' (m pos) White kingSquare
+                        let checkByPawn = c > 1 && r < 7 && pieceAt' snp (squareTo kingSquare (-1) 1) == Just (Pawn Black) || c < 8 && r < 7 && pieceAt' snp (squareTo kingSquare 1 1) == Just (Pawn Black)
+                            checkByKnight = any ((Just (Knight Black) ==) . pieceAt' snp) $ toSquaresKnight' snp White kingSquare
+                            checkByRookQueen = any ((`elem` [Just (Rook Black), Just (Queen Black)]) . pieceAt' snp) $ toSquaresRook' snp White kingSquare
+                            checkByBishopQueen = any ((`elem` [Just (Bishop Black), Just (Queen Black)]) . pieceAt' snp) $ toSquaresBishop' snp White kingSquare
+                            checkByKing = any ((Just (King Black) ==) . pieceAt' snp) $ toSquaresKing' snp White kingSquare
                          in checkByPawn || checkByKnight || checkByRookQueen || checkByBishopQueen || checkByKing
                     _ -> False
         Black ->
-            let blackKingPos = searchForPieces pos (const True) (== King Black)
-             in case blackKingPos of
+            case hashed <$> kinPo of
                     [(kingSquare@(Square c r), _)] ->
-                        let checkByPawn = c > 1 && r > 2 && pieceAt pos (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && r > 2 && pieceAt pos (squareTo kingSquare 1 (-1)) == Just (Pawn White)
-                            checkByKnight = any ((Just (Knight White) ==) . pieceAt pos) $ toSquaresKnight' (m pos) Black kingSquare
-                            checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt pos) $ toSquaresRook' (m pos) Black kingSquare
-                            checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt pos) $ toSquaresBishop' (m pos) Black kingSquare
-                            checkByKing = any ((Just (King White) ==) . pieceAt pos) $ toSquaresKing' (m pos) Black kingSquare
+                        let checkByPawn = c > 1 && r > 2 && pieceAt' snp (squareTo kingSquare (-1) (-1)) == Just (Pawn White) || c < 8 && r > 2 && pieceAt' snp (squareTo kingSquare 1 (-1)) == Just (Pawn White)
+                            checkByKnight = any ((Just (Knight White) ==) . pieceAt' snp) $ toSquaresKnight' snp Black kingSquare
+                            checkByRookQueen = any ((`elem` [Just (Rook White), Just (Queen White)]) . pieceAt' snp) $ toSquaresRook' snp Black kingSquare
+                            checkByBishopQueen = any ((`elem` [Just (Bishop White), Just (Queen White)]) . pieceAt' snp) $ toSquaresBishop' snp Black kingSquare
+                            checkByKing = any ((Just (King White) ==) . pieceAt' snp) $ toSquaresKing' snp Black kingSquare
                          in checkByPawn
                                 || checkByKnight
                                 || checkByRookQueen
@@ -443,7 +437,7 @@ isInCheck pos =
                     _ -> False
 
 isCheckMate :: Position -> [Position] -> Bool
-isCheckMate pos positiontree = null positiontree && isInCheck pos
+isCheckMate pos positiontree = null positiontree && isInCheck (m pos) (toPlay pos)
 
 isDraw :: Position -> [Position] -> Bool
 isDraw pos ptree = threefoldrepetition pos || isPatt pos ptree
@@ -457,7 +451,7 @@ eqPosition :: Position -> Position -> Bool
 eqPosition (Position m1 _ _ _ _) (Position m2 _ _ _ _) = m1 == m2
 
 isPatt :: Position -> [Position] -> Bool
-isPatt pos positiontree = null positiontree && not (isInCheck pos)
+isPatt pos positiontree = null positiontree && not (isInCheck (m pos) (toPlay pos))
 
 determineStatus :: Position -> Status
 determineStatus pos =
