@@ -111,7 +111,7 @@ fromPiece :: Snapshot -> Square -> Piece
 fromPiece snp s = fromMaybe (error "PGN found no fromPiece in snapshot") (pieceAt' snp s)
 
 renderResult :: Position -> Text
-renderResult pos = case determineStatus pos of
+renderResult pos = case determineStatus pos (positionTree pos) of
     WhiteIsMate -> "0-1"
     BlackIsMate -> "1-0"
     Remis -> "1/2-1/2"

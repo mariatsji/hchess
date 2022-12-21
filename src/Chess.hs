@@ -125,13 +125,6 @@ mkNewCastleStatus pos Black from = case from of
         _ -> CanCastleNone
     _ -> castleStatusBlack pos
 
-finalDestinationNotOccupiedBySelf :: Position -> Square -> Bool
-finalDestinationNotOccupiedBySelf Position {..} = finalDestinationNotOccupiedBySelf' m toPlay
-
-finalDestinationNotOccupiedBySelf' :: Snapshot -> Color -> Square -> Bool
-finalDestinationNotOccupiedBySelf' snp myColor to =
-    fmap colr (pieceAt' snp to) /= Just myColor
-
 enemyAt :: Position -> Square -> Bool
 enemyAt pos to =
     let enemyColor = next (toPlay pos)
@@ -424,10 +417,9 @@ eqPosition (Position m1 _ _ _ _) (Position m2 _ _ _ _) = m1 == m2
 isPatt :: Position -> [Position] -> Bool
 isPatt pos positiontree = null positiontree && not (isInCheck (m pos) (toPlay pos))
 
-determineStatus :: Position -> Status
-determineStatus pos =
-    let ptree = positionTree pos
-        isMate = isCheckMate pos ptree
+determineStatus :: Position -> [Position] -> Status
+determineStatus pos ptree=
+    let isMate = isCheckMate pos ptree
      in if toPlay pos == White && isMate
             then WhiteIsMate
             else

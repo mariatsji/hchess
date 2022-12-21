@@ -2,7 +2,7 @@ module GameLoop where
 
 import AI (bestDeepEval)
 import AppContext (App, World (..))
-import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal)
+import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
 import Control.Monad.IO.Class (liftIO)
 import Data.Text (Text, pack, unpack)
 import qualified Data.Text.IO as TIO
@@ -131,7 +131,7 @@ gameLoopHH pos = do
             Printer.render world {wInfo = ["You can't play that.", "Valid syntax: e2-e4 O-O-O e7-d8Q"]}
             gameLoopHH pos
         Right pos' ->
-            let newStatus = determineStatus pos'
+            let newStatus = determineStatus pos' (positionTree pos')
              in if newStatus == WhiteToPlay || newStatus == BlackToPlay
                     then
                         if l == ""

@@ -39,8 +39,8 @@ getPosition (Evaluated p _ _) = p
 
 deepEval :: Int -> Color -> Position -> Float
 deepEval depth perspective pos =
-    let status = determineStatus pos
-        candidates = positionTree pos
+    let candidates = positionTree pos
+        status = determineStatus pos candidates
         evaluated = evaluate <-$-> candidates
      in if terminal status
             then score $ evaluate' pos
@@ -68,7 +68,7 @@ singleBest' Black fs = Just $ minimum fs
 
 evaluate' :: Position -> Evaluated
 evaluate' pos =
-    case determineStatus pos of
+    case determineStatus pos (positionTree pos) of
         WhiteIsMate -> Evaluated pos (-10000.0) WhiteIsMate
         BlackIsMate -> Evaluated pos 10000.0 BlackIsMate
         Remis -> Evaluated pos 0 Remis

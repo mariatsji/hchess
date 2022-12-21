@@ -46,9 +46,6 @@ spec = do
       let newP = Move.playMove "e2-e4" startPosition
       newP `shouldSatisfy` isRight
       newP `shouldNotBe` Right startPosition
-    it "knows when destination square is occupied by own color" $ do
-      let b = finalDestinationNotOccupiedBySelf startPosition (Square 1 2)
-      b `shouldBe` (False :: Bool)
     it "finds toSquares for pawns in startrow" $ do
       let squares = toSquaresPawn startPosition (Square 5 2)
       squares `shouldMatchList` ([(Square 5 3, Nothing), (Square 5 4, Nothing)] :: [(Square, Maybe Square)])
@@ -217,7 +214,7 @@ spec = do
       isCheckMate p ptree `shouldBe` True
     it "determines status of a checkmate" $ do
       let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
-      determineStatus p `shouldBe` BlackIsMate
+      determineStatus p (positionTree p) `shouldBe` BlackIsMate
     it "knows what move has been played between two snapshots" $ do
       let Right p1 = playMoves ["e2-e4", "e7-e5"]
           Right p2 = playMoves ["e2-e4", "e7-e5", "f1-c4"]
