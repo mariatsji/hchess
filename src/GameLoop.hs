@@ -19,14 +19,17 @@ import System.Exit (exitSuccess)
 
 start :: Text -> App ()
 start "1" = do
+    Printer.clearTopScreen
     Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
     gameLoopHH startPosition
 start "2" = do
+    Printer.clearTopScreen
     Printer.infoTexts ["Enter machine search depth (1-3) where 1 is faster and 3 is stronger", ""]
     l <- Printer.line
     let depth = read @Int (unpack l)
     gameLoopHM startPosition depth
 start "3" = do
+    Printer.clearTopScreen
     Printer.infoTexts ["Enter white search depth (1-3) where 2 is faster and 3 is stronger", ""]
     lw <- Printer.line
     let wdepth = read @Int (unpack lw)

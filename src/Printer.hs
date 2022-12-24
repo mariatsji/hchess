@@ -1,4 +1,4 @@
-module Printer (pretty, prettyE, render, infoTexts, line) where
+module Printer (pretty, prettyE, render, infoTexts, line, clearTopScreen) where
 
 import AppContext (App, AppContext (analysis), World (..))
 import Board (diff)
@@ -22,17 +22,17 @@ import System.IO (stdout)
 
 render :: World -> App ()
 render World {..} = do
-    title wTitle
-    maybe (pure ()) prettyANSI wPos
-    renderScore wScore
-    infoTexts wInfo
+    title wTitle -- line 1
+    maybe (pure ()) prettyANSI wPos -- 5 to 13
+    renderScore wScore -- 14
+    infoTexts wInfo -- 15 and 16
 
 renderScore :: Maybe Float -> App ()
 renderScore Nothing = pure ()
 renderScore (Just s) = do
     showAnalysis <- asks analysis
     liftIO $ do
-        ANSI.setCursorPosition 16 0
+        ANSI.setCursorPosition 14 0
         when showAnalysis $ putStrLn $ formatFloatN s
   where
     formatFloatN floatNum = showFFloat (Just 2) floatNum ""
@@ -41,7 +41,7 @@ title :: Text -> App ()
 title t = do
     liftIO $ do
         ANSI.setCursorPosition 1 0
-        ANSI.clearFromCursorToScreenBeginning
+        ANSI.clearLine
         putStrLn $ T.unpack t
 
 infoTexts :: [Text] -> App ()
@@ -54,10 +54,14 @@ infoTexts [s1, s2] = do
         putStrLn $ T.unpack s2
 infoTexts _ = pure ()
 
+clearTopScreen :: App ()
+clearTopScreen = do
+    liftIO $ do
+        ANSI.setCursorPosition 4 0
+        ANSI.clearFromCursorToScreenBeginning
+
 clearInfo :: App ()
 clearInfo = liftIO $ do
-    ANSI.setCursorPosition 4 0
-    ANSI.clearFromCursorToScreenBeginning
     ANSI.setCursorPosition infoLineX infoLineY
     ANSI.clearLine
     ANSI.setCursorPosition (infoLineX + 1) infoLineY
