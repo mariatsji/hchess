@@ -1,6 +1,8 @@
 module Printer (pretty, prettyE, render, infoTexts, line) where
 
 import AppContext (App, AppContext (analysis), World (..))
+import Board (diff)
+import Chess (pieceAt)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader (asks)
@@ -70,7 +72,23 @@ infoLineY = 0
 prettyANSI :: Position -> App ()
 prettyANSI pos = liftIO $ do
     ANSI.setCursorPosition 5 0
-    mapM_ UP.putStrLn $ prettyRow <$> rowify pos
+    let highlighted = unHash . fst <$> if null $ gamehistory pos then [] else m pos `diff` head (gamehistory pos)
+
+    mapM_
+        ( \(Square c r) -> do
+            let mP = pieceAt pos (Square c r)
+            if Square c r `elem` highlighted
+                then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.Blue]
+                else
+                    if even (c + r)
+                        then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.Black]
+                        else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
+
+            if c == 8
+                then UP.putStrLn (UF.fromString (prettyPiece (Square c r, mP)))
+                else UP.putStr (UF.fromString (prettyPiece (Square c r, mP)))
+        )
+        (flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8]) -- a8, b8 ..
 
 line :: App Text
 line = do
@@ -101,10 +119,7 @@ prettyRow row =
     UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row
 
 prettyPiece :: (Square, Maybe Piece) -> String
-prettyPiece (Square c r, Nothing) =
-    if even (c + r)
-        then "▯"
-        else " "
+prettyPiece (_, Nothing) = " "
 prettyPiece (_, Just (Pawn White)) = "♙"
 prettyPiece (_, Just (Knight White)) = "♘"
 prettyPiece (_, Just (Bishop White)) = "♗"
