@@ -85,8 +85,9 @@ prettyANSI pos = liftIO $ do
                         else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
 
             if c == 8
-                then UP.putStrLn (UF.fromString (prettyPiece (Square c r, mP)))
-                else UP.putStr (UF.fromString (prettyPiece (Square c r, mP)))
+                then UP.putStrLn $ " " <> UF.fromString (prettyPiece (Square c r, mP)) <> " "
+                else UP.putStr $ " " <> UF.fromString (prettyPiece (Square c r, mP)) <> " "
+            ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
         )
         (flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8]) -- a8, b8 ..
 
