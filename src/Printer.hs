@@ -1,4 +1,4 @@
-module Printer (pretty, prettyE, render, infoTexts, line, clearTopScreen) where
+module Printer (render, infoTexts, line, clearTopScreen) where
 
 import AppContext (App, AppContext (analysis), World (..))
 import Board (diff)
@@ -8,12 +8,10 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader (asks)
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
-import Data.List
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import Evaluation
-import GHC.Exts
 import GHC.IO.Handle (hFlush)
 import Numeric (showFFloat)
 import Position
@@ -76,21 +74,29 @@ infoLineY = 0
 prettyANSI :: Position -> App ()
 prettyANSI pos = liftIO $ do
     ANSI.setCursorPosition 5 0
-    let highlighted = unHash . fst <$> if null $ gamehistory pos then [] else m pos `diff` head (gamehistory pos)
-
+    let highlighted =
+            filter (\(_, mP) -> isJust mP) $
+                unHash <$.>
+                    if null $ gamehistory pos then [] else head (gamehistory pos) `diff` m pos
+    ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
     mapM_
         ( \(Square c r) -> do
             let mP = pieceAt pos (Square c r)
-            if Square c r `elem` highlighted
-                then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.Blue]
+            if Square c r `elem` (fst <$> highlighted)
+                then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Cyan]
                 else
                     if even (c + r)
-                        then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.Black]
-                        else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
+                        then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Blue]
+                        else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.White]
 
-            if c == 8
-                then UP.putStrLn $ " " <> UF.fromString (prettyPiece (Square c r, mP)) <> " "
-                else UP.putStr $ " " <> UF.fromString (prettyPiece (Square c r, mP)) <> " "
+            let (pieceString, style) = prettyPiece (Square c r, mP)
+            ANSI.setSGR style
+            ( if c == 8
+                    then UP.putStrLn
+                    else UP.putStr
+                )
+                $ " " <> UF.fromString pieceString <> " "
+
             ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
         )
         (flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8]) -- a8, b8 ..
@@ -103,37 +109,17 @@ line = do
         hFlush stdout
         TIO.getLine
 
-pretty :: Position -> IO ()
-pretty pos = do
-    mapM_ UP.putStrLn $ prettyRow <$> rowify pos
-
-prettyE :: Evaluated -> IO ()
-prettyE (Evaluated gh score status) = do
-    pretty gh
-    putStrLn $ "score : " ++ show score
-    putStrLn $ "status : " ++ show status
-
-rowify :: Position -> [[(Square, Maybe Piece)]]
-rowify pos = reverse $ sortBy colSort <$> groupWith (\(Square _ r, _) -> r) (toList'' (m pos))
-  where
-    colSort :: (Square, Maybe Piece) -> (Square, Maybe Piece) -> Ordering
-    colSort (s1, _) (s2, _) = compare s1 s2
-
-prettyRow :: [(Square, Maybe Piece)] -> UF.ByteString
-prettyRow row =
-    UF.fromString $ foldl1 (\a s -> a ++ " " ++ s) $ fmap prettyPiece row
-
-prettyPiece :: (Square, Maybe Piece) -> String
-prettyPiece (_, Nothing) = " "
-prettyPiece (_, Just (Pawn White)) = "♙"
-prettyPiece (_, Just (Knight White)) = "♘"
-prettyPiece (_, Just (Bishop White)) = "♗"
-prettyPiece (_, Just (Rook White)) = "♖"
-prettyPiece (_, Just (Queen White)) = "♕"
-prettyPiece (_, Just (King White)) = "♔"
-prettyPiece (_, Just (Pawn Black)) = "♟"
-prettyPiece (_, Just (Knight Black)) = "♞"
-prettyPiece (_, Just (Bishop Black)) = "♝"
-prettyPiece (_, Just (Rook Black)) = "♜"
-prettyPiece (_, Just (Queen Black)) = "♛"
-prettyPiece (_, Just (King Black)) = "♚"
+prettyPiece :: (Square, Maybe Piece) -> (String, [ANSI.SGR])
+prettyPiece (_, Nothing) = (" ", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
+prettyPiece (_, Just (Pawn White)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (_, Just (Knight White)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (_, Just (Bishop White)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (_, Just (Rook White)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (_, Just (Queen White)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (_, Just (King White)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (_, Just (Pawn Black)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
+prettyPiece (_, Just (Knight Black)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
+prettyPiece (_, Just (Bishop Black)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
+prettyPiece (_, Just (Rook Black)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
+prettyPiece (_, Just (Queen Black)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
+prettyPiece (_, Just (King Black)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])

@@ -96,7 +96,7 @@ gameLoopMM pos whiteDepth blackDepth = do
                 { wTitle = "machine at depth " <> showt whiteDepth <> " vs machine at depth " <> showt blackDepth
                 , wPos = Just pos
                 , wScore = Nothing
-                , wInfo = []
+                , wInfo = ["",""]
                 }
     Printer.render world
     let depth =
