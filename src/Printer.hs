@@ -100,6 +100,7 @@ prettyANSI pos = liftIO $ do
             ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
         )
         (flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8]) -- a8, b8 ..
+    ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
 
 line :: App Text
 line = do
