@@ -5,7 +5,6 @@ import Data.Text (Text)
 import NeatInterpolation
 import PGN (parsePgn)
 import Position (startPosition)
-import Printer (pretty)
 
 main :: IO ()
 main = do

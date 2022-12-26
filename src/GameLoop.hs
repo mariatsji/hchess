@@ -1,11 +1,11 @@
 module GameLoop where
 
 import AI (bestDeepEval)
-import AppContext (App, AppContext (perspective), World (..))
+import AppContext (App, AppContext (blackDepth, perspective, whiteDepth), World (..))
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader (asks)
-import Data.Text (Text, pack, unpack)
+import Data.Text (Text, pack)
 import qualified Data.Text.IO as TIO
 import Evaluation (terminal)
 import Move (parsedMove, playMove)
@@ -27,23 +27,18 @@ start "1" = do
 start "2" = do
     perspective' <- asks perspective
     Printer.clearTopScreen
-    Printer.infoTexts ["Enter machine search depth (1-3) where 1 is faster and 3 is stronger", ""]
-    l <- Printer.line
-    let depth = read @Int (unpack l)
     case perspective' of
         White -> do
+            depth <- asks whiteDepth
             gameLoopHM startPosition depth
         Black -> do
+            depth <- asks blackDepth
             let (Just opening, _, _) = AI.bestDeepEval startPosition depth
             gameLoopHM opening depth
 start "3" = do
     Printer.clearTopScreen
-    Printer.infoTexts ["Enter white search depth (1-3) where 2 is faster and 3 is stronger", ""]
-    lw <- Printer.line
-    let wdepth = read @Int (unpack lw)
-    Printer.infoTexts ["Enter black search depth (1-3) where 2 is faster and 3 is stronger", ""]
-    lb <- Printer.line
-    let bdepth = read @Int (unpack lb)
+    wdepth <- asks whiteDepth
+    bdepth <- asks blackDepth
     gameLoopMM startPosition wdepth bdepth
 start _ = exit
 

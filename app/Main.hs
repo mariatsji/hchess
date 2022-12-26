@@ -28,4 +28,20 @@ mkContext params =
     AppContext
         { analysis = "analysis" `elem` params
         , perspective = if "black" `elem` params then Black else White
+        , whiteDepth = findWhite params
+        , blackDepth = findBlack params
         }
+
+findWhite :: [String] -> Int
+findWhite params
+  | "w0" `elem` params = 0
+  | "w1" `elem` params = 1
+  | "w3" `elem` params = 3
+  | otherwise = 2
+
+findBlack :: [String] -> Int
+findBlack params
+  | "b0" `elem` params = 0
+  | "b1" `elem` params = 1
+  | "b3" `elem` params = 3
+  | otherwise = 2

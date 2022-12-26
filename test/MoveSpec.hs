@@ -5,14 +5,11 @@ import Data.Either
 import Data.Maybe (isNothing)
 import Move
 import Position
-import Printer
 import Test.Hspec
 
 spec :: Spec
 spec = do
   describe "board" $ do
-    it "prints the start position" $
-      Printer.pretty startPosition
     it "creates a board with 64 squares" $
       length board
         `shouldBe` (64 :: Int)

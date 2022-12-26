@@ -7,9 +7,20 @@
     nix-shell
     cabal test
 
+# Start app with settings
+
+Available options:
+analysis - prints the calculated score for a position
+black -- play as black against computer
+w2 - white search strength 2 (from 0 to 3)
+b2 - black search strength 2 (from 0 to 3)
+
+    nix-shell
+    cabal run hchess -- analysis black w2 b2
+
 # Start app with GUI
 
-on ice for now, wont work yet
+on ice for now, wont work yet!
 
     nix-shell
     cabal run hchess-gui

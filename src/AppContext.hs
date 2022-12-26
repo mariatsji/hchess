@@ -7,6 +7,8 @@ import Position (Color, Position)
 data AppContext = AppContext
     { analysis :: Bool
     , perspective :: Color
+    , whiteDepth :: Int
+    , blackDepth :: Int
     }
 
 type App a = ReaderT AppContext IO a
