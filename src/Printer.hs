@@ -1,6 +1,6 @@
 module Printer (render, infoTexts, line, clearTopScreen) where
 
-import AppContext (App, AppContext (analysis), World (..))
+import AppContext (App, AppContext (analysis, perspective), World (..))
 import Board (diff)
 import Chess (pieceAt)
 import Control.Monad (when)
@@ -72,35 +72,40 @@ infoLineY :: Int
 infoLineY = 0
 
 prettyANSI :: Position -> App ()
-prettyANSI pos = liftIO $ do
-    ANSI.setCursorPosition 5 0
-    let highlighted =
-            filter (\(_, mP) -> isJust mP) $
-                unHash <$.>
-                    if null $ gamehistory pos then [] else head (gamehistory pos) `diff` m pos
-    ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
-    mapM_
-        ( \(Square c r) -> do
-            let mP = pieceAt pos (Square c r)
-            if Square c r `elem` (fst <$> highlighted)
-                then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Cyan]
-                else
-                    if even (c + r)
-                        then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Blue]
-                        else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.White]
+prettyANSI pos = do
+    perspective' <- asks perspective
+    liftIO $ do
+        ANSI.setCursorPosition 5 0
+        let highlighted =
+                filter (\(_, mP) -> isJust mP) $
+                    unHash <$.>
+                        if null $ gamehistory pos then [] else head (gamehistory pos) `diff` m pos
+        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
+        let rows = case perspective' of
+                White -> flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8] -- a8, b8 ..
+                Black -> flip Square <$> [1 :: Int .. 8] <*> [1 :: Int .. 8] -- a1, b1 ..
+        mapM_
+            ( \(Square c r) -> do
+                let mP = pieceAt pos (Square c r)
+                if Square c r `elem` (fst <$> highlighted)
+                    then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Cyan]
+                    else
+                        if even (c + r)
+                            then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Blue]
+                            else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.White]
 
-            let (pieceString, style) = prettyPiece (Square c r, mP)
-            ANSI.setSGR style
-            ( if c == 8
-                    then UP.putStrLn
-                    else UP.putStr
-                )
-                $ " " <> UF.fromString pieceString <> " "
+                let (pieceString, style) = prettyPiece (Square c r, mP)
+                ANSI.setSGR style
+                ( if c == 8
+                        then UP.putStrLn
+                        else UP.putStr
+                    )
+                    $ " " <> UF.fromString pieceString <> " "
 
-            ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
-        )
-        (flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8]) -- a8, b8 ..
-    ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
+                ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
+            )
+            rows
+        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
 
 line :: App Text
 line = do

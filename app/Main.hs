@@ -3,15 +3,16 @@ module Main where
 import AppContext (AppContext (..))
 import Control.Monad.Trans.Reader (runReaderT)
 import GameLoop
+import Position (Color (..))
 import Printer
-import System.Console.ANSI
+import qualified System.Console.ANSI as ANSI
 import System.Environment (getArgs)
 
 main :: IO ()
 main = do
-    clearScreen
-    setCursorPosition 0 0
-    setTitle "hChess"
+    ANSI.clearScreen
+    ANSI.setCursorPosition 0 0
+    ANSI.setTitle "hChess"
     putStrLn "1 Human vs Human"
     putStrLn "2 Human vs Machine"
     putStrLn "3 Machine vs Machine"
@@ -26,4 +27,5 @@ mkContext :: [String] -> AppContext
 mkContext params =
     AppContext
         { analysis = "analysis" `elem` params
+        , perspective = if "black" `elem` params then Black else White
         }

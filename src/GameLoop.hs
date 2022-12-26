@@ -1,16 +1,18 @@
 module GameLoop where
 
 import AI (bestDeepEval)
-import AppContext (App, World (..))
+import AppContext (App, AppContext (perspective), World (..))
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Reader (asks)
 import Data.Text (Text, pack, unpack)
 import qualified Data.Text.IO as TIO
+import Evaluation (terminal)
 import Move (parsedMove, playMove)
 import Numeric (showFFloat)
 import PGN
 import Position (
-    Color (White),
+    Color (Black, White),
     Position (toPlay),
     startPosition,
  )
@@ -23,11 +25,17 @@ start "1" = do
     Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
     gameLoopHH startPosition
 start "2" = do
+    perspective' <- asks perspective
     Printer.clearTopScreen
     Printer.infoTexts ["Enter machine search depth (1-3) where 1 is faster and 3 is stronger", ""]
     l <- Printer.line
     let depth = read @Int (unpack l)
-    gameLoopHM startPosition depth
+    case perspective' of
+        White -> do
+            gameLoopHM startPosition depth
+        Black -> do
+            let (Just opening, _, _) = AI.bestDeepEval startPosition depth
+            gameLoopHM opening depth
 start "3" = do
     Printer.clearTopScreen
     Printer.infoTexts ["Enter white search depth (1-3) where 2 is faster and 3 is stronger", ""]
@@ -73,9 +81,14 @@ gameLoopHM pos depth = do
                             exit
                         )
                         ( \responsePos -> do
-                            Printer.render world {wInfo = ["White's move",""], wPos = Just responsePos, wScore = scoreM}
                             record responsePos
-                            gameLoopHM responsePos depth
+                            if terminal status'
+                                then do
+                                    Printer.render world {wInfo = ["Game over: ", showt status']}
+                                    exit
+                                else do
+                                    Printer.render world {wInfo = ["White's move", ""], wPos = Just responsePos, wScore = scoreM}
+                                    gameLoopHM responsePos depth
                         )
                         aiReplyPosM
 
@@ -96,7 +109,7 @@ gameLoopMM pos whiteDepth blackDepth = do
                 { wTitle = "machine at depth " <> showt whiteDepth <> " vs machine at depth " <> showt blackDepth
                 , wPos = Just pos
                 , wScore = Nothing
-                , wInfo = ["",""]
+                , wInfo = ["", ""]
                 }
     Printer.render world
     let depth =
