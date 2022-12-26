@@ -91,7 +91,7 @@ prettyANSI pos = do
                     then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Cyan]
                     else
                         if even (c + r)
-                            then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Blue]
+                            then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.Blue]
                             else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.White]
 
                 let (pieceString, style) = prettyPiece (Square c r, mP)
@@ -123,9 +123,9 @@ prettyPiece (_, Just (Bishop White)) = ("♝", [ANSI.SetColor ANSI.Foreground AN
 prettyPiece (_, Just (Rook White)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
 prettyPiece (_, Just (Queen White)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
 prettyPiece (_, Just (King White)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (_, Just (Pawn Black)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
-prettyPiece (_, Just (Knight Black)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
-prettyPiece (_, Just (Bishop Black)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
-prettyPiece (_, Just (Rook Black)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
-prettyPiece (_, Just (Queen Black)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
-prettyPiece (_, Just (King Black)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
+prettyPiece (_, Just (Pawn Black)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (_, Just (Knight Black)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (_, Just (Bishop Black)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (_, Just (Rook Black)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (_, Just (Queen Black)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (_, Just (King Black)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
