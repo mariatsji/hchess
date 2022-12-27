@@ -57,35 +57,39 @@ gameLoopHM pos depth = do
                 }
     Printer.render world
     l <- Printer.line
-    case parsedMove pos l of
-        Left e -> do
-            Printer.render world {wInfo = ["Could not parse move", showt e]}
-            gameLoopHM pos depth
-        Right humanMove -> do
-            case playIfLegal humanMove pos of
-                Left _ -> do
-                    Printer.render world {wInfo = ["You can't play " <> showt humanMove, "Valid syntax: e2-e4 O-O-O e7-d8Q"]}
-                    gameLoopHM pos depth
-                Right newPos -> do
-                    record newPos
-                    Printer.render world {wInfo = ["thinking..", ""], wPos = Just newPos}
-                    let (aiReplyPosM, scoreM, status') = AI.bestDeepEval newPos depth
-                    maybe
-                        ( do
-                            Printer.render world {wInfo = ["Game over: ", showt status']}
-                            exit
-                        )
-                        ( \responsePos -> do
-                            record responsePos
-                            if terminal status'
-                                then do
-                                    Printer.render world {wInfo = ["Game over: ", showt status']}
-                                    exit
-                                else do
-                                    Printer.render world {wInfo = ["Your move", ""], wPos = Just responsePos, wScore = scoreM}
-                                    gameLoopHM responsePos depth
-                        )
-                        aiReplyPosM
+    if l == "resign" then do
+        Printer.render world {wInfo = ["Game over: ", "computer wins"]}
+        exit
+    else do
+        case parsedMove pos l of
+            Left e -> do
+                Printer.render world {wInfo = ["Could not parse move", showt e]}
+                gameLoopHM pos depth
+            Right humanMove -> do
+                case playIfLegal humanMove pos of
+                    Left _ -> do
+                        Printer.render world {wInfo = ["You can't play " <> showt humanMove, "Valid syntax: e2-e4 O-O-O e7-d8Q"]}
+                        gameLoopHM pos depth
+                    Right newPos -> do
+                        record newPos
+                        Printer.render world {wInfo = ["thinking..", ""], wPos = Just newPos}
+                        let (aiReplyPosM, scoreM, status') = AI.bestDeepEval newPos depth
+                        maybe
+                            ( do
+                                Printer.render world {wInfo = ["Game over: ", showt status'], wPos = Just newPos}
+                                exit
+                            )
+                            ( \responsePos -> do
+                                record responsePos
+                                if terminal status'
+                                    then do
+                                        Printer.render world {wInfo = ["Game over: ", showt status'], wPos = Just responsePos, wScore = scoreM}
+                                        exit
+                                    else do
+                                        Printer.render world {wInfo = ["Your move", ""], wPos = Just responsePos, wScore = scoreM}
+                                        gameLoopHM responsePos depth
+                            )
+                            aiReplyPosM
 
 prettyScore :: Maybe Float -> String
 prettyScore Nothing = ""

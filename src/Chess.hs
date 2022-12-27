@@ -20,6 +20,8 @@ data Status
     | Remis
     | WhiteIsMate
     | BlackIsMate
+    | BlackResigns
+    | WhiteResigns
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 

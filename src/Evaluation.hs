@@ -8,7 +8,7 @@ module Evaluation (
 ) where
 
 import Chess (
-    Status (BlackIsMate, Remis, WhiteIsMate),
+    Status (..),
     determineStatus,
     positionTree,
     threefoldrepetition,
@@ -55,11 +55,7 @@ deepEval depth perspective pos =
                                 deepEval (depth - 1) (next perspective) <$> candidates
 
 terminal :: Status -> Bool
-terminal = \case
-    WhiteIsMate -> True
-    BlackIsMate -> True
-    Remis -> True
-    _ -> False
+terminal s = s `elem` [WhiteIsMate, BlackIsMate, Remis, WhiteResigns, BlackResigns]
 
 singleBest' :: Color -> [Float] -> Maybe Float
 singleBest' _ [] = Nothing
