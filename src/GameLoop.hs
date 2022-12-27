@@ -82,7 +82,7 @@ gameLoopHM pos depth = do
                                     Printer.render world {wInfo = ["Game over: ", showt status']}
                                     exit
                                 else do
-                                    Printer.render world {wInfo = ["White's move", ""], wPos = Just responsePos, wScore = scoreM}
+                                    Printer.render world {wInfo = ["Your move", ""], wPos = Just responsePos, wScore = scoreM}
                                     gameLoopHM responsePos depth
                         )
                         aiReplyPosM
