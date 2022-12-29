@@ -25,7 +25,7 @@ render World {..} = do
     maybe (pure ()) prettyANSI wPos -- 5 to 13
     renderScore wScore -- 14
     infoTexts wInfo -- 15 and 16
-    -- maybe (pure ()) renderCaptures wPos
+    maybe (pure ()) renderCaptures wPos
 
 renderCaptures :: Position -> App ()
 renderCaptures pos = do
