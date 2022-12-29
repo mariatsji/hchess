@@ -2,12 +2,13 @@ module Printer (render, infoTexts, line, clearTopScreen) where
 
 import AppContext (App, AppContext (analysis, perspective), World (..))
 import Board (diff)
-import Chess (pieceAt)
+import Chess (captures, pieceAt)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader (asks)
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
+import Data.Foldable (traverse_)
 import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -24,6 +25,40 @@ render World {..} = do
     maybe (pure ()) prettyANSI wPos -- 5 to 13
     renderScore wScore -- 14
     infoTexts wInfo -- 15 and 16
+    -- maybe (pure ()) renderCaptures wPos
+
+renderCaptures :: Position -> App ()
+renderCaptures pos = do
+    liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.White]
+    perspective <- asks perspective
+    let whitesCaptures = captures White pos
+        blacksCaptures = captures Black pos
+    liftIO $
+        if perspective == White
+            then ANSI.setCursorPosition 5 26
+            else ANSI.setCursorPosition 12 26
+    traverse_
+        ( \p -> liftIO do
+            let (pieceString, style) = prettyPiece (Just p)
+            ANSI.setSGR style
+            UP.putStr $ UF.fromString pieceString
+        )
+        blacksCaptures
+    liftIO $
+        if perspective == White
+            then ANSI.setCursorPosition 12 26
+            else ANSI.setCursorPosition 5 26
+    traverse_
+        ( \p -> liftIO do
+            let (pieceString, style) = prettyPiece (Just p)
+            ANSI.setSGR style
+            UP.putStr $ UF.fromString pieceString
+        )
+        whitesCaptures
+    liftIO $ do
+        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
+        ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
+
 
 renderScore :: Maybe Float -> App ()
 renderScore Nothing = pure ()
@@ -94,7 +129,7 @@ prettyANSI pos = do
                             then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.Blue]
                             else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.White]
 
-                let (pieceString, style) = prettyPiece (Square c r, mP)
+                let (pieceString, style) = prettyPiece mP
                 ANSI.setSGR style
                 ( if c == 8
                         then UP.putStrLn
@@ -115,17 +150,17 @@ line = do
         hFlush stdout
         TIO.getLine
 
-prettyPiece :: (Square, Maybe Piece) -> (String, [ANSI.SGR])
-prettyPiece (_, Nothing) = (" ", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
-prettyPiece (_, Just (Pawn White)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (_, Just (Knight White)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (_, Just (Bishop White)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (_, Just (Rook White)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (_, Just (Queen White)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (_, Just (King White)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (_, Just (Pawn Black)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (_, Just (Knight Black)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (_, Just (Bishop Black)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (_, Just (Rook Black)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (_, Just (Queen Black)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (_, Just (King Black)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece :: Maybe Piece -> (String, [ANSI.SGR])
+prettyPiece Nothing = (" ", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
+prettyPiece (Just (Pawn White)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (Just (Knight White)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (Just (Bishop White)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (Just (Rook White)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (Just (Queen White)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (Just (King White)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
+prettyPiece (Just (Pawn Black)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (Just (Knight Black)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (Just (Bishop Black)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (Just (Rook Black)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (Just (Queen Black)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece (Just (King Black)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])

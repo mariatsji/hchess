@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveGeneric, BangPatterns #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Chess where
 
@@ -148,7 +149,8 @@ pieceAt po s@(Square c r) =
 
 positionTree :: Position -> [Position]
 positionTree = caf
-    where caf pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
+  where
+    caf pos = filter (notSelfcheck (toPlay pos)) $ positionTreeIgnoreCheck pos
 
 notSelfcheck :: Color -> Position -> Bool
 notSelfcheck col pos = not $ isInCheck (m pos) col
@@ -421,7 +423,7 @@ isPatt :: Position -> [Position] -> Bool
 isPatt pos positiontree = null positiontree && not (isInCheck (m pos) (toPlay pos))
 
 determineStatus :: Position -> [Position] -> Status
-determineStatus pos ptree=
+determineStatus pos ptree =
     let isMate = isCheckMate pos ptree
      in if toPlay pos == White && isMate
             then WhiteIsMate
@@ -451,3 +453,27 @@ infixl 4 <-$->
 (<-&->) :: (NFData a, NFData b) => [a] -> (a -> b) -> [b]
 (<-&->) = flip paraMap
 infixr 4 <-&->
+
+captures :: Color -> Position -> [Piece]
+captures capturer Position {..} =
+    let chronological = reverse $ m : gamehistory
+        transitions = chronological `zip` tail chronological
+        f = if capturer == White then odd else even
+        relevantTransitions = snd <$> filter (f . fst) ([1 :: Int ..] `zip` transitions)
+        checker from s newPiece = case pieceAt' from (unHash s) of
+            Just oldPiece ->
+                [ oldPiece
+                | colr newPiece == capturer
+                , colr oldPiece == next capturer
+                , colr oldPiece /= colr newPiece
+                ]
+            _ -> []
+     in foldl
+            ( \acc (from, to) ->
+                acc <> case from `diff` to of
+                    [_, (s, Just newPiece)] -> checker from s newPiece
+                    [(s, Just newPiece), _] -> checker from s newPiece
+                    _ -> []
+            )
+            []
+            relevantTransitions
