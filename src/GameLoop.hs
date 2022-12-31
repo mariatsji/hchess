@@ -1,7 +1,7 @@
 module GameLoop where
 
 import AI (bestDeepEval)
-import AppContext (App, AppContext (blackDepth, perspective, whiteDepth), World (..))
+import AppContext (App, AppContext (blackDepth, perspective, whiteDepth, startFrom), World (..))
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader (asks)
@@ -18,28 +18,32 @@ import Position (
  )
 import qualified Printer
 import System.Exit (exitSuccess)
+import Data.Maybe (fromMaybe)
 
 start :: Text -> App ()
 start "1" = do
     Printer.clearTopScreen
     Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
-    gameLoopHH startPosition
+    pos <- asks startFrom
+    gameLoopHH $ fromMaybe startPosition pos
 start "2" = do
     perspective' <- asks perspective
+    pos <- asks startFrom
     Printer.clearTopScreen
     case perspective' of
         White -> do
             depth <- asks whiteDepth
-            gameLoopHM startPosition depth
+            gameLoopHM (fromMaybe startPosition pos) depth
         Black -> do
             depth <- asks blackDepth
-            let (Just opening, _, _) = AI.bestDeepEval startPosition depth
+            let (Just opening, _, _) = AI.bestDeepEval (fromMaybe startPosition pos) depth
             gameLoopHM opening depth
 start "3" = do
     Printer.clearTopScreen
     wdepth <- asks whiteDepth
     bdepth <- asks blackDepth
-    gameLoopMM startPosition wdepth bdepth
+    pos <- asks startFrom
+    gameLoopMM (fromMaybe startPosition pos) wdepth bdepth
 start _ = exit
 
 gameLoopHM :: Position -> Int -> App ()

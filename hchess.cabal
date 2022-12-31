@@ -139,8 +139,10 @@ executable hchess
       TypeOperators
   build-depends:
       base ^>=4.15.1.0
+    , attoparsec
     , ansi-terminal
     , hchess
+    , text
     , transformers
   default-language: Haskell2010
 

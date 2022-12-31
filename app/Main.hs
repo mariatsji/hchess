@@ -2,8 +2,14 @@ module Main where
 
 import AppContext (AppContext (..))
 import Control.Monad.Trans.Reader (runReaderT)
+import Data.Attoparsec.Text
+import qualified Data.Attoparsec.Text as AT
+import Data.Either (partitionEithers)
+import Data.Text (pack, unpack)
+import qualified Data.Text.IO as TIO
 import GameLoop
-import Position (Color (..))
+import PGN (parsePgn)
+import Position (Color (..), Position)
 import Printer
 import qualified System.Console.ANSI as ANSI
 import System.Environment (getArgs)
@@ -18,30 +24,51 @@ main = do
     putStrLn "3 Machine vs Machine"
     putStrLn "q Quit"
     args <- getArgs
-    let ctx = mkContext args
+    ctx <- mkContext args
     flip runReaderT ctx $ do
         l <- Printer.line
         start l
 
-mkContext :: [String] -> AppContext
-mkContext params =
-    AppContext
-        { analysis = "analysis" `elem` params
-        , perspective = if "black" `elem` params then Black else White
-        , whiteDepth = findWhite params
-        , blackDepth = findBlack params
-        }
+mkContext :: [String] -> IO AppContext
+mkContext params = do
+    pos <- findPGN params
+    pure
+        AppContext
+            { analysis = "analysis" `elem` params
+            , perspective = if "black" `elem` params then Black else White
+            , whiteDepth = findWhite params
+            , blackDepth = findBlack params
+            , startFrom = pos
+            }
 
 findWhite :: [String] -> Int
 findWhite params
-  | "w0" `elem` params = 0
-  | "w1" `elem` params = 1
-  | "w3" `elem` params = 3
-  | otherwise = 2
+    | "w0" `elem` params = 0
+    | "w1" `elem` params = 1
+    | "w3" `elem` params = 3
+    | otherwise = 2
 
 findBlack :: [String] -> Int
 findBlack params
-  | "b0" `elem` params = 0
-  | "b1" `elem` params = 1
-  | "b3" `elem` params = 3
-  | otherwise = 2
+    | "b0" `elem` params = 0
+    | "b1" `elem` params = 1
+    | "b3" `elem` params = 3
+    | otherwise = 2
+
+findPGN :: [String] -> IO (Maybe Position)
+findPGN params = do
+    let (_, found) = partitionEithers $ parseOnly pgnLocation . pack <$> params
+    case found of
+        [] -> pure Nothing
+        (filepath : _) -> do
+            content <- TIO.readFile filepath
+            case parsePgn content of
+                Right pos -> pure $ Just pos
+                _ -> pure Nothing
+
+pgnLocation :: Parser FilePath
+pgnLocation = do
+    _ <- AT.string "pgn="
+    loc <- AT.takeTill (== '.')
+    _ <- AT.string ".pgn"
+    pure $ unpack loc <> ".pgn"

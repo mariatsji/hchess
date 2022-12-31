@@ -14,9 +14,10 @@ analysis - prints the calculated score for a position
 black -- play as black against computer
 w2 - white search strength 2 (from 0 to 3)
 b2 - black search strength 2 (from 0 to 3)
+pgn=<absolute-or-relative-path-ending-in.pgn> - use this position as entrypoint
 
     nix-shell
-    cabal run hchess -- analysis black w2 b2
+    cabal run hchess -- analysis black w2 b2 pgn=./pgn/position.pgn
 
 # Start app with GUI
 
