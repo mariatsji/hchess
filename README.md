@@ -12,12 +12,14 @@
 Available options:
 analysis - prints the calculated score for a position
 black -- play as black against computer
+bright -- bright color theme for black terminal backgrounds
+dark -- dark color theme for white terminal backgrounds (default)
 w2 - white search strength 2 (from 0 to 3)
 b2 - black search strength 2 (from 0 to 3)
 pgn=<absolute-or-relative-path-ending-in.pgn> - use this position as entrypoint
 
     nix-shell
-    cabal run hchess -- analysis black w2 b2 pgn=./pgn/position.pgn
+    cabal run hchess -- analysis bright black w2 b2 pgn=./pgn/position.pgn
 
 # Start app with GUI
 

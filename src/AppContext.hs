@@ -3,6 +3,7 @@ module AppContext where
 import Control.Monad.Trans.Reader (ReaderT)
 import Data.Text (Text)
 import Position (Color, Position)
+import Style (Style)
 
 data AppContext = AppContext
     { analysis :: Bool -- print scores
@@ -10,6 +11,7 @@ data AppContext = AppContext
     , whiteDepth :: Int
     , blackDepth :: Int
     , startFrom :: Maybe Position -- any previous moves to play off from 
+    , style :: Style
     }
 
 type App a = ReaderT AppContext IO a

@@ -45,17 +45,15 @@ deepEval depth perspective pos =
      in if terminal status
             then score $ evaluate' pos
             else
-                if depth == 0
-                    then
-                        fromMaybe (error "Not terminal status, so there should be candidates at depth 0") $
-                            singleBest' perspective evaluated
-                    else
-                        fromMaybe (error "Not terminal status, so there should be candidates at depth > 0") $
-                            singleBest' perspective $
-                                deepEval (depth - 1) (next perspective) <$> candidates
+                fromMaybe (error "Not terminal status, so there should be candidates")
+                    $ singleBest'
+                        perspective
+                    $ if depth == 0
+                        then evaluated
+                        else deepEval (depth - 1) (next perspective) <$> candidates
 
 terminal :: Status -> Bool
-terminal s = s `elem` [WhiteIsMate, BlackIsMate, Remis, WhiteResigns, BlackResigns]
+terminal = flip elem [WhiteIsMate, BlackIsMate, Remis, WhiteResigns, BlackResigns]
 
 singleBest' :: Color -> [Float] -> Maybe Float
 singleBest' _ [] = Nothing

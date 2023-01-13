@@ -1,6 +1,6 @@
 module Printer (render, infoTexts, line, clearTopScreen) where
 
-import AppContext (App, AppContext (analysis, perspective), World (..))
+import AppContext (App, AppContext (analysis, perspective), World (..), style)
 import Board (diff)
 import Chess (captures, pieceAt)
 import Control.Monad (when)
@@ -9,13 +9,13 @@ import Control.Monad.Trans.Reader (asks)
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
 import Data.Foldable (traverse_)
-import Data.Maybe (isJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import GHC.IO.Handle (hFlush)
 import Numeric (showFFloat)
 import Position
+import Style
 import qualified System.Console.ANSI as ANSI
 import System.IO (stdout)
 
@@ -31,6 +31,7 @@ renderCaptures :: Position -> App ()
 renderCaptures pos = do
     liftIO $ ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.White]
     perspective <- asks perspective
+    style <- asks style
     let whitesCaptures = captures White pos
         blacksCaptures = captures Black pos
     liftIO $
@@ -39,8 +40,8 @@ renderCaptures pos = do
             else ANSI.setCursorPosition 12 26
     traverse_
         ( \p -> liftIO do
-            let (pieceString, style) = prettyPiece (Just p)
-            ANSI.setSGR style
+            let (pieceString, style') = prettyPiece style (Just p)
+            ANSI.setSGR style'
             UP.putStr $ UF.fromString pieceString
         )
         blacksCaptures
@@ -50,15 +51,12 @@ renderCaptures pos = do
             else ANSI.setCursorPosition 5 26
     traverse_
         ( \p -> liftIO do
-            let (pieceString, style) = prettyPiece (Just p)
-            ANSI.setSGR style
+            let (pieceString, style') = prettyPiece style (Just p)
+            ANSI.setSGR style'
             UP.putStr $ UF.fromString pieceString
         )
         whitesCaptures
-    liftIO $ do
-        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
-        ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
-
+    liftIO $ ANSI.setSGR (fonts style)
 
 renderScore :: Maybe Float -> App ()
 renderScore Nothing = pure ()
@@ -109,13 +107,13 @@ infoLineY = 0
 prettyANSI :: Position -> App ()
 prettyANSI pos = do
     perspective' <- asks perspective
+    style <- asks style
     liftIO $ do
         ANSI.setCursorPosition 5 0
         let highlighted =
-                filter (\(_, mP) -> isJust mP) $
-                    unHash <$.>
-                        if null $ gamehistory pos then [] else head (gamehistory pos) `diff` m pos
-        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
+                unHash <$.>
+                    if null $ gamehistory pos then [] else head (gamehistory pos) `diff` m pos
+        ANSI.setSGR (fonts style)
         let rows = case perspective' of
                 White -> flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8] -- a8, b8 ..
                 Black -> flip Square <$> [1 :: Int .. 8] <*> [1 :: Int .. 8] -- a1, b1 ..
@@ -123,24 +121,24 @@ prettyANSI pos = do
             ( \(Square c r) -> do
                 let mP = pieceAt pos (Square c r)
                 if Square c r `elem` (fst <$> highlighted)
-                    then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.Cyan]
+                    then ANSI.setSGR (highlightedSquare style)
                     else
                         if even (c + r)
-                            then ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.Blue]
-                            else ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Dull ANSI.White]
+                            then ANSI.setSGR (lightSquare style)
+                            else ANSI.setSGR (darkSquare style)
 
-                let (pieceString, style) = prettyPiece mP
-                ANSI.setSGR style
+                let (pieceString, style') = prettyPiece style mP
+                ANSI.setSGR style'
                 ( if c == 8
                         then UP.putStrLn
                         else UP.putStr
                     )
                     $ " " <> UF.fromString pieceString <> " "
 
-                ANSI.setSGR [ANSI.SetColor ANSI.Background ANSI.Vivid ANSI.White]
+                ANSI.setSGR (fonts style)
             )
             rows
-        ANSI.setSGR [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black]
+        ANSI.setSGR (fonts style)
 
 line :: App Text
 line = do
@@ -150,17 +148,17 @@ line = do
         hFlush stdout
         TIO.getLine
 
-prettyPiece :: Maybe Piece -> (String, [ANSI.SGR])
-prettyPiece Nothing = (" ", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.Black])
-prettyPiece (Just (Pawn White)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (Just (Knight White)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (Just (Bishop White)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (Just (Rook White)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (Just (Queen White)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (Just (King White)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Vivid ANSI.White])
-prettyPiece (Just (Pawn Black)) = ("♟", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (Just (Knight Black)) = ("♞", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (Just (Bishop Black)) = ("♝", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (Just (Rook Black)) = ("♜", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (Just (Queen Black)) = ("♛", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
-prettyPiece (Just (King Black)) = ("♚", [ANSI.SetColor ANSI.Foreground ANSI.Dull ANSI.Black])
+prettyPiece :: Style -> Maybe Piece -> (String, [ANSI.SGR])
+prettyPiece Style {..} Nothing = (" ", emptySquare)
+prettyPiece Style {..} (Just (Pawn White)) = ("♟", whitePiece)
+prettyPiece Style {..} (Just (Knight White)) = ("♞", whitePiece)
+prettyPiece Style {..} (Just (Bishop White)) = ("♝", whitePiece)
+prettyPiece Style {..} (Just (Rook White)) = ("♜", whitePiece)
+prettyPiece Style {..} (Just (Queen White)) = ("♛", whitePiece)
+prettyPiece Style {..} (Just (King White)) = ("♚", whitePiece)
+prettyPiece Style {..} (Just (Pawn Black)) = ("♟", blackPiece)
+prettyPiece Style {..} (Just (Knight Black)) = ("♞", blackPiece)
+prettyPiece Style {..} (Just (Bishop Black)) = ("♝", blackPiece)
+prettyPiece Style {..} (Just (Rook Black)) = ("♜", blackPiece)
+prettyPiece Style {..} (Just (Queen Black)) = ("♛", blackPiece)
+prettyPiece Style {..} (Just (King Black)) = ("♚", blackPiece)

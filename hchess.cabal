@@ -35,6 +35,7 @@ library
       AI
       Position
       PGN
+      Style
       Tree
       GameLoop
   hs-source-dirs:

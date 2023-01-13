@@ -11,6 +11,7 @@ import GameLoop
 import PGN (parsePgn)
 import Position (Color (..), Position)
 import Printer
+import Style (Style, brightTheme, darkTheme)
 import qualified System.Console.ANSI as ANSI
 import System.Environment (getArgs)
 
@@ -32,6 +33,7 @@ main = do
 mkContext :: [String] -> IO AppContext
 mkContext params = do
     pos <- findPGN params
+    style <- findStyle params
     pure
         AppContext
             { analysis = "analysis" `elem` params
@@ -39,6 +41,7 @@ mkContext params = do
             , whiteDepth = findWhite params
             , blackDepth = findBlack params
             , startFrom = pos
+            , style = style
             }
 
 findWhite :: [String] -> Int
@@ -54,6 +57,9 @@ findBlack params
     | "b1" `elem` params = 1
     | "b3" `elem` params = 3
     | otherwise = 2
+
+findStyle :: [String] -> IO Style
+findStyle params = pure if "bright" `elem` params then brightTheme else darkTheme
 
 findPGN :: [String] -> IO (Maybe Position)
 findPGN params = do
