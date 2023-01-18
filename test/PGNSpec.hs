@@ -15,7 +15,7 @@ spec = do
             parsePgn pgn `shouldBe` Right startPosition
         it "parses a long game PGN into a position" $ do
             let Right pos = parsePgn longPgn
-            length (gamehistory pos) `shouldBe` 126 --todo bug, should be longer!
+            length (gamehistory pos) `shouldBe` 159
         it "parses an en passant PGN into a position" $ do
             let Right pos = parsePgn enPassant
             pieceAt pos (Square 1 5) `shouldBe` Nothing

@@ -171,6 +171,7 @@ pgnMoveParser c =
             fromS <- squareParser
             _ <- AT.skipWhile (== 'x')
             toS <- squareParser
+            _ <- AT.char '='
             piece <- Knight c <$ AT.char 'N' <|> Bishop c <$ AT.char 'B' <|> Rook c <$ AT.char 'R' <|> Queen c <$ AT.char 'Q' <|> King c <$ AT.char 'K' -- todo Piece should not hold color imo..
             _ <- AT.skipWhile (`elem` ['!', '#'])
             pure $ Promotion fromS toS piece
