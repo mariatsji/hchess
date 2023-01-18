@@ -67,6 +67,7 @@ playIfLegal move pos = do
                 then
                     let moveAttempt = case move of
                             MovedPiece from to -> movePiece pos from to
+                            EnPassant from to -> movePiece pos from to
                             CastleShort -> head $ castle' CastleShort pos -- todo head..
                             CastleLong -> head $ castle' CastleLong pos -- todo head..
                             Promotion from to piece -> movePiecePromote pos from to piece
@@ -128,13 +129,16 @@ mkNewCastleStatus pos Black from = case from of
         _ -> CanCastleNone
     _ -> castleStatusBlack pos
 
+colorAt :: Position -> Square -> Maybe Color
+colorAt pos to = colr <$> pieceAt pos to
+
 enemyAt :: Position -> Square -> Bool
 enemyAt pos to =
     let enemyColor = next (toPlay pos)
-     in (colr <$> pieceAt pos to) == Just enemyColor
+     in colorAt pos to == Just enemyColor
 
 vacantAt :: Position -> Square -> Bool
-vacantAt pos t = isNothing $ pieceAt pos t
+vacantAt pos t = isNothing (colorAt pos t)
 
 makeMoves :: Position -> [(Square, Square)] -> Position
 makeMoves = foldl (uncurry . movePiece)

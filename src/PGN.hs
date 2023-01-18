@@ -71,6 +71,10 @@ renderMove from to =
                 let fromPiece' = fromPiece from fromSq
                     fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
                  in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderCheck to fromColor' -- todo duplication
+            EnPassant fromSq toSq ->
+                let fromPiece' = fromPiece from fromSq
+                    fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
+                 in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderCheck to fromColor' -- todo duplication
             Promotion fromSq toSq piece ->
                 let fromPiece' = fromPiece from fromSq
                     fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)

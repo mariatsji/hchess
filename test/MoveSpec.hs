@@ -258,3 +258,6 @@ spec = do
     it "finds enPassant" $ do
       let Right p = playMoves ["b2-b4", "h7-h5", "b4-b5", "a7-a5"]
       enPassant p (Square 1 5) `shouldBe` True
+    it "finds enPassant in move form as well" $ do
+      let Right p = playMoves ["b2-b4", "h7-h5", "b4-b5", "a7-a5", "b5-a6"]
+      findMove (head (gamehistory p)) (m p) `shouldBe` EnPassant (Square 2 5) (Square 1 6)
