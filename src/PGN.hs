@@ -13,7 +13,6 @@ import qualified Data.Text.IO as TIO
 import Move (playMoves, squareParser)
 import NeatInterpolation
 import Position (
-    CastleStatus (CanCastleBoth),
     Color (..),
     Move (..),
     Piece (..),
@@ -86,8 +85,10 @@ renderCheck snp mover =
             Position
                 { m = snp
                 , gamehistory = [m startPosition]
-                , castleStatusWhite = CanCastleBoth
-                , castleStatusBlack = CanCastleBoth
+                , pristineShortWhite = True
+                , pristineLongWhite = True
+                , pristineShortBlack = True
+                , pristineLongBlack = True
                 , toPlay = next mover
                 }
      in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck snp (next mover) then "!" else ""

@@ -50,7 +50,7 @@ spec = do
       let p1 = replacePieceAt (m emptyBoard) (Square 8 8) (King Black)
       let p2 = replacePieceAt p1 (Square 5 1) (King White)
       let p3 = replacePieceAt p2 (Square 8 7) (Pawn White)
-      let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], castleStatusWhite = CanCastleBoth, castleStatusBlack = CanCastleBoth, toPlay = Black}
+      let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], pristineLongWhite = True, pristineShortWhite = True, pristineShortBlack = True, pristineLongBlack = True, toPlay = Black}
       length t `shouldBe` (3 :: Int)
     it "knows that white is in check" $ do
       let p' = Move.playMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
@@ -67,17 +67,23 @@ spec = do
       pieceAt p1 (Square 1 4) `shouldBe` Just (Pawn Black)
       pieceAt p1 (Square 1 8) `shouldBe` Just (Rook White)
     it "allows castle both sides for white after opening move" $ do
-      let p = Move.playMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
-      either (const CanCastleNone) castleStatusWhite p `shouldBe` CanCastleBoth
-      either (const CanCastleNone) castleStatusBlack p `shouldBe` CanCastleBoth
-    it "only allows white to castle kingside after moving rook on a1" $ do
-      let p = Move.playMoves ["a2-a4", "d7-d5", "a1-a2"]
-      either (const CanCastleBoth) castleStatusWhite p `shouldBe` CanCastleH
-      either (const CanCastleNone) castleStatusBlack p `shouldBe` CanCastleBoth
+      let Right p = Move.playMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-a5"]
+      pristineShortWhite p `shouldBe` True
+      pristineLongWhite p `shouldBe` True
+      pristineShortBlack p `shouldBe` True
+      pristineLongBlack p `shouldBe` True
+    it "only allows white to castle long after moving rook on a1" $ do
+      let Right p = Move.playMoves ["a2-a4", "d7-d5", "a1-a2"]
+      pristineShortWhite p `shouldBe` True
+      pristineLongWhite p `shouldBe` False
+      pristineShortBlack p `shouldBe` True
+      pristineLongBlack p `shouldBe` True
     it "does not allow black any castle after moving king" $ do
-      let p = Move.playMoves ["e2-e4", "e7-e5", "d2-d4", "e8-e7"]
-      either (const CanCastleNone) castleStatusWhite p `shouldBe` CanCastleBoth
-      either (const CanCastleBoth) castleStatusBlack p `shouldBe` CanCastleNone
+      let Right p = Move.playMoves ["e2-e4", "e7-e5", "d2-d4", "e8-e7"]
+      pristineShortWhite p `shouldBe` True
+      pristineLongWhite p `shouldBe` True
+      pristineShortBlack p `shouldBe` False
+      pristineLongBlack p `shouldBe` False
     it "does a short castle for black" $ do
       let initMoves = ["e2-e4", "e7-e5", "g1-f3", "g8-f6", "f1-e2", "f8-e7", "O-O", "O-O"]
           Right p1 = playMoves initMoves
@@ -89,7 +95,7 @@ spec = do
       let m1 = removePieceAt (m startPosition) (Square 2 8)
           m2 = removePieceAt m1 (Square 3 8)
           m3 = removePieceAt m2 (Square 4 8)
-          p = Position m3 [m2, m1, m startPosition] CanCastleBoth CanCastleBoth Black
+          p = Position m3 [m2, m1, m startPosition] True True True True Black
           c = castle' CastleLong p
       length c `shouldBe` (1 :: Int)
       pieceAt (head c) (Square 3 8) `shouldBe` Just (King Black)

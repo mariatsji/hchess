@@ -80,54 +80,24 @@ playIfLegal move pos = do
 
 -- flips toPlay
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos@(Position m' _ _ _ tp) from@(Square fc _) to@(Square tc tr)
+movePiece pos@(Position m' _ _ _ _ _ _) from@(Square fc _) to@(Square tc tr)
     | pieceAt pos from == Just (Pawn White) && (fc /= tc) && vacantAt pos to =
         let newSnapshot =
                 movePiece' (removePieceAt m' (Square tc (tr - 1))) from to -- todo danger (tr - 1)
-         in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos)
+         in mkPosition pos newSnapshot
     | pieceAt pos from == Just (Pawn Black) && (fc /= tc) && vacantAt pos to =
         let newSnapshot =
                 movePiece' (removePieceAt m' (Square tc (tr + 1))) from to -- todo danger (tr + 1)
-         in mkPosition pos newSnapshot (castleStatusWhite pos) (castleStatusBlack pos)
+         in mkPosition pos newSnapshot
     | otherwise =
         let newSnapshot = movePiece' m' from to
-            newCastleStatusWhite = case tp of
-                White -> mkNewCastleStatus pos White from
-                Black -> castleStatusWhite pos
-            newCastleStatusBlack = case tp of
-                Black -> mkNewCastleStatus pos Black from
-                White -> castleStatusBlack pos
-         in mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack
+         in mkPosition pos newSnapshot
 
 movePiecePromote :: Position -> Square -> Square -> Piece -> Position
 movePiecePromote pos from toSquare promPiece =
     let newPos = movePiece pos from toSquare
         snap = m newPos
      in newPos {m = replacePieceAt snap toSquare promPiece}
-
-mkNewCastleStatus :: Position -> Color -> Square -> CastleStatus
-mkNewCastleStatus pos White from = case from of
-    Square 1 1 -> case castleStatusWhite pos of
-        CanCastleBoth -> CanCastleH
-        CanCastleH -> CanCastleH
-        _ -> CanCastleNone
-    Square 5 1 -> CanCastleNone
-    Square 8 1 -> case castleStatusWhite pos of
-        CanCastleBoth -> CanCastleA
-        CanCastleA -> CanCastleA
-        _ -> CanCastleNone
-    _ -> castleStatusWhite pos
-mkNewCastleStatus pos Black from = case from of
-    Square 1 8 -> case castleStatusBlack pos of
-        CanCastleBoth -> CanCastleH
-        CanCastleH -> CanCastleH
-        _ -> CanCastleNone
-    Square 5 8 -> CanCastleNone
-    Square 8 8 -> case castleStatusBlack pos of
-        CanCastleBoth -> CanCastleA
-        CanCastleA -> CanCastleA
-        _ -> CanCastleNone
-    _ -> castleStatusBlack pos
 
 colorAt :: Position -> Square -> Maybe Color
 colorAt pos to = colr <$> pieceAt pos to
@@ -170,7 +140,7 @@ positionTreeIgnoreCheck pos =
 
 -- flips toPlay, does promotions too
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
-positionsPrPiece pos@(Position snp _ _ _ _) (s, p) = case p of
+positionsPrPiece pos@(Position snp _ _ _ _ _ _) (s, p) = case p of
     Pawn _ ->
         let squares = toSquaresPawn pos s
             positions =
@@ -310,15 +280,20 @@ toSquaresKing s =
 
 -- flips! todo this is in context of positionTree.. not after a Move
 castle :: Position -> [Position]
-castle pos =
-    let relevantStatus = case toPlay pos of
-            White -> castleStatusWhite pos
-            _ -> castleStatusBlack pos
-     in case relevantStatus of
-            CanCastleNone -> []
-            CanCastleBoth -> castle' CastleShort pos <> castle' CastleLong pos
-            CanCastleA -> castle' CastleLong pos
-            CanCastleH -> castle' CastleShort pos
+castle pos@Position {..} =
+    case toPlay of
+        White ->
+            ( if pristineShortWhite
+                then castle' CastleShort pos
+                else []
+            )
+                <> (if pristineLongWhite then castle' CastleLong pos else [])
+        Black ->
+            if pristineShortBlack
+                then castle' CastleShort pos
+                else
+                    []
+                        <> if pristineLongBlack then castle' CastleLong pos else []
 
 castle' :: Move -> Position -> [Position]
 castle' move pos =
@@ -342,9 +317,7 @@ castle' move pos =
         newSnapshot = case move of
             CastleShort -> doCastleShort (m pos) color
             _ -> doCastleLong (m pos) color -- todo illegal state if not castle move
-        newCastleStatusWhite = if color == White then CanCastleNone else castleStatusWhite pos
-        newCastleStatusBlack = if color == Black then CanCastleNone else castleStatusBlack pos
-     in ( [ mkPosition pos newSnapshot newCastleStatusWhite newCastleStatusBlack
+     in ( [ mkPosition pos newSnapshot
           | hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck -- todo error state ?
           ]
         )
@@ -421,7 +394,7 @@ threefoldrepetition Position {..} =
      in occurrences > 2
 
 eqPosition :: Position -> Position -> Bool
-eqPosition (Position m1 _ _ _ _) (Position m2 _ _ _ _) = m1 == m2
+eqPosition (Position m1 _ _ _ _ _ _) (Position m2 _ _ _ _ _ _) = m1 == m2
 
 isPatt :: Position -> [Position] -> Bool
 isPatt pos positiontree = null positiontree && not (isInCheck (m pos) (toPlay pos))

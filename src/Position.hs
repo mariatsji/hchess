@@ -45,15 +45,13 @@ toLetter c = ('x' : ['a' ..]) !! c
 
 type Snapshot = Board (Maybe Piece)
 
-data CastleStatus = CanCastleBoth | CanCastleA | CanCastleH | CanCastleNone
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (NFData)
-
 data Position = Position
     { m :: Snapshot
     , gamehistory :: [Snapshot]
-    , castleStatusWhite :: CastleStatus
-    , castleStatusBlack :: CastleStatus
+    , pristineShortWhite :: Bool
+    , pristineLongWhite :: Bool
+    , pristineShortBlack :: Bool
+    , pristineLongBlack :: Bool
     , toPlay :: Color
     }
     deriving (Eq, Show, Generic)
@@ -103,51 +101,27 @@ next :: Color -> Color
 next White = Black
 next Black = White
 
-mkPosition :: Position -> Snapshot -> CastleStatus -> CastleStatus -> Position
-mkPosition pos snp csW csB =
-    let newGH = m pos : gamehistory pos
+mkPosition :: Position -> Snapshot -> Position
+mkPosition pos@Position {..} snp =
+    let changes = m `diff` snp
+        piecesChanged = snd <$> changes
+        squaresChanged = fst <$> changes
+        whiteKingSuddled = Just (King White) `elem` piecesChanged
+        whiteShortRookSuddled = hash (Square 8 1) `elem` squaresChanged && Just (Rook White) `elem` piecesChanged
+        whiteLongRookSuddled = hash (Square 1 1) `elem` squaresChanged && Just (Rook White) `elem` piecesChanged
+        blackKingSuddled = Just (King Black) `elem` piecesChanged
+        blackShortRookSuddled = hash (Square 8 8) `elem` squaresChanged && Just (Rook Black) `elem` piecesChanged
+        blackLongRookSuddled = hash (Square 8 1) `elem` squaresChanged && Just (Rook Black) `elem` piecesChanged
+        newGH = m : gamehistory
      in pos
             { m = snp
             , gamehistory = newGH
-            , castleStatusWhite = csW
-            , castleStatusBlack = csB
-            , toPlay = next (toPlay pos)
+            , pristineShortWhite = pristineShortWhite && not whiteKingSuddled && not whiteShortRookSuddled
+            , pristineLongWhite = pristineLongWhite && not whiteKingSuddled && not whiteLongRookSuddled
+            , pristineShortBlack = pristineShortBlack && not blackKingSuddled && not blackShortRookSuddled
+            , pristineLongBlack = pristineLongBlack && not blackKingSuddled && not blackLongRookSuddled
+            , toPlay = next toPlay
             }
-
-mkPositionExpensive :: Position -> Snapshot -> Position
-mkPositionExpensive pos@(Position snpa _ csw csb _) snpb =
-    let colorWhoMoved = next (toPlay pos)
-     in case findMove snpa snpb of
-            MovedPiece from _ -> case snpb ?! hash from of
-                Just (King White) ->
-                    mkPosition pos snpb CanCastleNone csb
-                Just (Rook White) ->
-                    mkPosition pos snpb (downgrade from csw) csb
-                Just (King Black) ->
-                    mkPosition pos snpb csw CanCastleNone
-                Just (Rook Black) ->
-                    mkPosition pos snpb csw (downgrade from csb)
-                _ -> mkPosition pos snpb csw csb
-            EnPassant _ _ -> mkPosition pos snpb csw csb
-            Promotion {} -> mkPosition pos snpb csw csb
-            CastleShort -> case colorWhoMoved of
-                White -> mkPosition pos snpb CanCastleNone csb
-                Black -> mkPosition pos snpb csw CanCastleNone
-            CastleLong -> case colorWhoMoved of
-                White -> mkPosition pos snpb CanCastleNone csb
-                Black -> mkPosition pos snpb csw CanCastleNone
-
-downgrade :: Square -> CastleStatus -> CastleStatus
-downgrade (Square _ row) castleStatus =
-    let usedUpCastleStatus = case row of
-            1 -> CanCastleH
-            _ -> CanCastleA
-     in case (castleStatus, usedUpCastleStatus) of
-            (CanCastleBoth, CanCastleH) -> CanCastleA
-            (CanCastleA, CanCastleH) -> CanCastleA
-            (CanCastleBoth, CanCastleA) -> CanCastleH
-            (CanCastleH, CanCastleA) -> CanCastleH
-            _ -> CanCastleNone
 
 hash :: Square -> Word8
 hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
@@ -168,8 +142,10 @@ startPosition =
     Position
         { m = startTree
         , gamehistory = []
-        , castleStatusWhite = CanCastleBoth
-        , castleStatusBlack = CanCastleBoth
+        , pristineShortWhite = True
+        , pristineLongWhite = True
+        , pristineShortBlack = True
+        , pristineLongBlack = True
         , toPlay = White
         }
 
@@ -262,7 +238,7 @@ catSndMaybes = mapMaybe sequenceA
 infixl 9 <$.>
 
 emptyBoard :: Position
-emptyBoard = Position (empty64 Nothing) [] CanCastleBoth CanCastleBoth White
+emptyBoard = Position (empty64 Nothing) [] True True True True White
 
 -- [(35,Nothing),(36,Nothing),(43,Just (Pawn White))] (d5,e5,d6)
 findMove :: Snapshot -> Snapshot -> Move

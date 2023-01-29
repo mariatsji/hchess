@@ -9,7 +9,7 @@ import Test.Hspec
 spec :: Spec
 spec = describe "AI" $ do
     it "evaluates the start position as reasonably balanced" $ do
-        let e = Evaluation.evaluate startPosition
+        let e = Evaluation.evaluate (m startPosition)
         e `shouldSatisfy` (> (-1.1))
         e `shouldSatisfy` (< 1.1)
     it "digs up a response to a mate threat" $ do

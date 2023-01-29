@@ -41,7 +41,7 @@ deepEval :: Int -> Color -> Position -> Float
 deepEval depth perspective pos =
     let candidates = positionTree pos
         status = determineStatus pos candidates
-        evaluated = evaluate <-$-> candidates
+        evaluated = evaluate . m <-$-> candidates
      in if terminal status
             then score $ evaluate' pos
             else
@@ -66,26 +66,26 @@ evaluate' pos =
         WhiteIsMate -> Evaluated pos (-10000.0) WhiteIsMate
         BlackIsMate -> Evaluated pos 10000.0 BlackIsMate
         Remis -> Evaluated pos 0 Remis
-        playOn -> Evaluated pos (evaluate pos) playOn
+        playOn ->
+            if threefoldrepetition pos
+                then Evaluated pos 0.0 Remis
+                else Evaluated pos (evaluate (m pos)) playOn
 
-evaluate :: Position -> Float
+evaluate :: Snapshot -> Float
 evaluate = caf
   where
-    caf p =
-        if threefoldrepetition p
-            then 0.0
-            else
-                foldr
-                    ( \(w, mP) acc ->
-                        case mP of
-                            Nothing -> acc
-                            Just pie ->
-                                let pieceVal = force $ valueOf pie
-                                    impactVal = force $ impactArea (m p) pie (unHash w)
-                                 in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
-                    )
-                    0
-                    (toList' (m p))
+    caf snp =
+        foldr
+            ( \(w, mP) acc ->
+                case mP of
+                    Nothing -> acc
+                    Just pie ->
+                        let pieceVal = force $ valueOf pie
+                            impactVal = force $ impactArea snp pie (unHash w)
+                         in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
+            )
+            0
+            (toList' snp)
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = colorFactor c * 1.0
