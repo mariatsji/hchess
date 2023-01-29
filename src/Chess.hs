@@ -289,10 +289,10 @@ castle pos@Position {..} =
             )
                 <> (if pristineLongWhite then castle' CastleLong pos else [])
         Black ->
-            if pristineShortBlack
+            (if pristineShortBlack
                 then castle' CastleShort pos
                 else
-                    []
+                    [])
                         <> if pristineLongBlack then castle' CastleLong pos else []
 
 castle' :: Move -> Position -> [Position]

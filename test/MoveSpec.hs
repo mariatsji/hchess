@@ -78,6 +78,21 @@ spec = do
       pristineLongWhite p `shouldBe` False
       pristineShortBlack p `shouldBe` True
       pristineLongBlack p `shouldBe` True
+    it "sais pristine long black when long castle is still on the table" $ do
+      let Right p = Move.playMoves ["e2-e4", "b8-c6", "d1-g4", "b7-b6", "b1-c3", "c8-b7", "g1-f3", "e7-e6", "g4-g5", "d8-f6", "f1-d3"]
+      pristineLongBlack p `shouldBe` True
+    it "includes long castles for black after intermittent pieces moved out in positionTree" $ do
+      let Right p = Move.playMoves ["e2-e4", "b8-c6", "d1-g4", "b7-b6", "b1-c3", "c8-b7", "g1-f3", "e7-e6", "g4-g5", "d8-f6", "f1-d3"]
+      length (castle p) `shouldBe` 1
+    it "includes long castles for black after intermittent pieces moved out" $ do
+      let Right p = Move.playMoves ["e2-e4", "b8-c6", "d1-g4", "b7-b6", "b1-c3", "c8-b7", "g1-f3", "e7-e6", "g4-g5", "d8-f6", "f1-d3"]
+      length (positionTree p) `shouldBe` 42
+    it "allows black to castle long after moving out intermittent pieces" $ do
+      let Right p = Move.playMoves ["e2-e4", "b8-c6", "d1-g4", "b7-b6", "b1-c3", "c8-b7", "g1-f3", "e7-e6", "g4-g5", "d8-f6", "f1-d3", "O-O-O"]
+      pristineShortWhite p `shouldBe` True
+      pristineLongWhite p `shouldBe` True
+      pristineShortBlack p `shouldBe` False
+      pristineLongBlack p `shouldBe` False
     it "does not allow black any castle after moving king" $ do
       let Right p = Move.playMoves ["e2-e4", "e7-e5", "d2-d4", "e8-e7"]
       pristineShortWhite p `shouldBe` True
