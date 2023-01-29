@@ -17,7 +17,6 @@ import Position (
     startPosition,
  )
 import qualified Printer
-import System.Exit (exitSuccess)
 import Data.Maybe (fromMaybe)
 
 start :: Text -> App ()
@@ -165,7 +164,7 @@ showt :: Show a => a -> Text
 showt = pack . show
 
 exit :: App ()
-exit = liftIO exitSuccess
+exit = Printer.exitText "Thank you for playing"
 
 flightRecorder :: FilePath -> Position -> App ()
 flightRecorder file pos = liftIO $ do

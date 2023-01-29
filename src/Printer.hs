@@ -1,4 +1,4 @@
-module Printer (render, infoTexts, line, clearTopScreen) where
+module Printer (render, infoTexts, line, clearTopScreen, exitText) where
 
 import AppContext (App, AppContext (analysis, perspective), World (..), style)
 import Board (diff)
@@ -85,6 +85,12 @@ infoTexts [s1, s2] = do
         putStrLn $ T.unpack s2
 infoTexts _ = pure ()
 
+exitText :: Text -> App ()
+exitText t = do
+    liftIO $ do
+        ANSI.setCursorPosition 22 0
+        putStrLn $ T.unpack t
+
 clearTopScreen :: App ()
 clearTopScreen = do
     liftIO $ do
@@ -93,6 +99,8 @@ clearTopScreen = do
 
 clearInfo :: App ()
 clearInfo = liftIO $ do
+    ANSI.setCursorPosition 22 0
+    ANSI.clearLine
     ANSI.setCursorPosition infoLineX infoLineY
     ANSI.clearLine
     ANSI.setCursorPosition (infoLineX + 1) infoLineY

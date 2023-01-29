@@ -313,7 +313,7 @@ castle' move pos =
         vacantBetweenKingAndRook = all (vacantAt pos) relevantSquares
         fakesnp s = removePieceAt (replacePieceAt (m pos) s (King color)) kingSquare
         isNotInCheck = not (isInCheck (m pos) color)
-        wontPassCheck = all (\snp' -> not $ isInCheck snp' color) (fakesnp <$> relevantSquares)
+        wontPassCheck = none (`isInCheck` color) (fakesnp <$> relevantSquares)
         newSnapshot = case move of
             CastleShort -> doCastleShort (m pos) color
             _ -> doCastleLong (m pos) color -- todo illegal state if not castle move
@@ -321,6 +321,9 @@ castle' move pos =
           | hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck -- todo error state ?
           ]
         )
+
+none :: Foldable t => forall a. (a -> Bool) -> t a -> Bool
+none f = all (not . f)
 
 doCastleShort :: Snapshot -> Color -> Snapshot
 doCastleShort pos c =
