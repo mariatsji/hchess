@@ -70,8 +70,8 @@ gameLoopHM pos depth = do
                 gameLoopHM pos depth
             Right humanMove -> do
                 case playIfLegal humanMove pos of
-                    Left _ -> do
-                        Printer.render world {wInfo = ["You can't play " <> showt humanMove, "Valid syntax: e2-e4 O-O-O e7-d8Q"]}
+                    Left s -> do
+                        Printer.render world {wInfo = [showt humanMove <> " not playable: " <> pack s, "example of syntax: e2-e4 h7-h8Q"]}
                         gameLoopHM pos depth
                     Right newPos -> do
                         record newPos
@@ -145,8 +145,8 @@ gameLoopHH pos = do
     Printer.render world
     l <- Printer.line
     case playMove l pos of
-        Left _ -> do
-            Printer.render world {wInfo = ["You can't play that.", "Valid syntax: e2-e4 O-O-O e7-d8Q"]}
+        Left s -> do
+            Printer.render world {wInfo = [pack s, "Valid syntax examples: e2-e4, d7-d8Q"]}
             gameLoopHH pos
         Right pos' ->
             let newStatus = determineStatus pos' (positionTree pos')
