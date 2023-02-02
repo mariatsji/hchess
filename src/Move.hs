@@ -2,7 +2,9 @@ module Move (
     playMove,
     playMoves,
     parsedMove,
-    squareParser
+    squareParser,
+    colParser,
+    rowParser
 ) where
 
 import Chess (playIfLegal)
@@ -10,10 +12,12 @@ import Control.Applicative ((<|>))
 import Data.Attoparsec.Text (Parser, char, parseOnly, string)
 import Data.Text (Text)
 import Position (
+    Col,
     Color,
     Move (..),
     Piece (Bishop, Knight, Queen, Rook),
     Position (toPlay),
+    Row,
     Square (Square),
     startPosition,
  )
@@ -46,8 +50,10 @@ promParser pos = do
 squareParser :: Parser Square
 squareParser =
     Square <$> colParser <*> rowParser
+
+colParser :: Parser Col
+colParser = colAparser <|> colBparser <|> colCparser <|> colDparser <|> colEparser <|> colFparser <|> colGparser <|> colHparser
   where
-    colParser = colAparser <|> colBparser <|> colCparser <|> colDparser <|> colEparser <|> colFparser <|> colGparser <|> colHparser
     colAparser = 1 <$ char 'a'
     colBparser = 2 <$ char 'b'
     colCparser = 3 <$ char 'c'
@@ -56,7 +62,10 @@ squareParser =
     colFparser = 6 <$ char 'f'
     colGparser = 7 <$ char 'g'
     colHparser = 8 <$ char 'h'
-    rowParser = rowAparser <|> rowBparser <|> rowCparser <|> rowDparser <|> rowEparser <|> rowFparser <|> rowGparser <|> rowHparser
+
+rowParser :: Parser Row
+rowParser = rowAparser <|> rowBparser <|> rowCparser <|> rowDparser <|> rowEparser <|> rowFparser <|> rowGparser <|> rowHparser
+  where
     rowAparser = 1 <$ char '1'
     rowBparser = 2 <$ char '2'
     rowCparser = 3 <$ char '3'

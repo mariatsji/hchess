@@ -7,7 +7,7 @@ import Board
 import Control.Parallel.Strategies (NFData)
 import Data.Aeson
 import Data.Bifunctor (first)
-import Data.List (find)
+import Data.List (elemIndex, find)
 import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import Data.Word (Word8)
 import GHC.Generics (Generic)
@@ -42,6 +42,9 @@ instance Show Square where
 -- todo hack
 toLetter :: Int -> Char
 toLetter c = ('x' : ['a' ..]) !! c
+
+fromLetter :: Char -> Int
+fromLetter c = fromMaybe (error $ "Col " <> show c <> " is not a column on a chess board") $ elemIndex c ('x' : ['a' ..])
 
 type Snapshot = Board (Maybe Piece)
 
