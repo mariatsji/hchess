@@ -1,7 +1,7 @@
 module PGN where
 
 import Board (searchIdx)
-import Chess (Status (..), determineStatus, isCheckMate, isInCheck, movePiece, pieceAt, playIfLegal, positionTree)
+import Chess (Status (..), determineStatus, isCheckMate, isInCheck, movePiece, playIfLegal, positionTree)
 import Control.Applicative (many, (<|>))
 import Data.Attoparsec.Text (Parser)
 import qualified Data.Attoparsec.Text as AT
@@ -198,29 +198,32 @@ pgnMoveParser pos =
             _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
             toS <- squareParser
             _ <- AT.char '='
-            piece <- pieceParser c
+            promPiece <- pieceParser c
             let fromS = before toS {col = fromCol} c
-            if pieceAt pos fromS == Just (Pawn c)
-                then
-                    let move = Promotion fromS toS piece
-                     in either
-                            fail
-                            pure
-                            (playIfLegal move pos)
-                else fail $ "No short promotion when unexpected pawn at " <> show fromS
+                piece = Pawn c
+                squarePred = (==) fromS 
+                move = Promotion fromS toS promPiece
+            either
+                fail
+                pure
+                ( findPiece pos piece squarePred toS
+                    >>= (\_ -> playIfLegal move pos)
+                )
         shortPromParser = do
             -- e8=Q
             toS <- squareParser
             _ <- AT.char '='
-            piece <- pieceParser c
+            promPiece <- pieceParser c
             let fromS = before toS c
-            if pieceAt pos fromS == Just (Pawn c)
-                then
-                    let move = Promotion fromS toS piece
-                     in case playIfLegal move pos of
-                            Right newPos -> pure newPos
-                            Left s -> fail s
-                else fail $ "No short promotion when unexpected pawn at " <> show fromS
+                piece = Pawn c
+                squarePred = (==) fromS 
+                move = Promotion fromS toS promPiece
+            either
+                fail
+                pure
+                ( findPiece pos piece squarePred toS
+                    >>= (\_ -> playIfLegal move pos)
+                )
         regularOfficerMoveParser = do
             -- Qd1g4
             _ <- pieceParser c
