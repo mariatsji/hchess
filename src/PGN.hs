@@ -169,14 +169,16 @@ pgnMoveParser pos =
     let c = toPlay pos
         castleLongParser = do
             _ <- AT.string "O-O-O"
-            case playIfLegal CastleLong pos of
-                Right newPos -> pure newPos
-                Left s -> fail s
+            either
+                fail
+                pure
+                (playIfLegal CastleLong pos)
         castleShortParser = do
             _ <- AT.string "O-O"
-            case playIfLegal CastleShort pos of
-                Right newPos -> pure newPos
-                Left s -> fail s
+            either
+                fail
+                pure
+                (playIfLegal CastleShort pos)
         promParser = do
             -- c7-c8=Q  Bc7c8#
             _ <- AT.skipWhile (`elem` ['N', 'B', 'R', 'Q', 'K'])
@@ -186,9 +188,10 @@ pgnMoveParser pos =
             _ <- AT.char '='
             piece <- pieceParser c
             let move = Promotion fromS toS piece
-            case playIfLegal move pos of
-                Right newPos -> pure newPos
-                Left s -> fail s
+            either
+                fail
+                pure
+                (playIfLegal move pos)
         shortPawnTakesPromParser = do
             -- bxc8=K
             fromCol <- colParser
@@ -200,9 +203,10 @@ pgnMoveParser pos =
             if pieceAt pos fromS == Just (Pawn c)
                 then
                     let move = Promotion fromS toS piece
-                     in case playIfLegal move pos of
-                            Right newPos -> pure newPos
-                            Left s -> fail s
+                     in either
+                            fail
+                            pure
+                            (playIfLegal move pos)
                 else fail $ "No short promotion when unexpected pawn at " <> show fromS
         shortPromParser = do
             -- e8=Q
@@ -223,17 +227,21 @@ pgnMoveParser pos =
             fromS <- squareParser
             _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
             toS <- squareParser
-            case playIfLegal (MovedPiece fromS toS) pos of
-                Right newPos -> pure newPos
-                Left s -> fail s
+            let move = MovedPiece fromS toS
+            either
+                fail
+                pure
+                (playIfLegal move pos)
         regularPawnMoveParser = do
             -- e1-e2
             fromS <- squareParser
             _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
             toS <- squareParser
-            case playIfLegal (MovedPiece fromS toS) pos of
-                Right newPos -> pure newPos
-                Left s -> fail s
+            let move = MovedPiece fromS toS
+            either
+                fail
+                pure
+                (playIfLegal move pos)
         shortOfficerColMove = do
             -- Kdc4 / Kdxc4
             piece <- pieceParser c
