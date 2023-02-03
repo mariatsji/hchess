@@ -33,12 +33,6 @@ board = Square <$> [1 .. 8] <*> [1 .. 8]
 squareTo :: Square -> Int -> Int -> Square
 squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
-{-     let newC = c + cols
-        newR = r + rows
-    in if newC < 1 || newC > 8 || newR < 1 || newR > 8
-        then Debug.trace ("Dbg: " <> show (Square newC newR)) (Square newC newR)
-        else Square newC newR -}
-
 -- MovedPiece Square Square | Promotion Square Square Piece | CastleShort | CastleLong
 identifyMove :: Position -> Square -> Square -> Maybe Piece -> Move
 identifyMove pos from to mPromPiece =
@@ -75,7 +69,7 @@ playIfLegal move pos = do
                         isAmongLegalMoves = any (eqPosition moveAttempt) tree
                      in if isAmongLegalMoves
                             then Right moveAttempt
-                            else Left "Move not among legal moves"
+                            else Left $ "Move " <> show move <> " not among legal moves"
                 else Left "Sorry, that piece is not for you to move"
 
 -- flips toPlay
