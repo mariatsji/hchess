@@ -227,43 +227,32 @@ intParser = AT.decimal
 
 sep :: Parser ()
 sep = do
-    void AT.space <|> AT.endOfLine
+    void $ AT.many1 (void AT.space <|> AT.endOfLine <|> comment)
 
 comment :: Parser ()
-comment = void $ AT.char '{' *> AT.manyTill' AT.anyChar (AT.char '}')
+comment = AT.try . void $ AT.char '{' *> AT.manyTill' AT.anyChar (AT.char '}')
 
 testPgn :: Text
 testPgn =
     [text|
-[Event "Paris"]
-[Site "Paris FRA"]
-[Date "1858.??.??"]
+[Event "Casual game"]
+[Site "London ENG"]
+[Date "1858.08.??"]
+[EventDate "?"]
 [Round "?"]
-[White "Paul Morphy"]
-[Black "Duke Karl / Count Isouard"]
-[Result "1-0"]
+[Result "0-1"]
+[White "Henry Edward Bird"]
+[Black "Paul Morphy"]
+[ECO "C41"]
+[WhiteElo "?"]
+[BlackElo "?"]
+[Source "The Field, 1858.09.04, p.192"]
+[PlyCount "58"]
 
-1.e4 e5 2.Nf3 d6 3.d4 Bg4 4.dxe5 Bxf3 5.Qxf3 dxe5 6.Bc4 Nf6 7.Qb3 Qe7 8.Nc3 c6 9.Bg5 b5 10.Nxb5 cxb5 11.Bxb5+ Nbd7 12.O-O-O *
-|]
-
-actualPgn :: Text
-actualPgn =
-    [text|
-[Event "F/S Return Match"]
-[Site "Belgrade, Serbia JUG"]
-[Date "1992.11.04"]
-[Round "29"]
-[White "Fischer, Robert J."]
-[Black "Spassky, Boris V."]
-[Result "1/2-1/2"]
-
-1. e4 e5 2. Nf3 Nc6 3. Bb5 a6
-4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7
-11. c4 c6 12. cxb5 axb5 13. Nc3 Bb7 14. Bg5 b4 15. Nb1 h6 16. Bh4 c5 17. dxe5
-Nxe4 18. Bxe7 Qxe7 19. exd6 Qf6 20. Nbd2 Nxd6 21. Nc4 Nxc4 22. Bxc4 Nb6
-23. Ne5 Rae8 24. Bxf7+ Rxf7 25. Nxf7 Rxe1+ 26. Qxe1 Kxf7 27. Qe3 Qg5 28. Qxg5
-hxg5 29. b3 Ke6 30. a3 Kd6 31. axb4 cxb4 32. Ra5 Nd5 33. f3 Bc8 34. Kf2 Bf5
-35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5 40. Rd6 Kc5 41. Ra6
-Nf2 42. g4 Bd3 43. Re6 1/2-1/2
-
+1.e4 e5 2.Nf3 d6 3.d4 f5 4.Nc3 fxe4 5.Nxe4 d5 6.Ng3 e4 7.Ne5
+Nf6 8.Bg5 Bd6 9.Nh5 O-O 10.Qd2 Qe8 11.g4 Nxg4 12.Nxg4 Qxh5
+13.Ne5 Nc6 14.Be2 Qh3 15.Nxc6 bxc6 16.Be3 Rb8 17.O-O-O Rxf2
+18.Bxf2 Qa3 19.c3 Qxa2 20.b4 Qa1+ 21.Kc2 Qa4+ 22.Kb2 Bxb4
+23.cxb4 Rxb4+ 24.Qxb4 Qxb4+ 25.Kc2 e3 26.Bxe3 Bf5+ 27.Rd3 Qc4+
+28.Kd2 Qa2+ 29.Kd1 Qb1+ 0-1
 |]
