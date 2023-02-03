@@ -240,50 +240,62 @@ pgnMoveParser pos =
             fromCol <- colParser
             _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
             toS <- squareParser
-            case findPiece pos piece (\(Square col' _) -> col' == fromCol) toS of
-                Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
-                    Right newPos -> pure newPos
-                    Left s -> fail s
-                Left s -> fail s
+            let squarePred (Square col' _) = col' == fromCol
+            either
+                fail
+                pure
+                ( findPiece pos piece squarePred toS
+                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+                )
         shortOfficerRowMove = do
             -- K5c5 / K5xc5
             piece <- pieceParser c
             fromRow <- rowParser
             _ <- AT.skipWhile (== 'x')
             toS <- squareParser
-            case findPiece pos piece (\(Square _ row') -> row' == fromRow) toS of
-                Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
-                    Right newPos -> pure newPos
-                    Left s -> fail s
-                Left s -> fail s
+            let squarePred (Square _ row') = row' == fromRow
+            either
+                fail
+                pure
+                ( findPiece pos piece squarePred toS
+                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+                )
         shortOfficerMove = do
             -- Kc4 / Kxc4
             piece <- pieceParser c
             _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
             toS <- squareParser
-            case findPiece pos piece (const True) toS of
-                Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
-                    Right newPos -> pure newPos
-                    Left s -> fail s
-                Left s -> fail s
+            let squarePred = const True
+            either
+                fail
+                pure
+                ( findPiece pos piece squarePred toS
+                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+                )
         shortPawnTakes = do
             -- bxc4
             fromCol <- colParser
             _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
             toS <- squareParser
-            case findPiece pos (Pawn c) (\(Square col' _) -> col' == fromCol) toS of
-                Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
-                    Right newPos -> pure newPos
-                    Left s -> fail s
-                Left s -> fail s
+            let piece = Pawn c
+                squarePred (Square col' _) = col' == fromCol
+            either
+                fail
+                pure
+                ( findPiece pos piece squarePred toS
+                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+                )
         shortPawnMove = do
             -- e4
             toS@(Square toCol _) <- squareParser
-            case findPiece pos (Pawn c) (\(Square col' _) -> col' == toCol) toS of
-                Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
-                    Right newPos -> pure newPos
-                    Left s -> fail s
-                Left s -> fail s
+            let piece = Pawn c
+                squarePred (Square col' _) = col' == toCol
+            either
+                fail
+                pure
+                ( findPiece pos piece squarePred toS
+                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+                )
      in ( castleLongParser
             <|> castleShortParser
             <|> promParser
@@ -413,7 +425,6 @@ startPos =
 
 1. *
 |]
-
 
 immortalGame :: Text
 immortalGame =
