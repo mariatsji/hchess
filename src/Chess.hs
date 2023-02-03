@@ -69,7 +69,7 @@ playIfLegal move pos = do
                         isAmongLegalMoves = any (eqPosition moveAttempt) tree
                      in if isAmongLegalMoves
                             then Right moveAttempt
-                            else Left $ "Move " <> show move <> " not among legal moves"
+                            else Left $ "Move nr " <> show (succ (length (gamehistory pos))) <> " (" <> show move <> ") not among legal moves"
                 else Left "Sorry, that piece is not for you to move"
 
 -- flips toPlay

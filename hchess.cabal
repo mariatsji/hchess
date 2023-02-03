@@ -71,7 +71,6 @@ library
     , multi-containers
     , neat-interpolation
     , parallel
-    , scientific
     , text
     , transformers
     , utf8-string

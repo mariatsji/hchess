@@ -2,23 +2,17 @@ module HumanPGN (parsePgn) where
 
 import Chess (movePiece, pieceAt, playIfLegal, positionTree)
 import Control.Applicative (many, (<|>))
-import Control.Monad (foldM)
 import Data.Attoparsec.Text (Parser)
 import qualified Data.Attoparsec.Text as AT
-import Data.Maybe (fromMaybe)
-import Data.Scientific (toBoundedInteger)
 import Data.Text (Text)
-import qualified Debug.Trace as Debug
-import GHC.Base (MonadPlus)
 import Move (colParser, rowParser, squareParser)
 import NeatInterpolation
 import Position (Color (..), Move (CastleLong, CastleShort, MovedPiece, Promotion), Piece (..), Position (..), Square (..), searchForPieces, startPosition)
 
-roll :: MonadPlus m => a -> [a -> m a] -> m a -- fishy, the function is the list is the same every time, so not necessary to put it i a list
-roll =
-    foldM
-        ( \a f -> f a
-        )
+roll :: a -> (a -> Parser a) -> Parser a
+roll seed p = do
+    new <- p seed
+    (seed <$ AT.endOfInput) <|> roll new p
 
 parsePgn :: Text -> Either String Position
 parsePgn =
@@ -26,6 +20,7 @@ parsePgn =
         ( do
             _ <- many metaLine
             _ <- AT.skipWhile AT.isEndOfLine
+            _ <- AT.skipSpace
             movesParser
         )
 
@@ -42,27 +37,22 @@ metaLine = do
     _ <- AT.endOfLine
     pure $ Meta key val
 
-movesParser' :: Parser Position
-movesParser' = do
-    p1 <- whiteBlackParser startPosition
-    p2 <- whiteBlackParser p1
-    pure p2
-
 movesParser :: Parser Position
-movesParser = do
-    let list = replicate 3 whiteBlackParser
-    roll startPosition list
+movesParser =
+    roll startPosition whiteBlackParser
 
 pgnMoveParser :: Position -> Parser Position
 pgnMoveParser pos =
     let c = toPlay pos
         castleLongParser = do
             _ <- AT.string "O-O-O"
+            _ <- checkParser
             case playIfLegal CastleLong pos of
                 Right newPos -> pure newPos
                 Left s -> fail s
         castleShortParser = do
             _ <- AT.string "O-O"
+            _ <- checkParser
             case playIfLegal CastleShort pos of
                 Right newPos -> pure newPos
                 Left s -> fail s
@@ -71,10 +61,11 @@ pgnMoveParser pos =
             _ <- AT.skipWhile (`elem` ['N', 'B', 'R', 'Q', 'K'])
             fromS <- squareParser
             _ <- AT.skipWhile (== 'x')
+            _ <- AT.char '-'
             toS <- squareParser
             _ <- AT.char '='
             piece <- Knight c <$ AT.char 'N' <|> Bishop c <$ AT.char 'B' <|> Rook c <$ AT.char 'R' <|> Queen c <$ AT.char 'Q' <|> King c <$ AT.char 'K' -- todo Piece should not hold color imo..
-            _ <- AT.skipWhile (`elem` ['!', '#'])
+            _ <- checkParser
             let move = Promotion fromS toS piece
             case playIfLegal move pos of
                 Right newPos -> pure newPos
@@ -86,7 +77,7 @@ pgnMoveParser pos =
             toS <- squareParser
             _ <- AT.char '='
             piece <- Knight c <$ AT.char 'N' <|> Bishop c <$ AT.char 'B' <|> Rook c <$ AT.char 'R' <|> Queen c <$ AT.char 'Q' <|> King c <$ AT.char 'K' -- todo Piece should not hold color imo..
-            _ <- AT.skipWhile (`elem` ['!', '#'])
+            _ <- checkParser
             let fromS = before toS {col = fromCol} c
             if pieceAt pos fromS == Just (Pawn c)
                 then
@@ -100,7 +91,7 @@ pgnMoveParser pos =
             toS <- squareParser
             _ <- AT.char '='
             piece <- Knight c <$ AT.char 'N' <|> Bishop c <$ AT.char 'B' <|> Rook c <$ AT.char 'R' <|> Queen c <$ AT.char 'Q' <|> King c <$ AT.char 'K' -- todo Piece should not hold color imo..
-            _ <- AT.skipWhile (`elem` ['!', '#'])
+            _ <- checkParser
             let fromS = before toS c
             if pieceAt pos fromS == Just (Pawn c)
                 then
@@ -114,8 +105,9 @@ pgnMoveParser pos =
             _ <- AT.skipWhile (`elem` ['N', 'B', 'R', 'Q', 'K'])
             fromS <- squareParser
             _ <- AT.skipWhile (== 'x')
+            _ <- AT.char '-'
             toS <- squareParser
-            _ <- AT.skipWhile (`elem` ['!', '#'])
+            _ <- checkParser
             case playIfLegal (MovedPiece fromS toS) pos of
                 Right newPos -> pure newPos
                 Left s -> fail s
@@ -125,7 +117,7 @@ pgnMoveParser pos =
             fromCol <- colParser
             _ <- AT.skipWhile (== 'x')
             toS <- squareParser
-            _ <- AT.skipWhile (`elem` ['!', '#'])
+            _ <- checkParser
             case findPiece pos piece (\(Square col' _) -> col' == fromCol) toS of
                 Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
                     Right newPos -> pure newPos
@@ -137,19 +129,8 @@ pgnMoveParser pos =
             fromRow <- rowParser
             _ <- AT.skipWhile (== 'x')
             toS <- squareParser
-            _ <- AT.skipWhile (`elem` ['!', '#'])
+            _ <- checkParser
             case findPiece pos piece (\(Square _ row') -> row' == fromRow) toS of
-                Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
-                    Right newPos -> pure newPos
-                    Left s -> fail s
-                Left s -> fail s
-        shortPawnTakes = do
-            -- bxc4
-            fromCol <- colParser
-            _ <- AT.skipWhile (== 'x')
-            toS <- squareParser
-            _ <- AT.skipWhile (`elem` ['!', '#'])
-            case findPiece pos (Pawn c) (\(Square col' _) -> col' == fromCol) toS of
                 Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
                     Right newPos -> pure newPos
                     Left s -> fail s
@@ -159,8 +140,19 @@ pgnMoveParser pos =
             piece <- Knight c <$ AT.char 'N' <|> Bishop c <$ AT.char 'B' <|> Rook c <$ AT.char 'R' <|> Queen c <$ AT.char 'Q' <|> King c <$ AT.char 'K' -- todo Piece should not hold color imo..
             _ <- AT.skipWhile (== 'x')
             toS <- squareParser
-            _ <- AT.skipWhile (`elem` ['!', '#'])
+            _ <- checkParser
             case findPiece pos piece (const True) toS of
+                Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
+                    Right newPos -> pure newPos
+                    Left s -> fail s
+                Left s -> fail s
+        shortPawnTakes = do
+            -- bxc4
+            fromCol <- colParser
+            _ <- AT.skipWhile (== 'x')
+            toS <- squareParser
+            _ <- checkParser
+            case findPiece pos (Pawn c) (\(Square col' _) -> col' == fromCol) toS of
                 Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
                     Right newPos -> pure newPos
                     Left s -> fail s
@@ -168,12 +160,12 @@ pgnMoveParser pos =
         shortPawnMove = do
             -- e4
             toS@(Square toCol _) <- squareParser
-            _ <- AT.skipWhile (`elem` ['!', '#'])
+            _ <- checkParser
             case findPiece pos (Pawn c) (\(Square col' _) -> col' == toCol) toS of
-                Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
-                    Right newPos -> pure newPos
+                    Right fromS -> case playIfLegal (MovedPiece fromS toS) pos of
+                        Right newPos -> pure newPos
+                        Left s -> fail s
                     Left s -> fail s
-                Left s -> fail s
      in castleLongParser
             <|> castleShortParser
             <|> promParser
@@ -182,9 +174,12 @@ pgnMoveParser pos =
             <|> regularMoveParser
             <|> shortOfficerColMove
             <|> shortOfficerRowMove
-            <|> shortPawnTakes
             <|> shortOfficerMove
+            <|> shortPawnTakes
             <|> shortPawnMove
+
+checkParser :: Parser ()
+checkParser = AT.skipWhile (`elem` ['+', '!', '#'])
 
 findPiece :: Position -> Piece -> (Square -> Bool) -> Square -> Either String Square
 findPiece pos piece squarePred toS = case searchForPieces pos squarePred piecePred of
@@ -205,9 +200,8 @@ before (Square c r) Black = Square (c + 1) r
 
 whiteBlackParser :: Position -> Parser Position
 whiteBlackParser pos = do
-    _ <- intParser
-    _ <- AT.skipWhile (== '.')
-    _ <- AT.space
+    i <- intParser
+    _ <- AT.skipWhile (\c -> c == '.' || c == ' ')
     withReplyTerminated <|> withoutReplyTerminated <|> withReply <|> withoutReply
   where
     withReplyTerminated = do
@@ -237,7 +231,7 @@ result :: Parser Text
 result = AT.string "*" <|> AT.string "1/2-1/2" <|> AT.string "1-0" <|> AT.string "0-1"
 
 intParser :: Parser Int
-intParser = fromMaybe 0 . toBoundedInteger <$> AT.scientific
+intParser = AT.decimal
 
 testPgn :: Text
 testPgn =
@@ -250,24 +244,28 @@ testPgn =
 [Black "Duke Karl / Count Isouard"]
 [Result "1-0"]
 
-1. e4 e5 2. Nf3 *
+1.e4 e5 2.Nf3 d6 3.d4 Bg4 4.dxe5 Bxf3 5.Qxf3 dxe5 6.Bc4 Nf6 7.Qb3 Qe7 8.Nc3 c6 9.Bg5 b5 10.Nxb5 cxb5 11.Bxb5+ Nbd7 12.O-O-O *
 |]
 
-testPgn' :: Text
-testPgn' =
-    [text|
-[Event "Paris"]
-[Site "Paris FRA"]
-[Date "1858.??.??"]
-[EventDate "?"]
-[Round "?"]
-[Result "1-0"]
-[White "Paul Morphy"]
-[Black "Duke Karl / Count Isouard"]
-[ECO "C41"]
-[WhiteElo "?"]
-[BlackElo "?"]
-[PlyCount "33"]
+-- 1.e4 e5 2.Nf3 d6 3.d4 Bg4 4.dxe5 Bxf3 5.Qxf3 dxe5 6.Bc4 Nf6 7.Qb3 Qe7 8.Nc3 c6 9.Bg5 b5 10.Nxb5 cxb5 11.Bxb5+ Nbd7 12.O-O-O *
 
-1.e4 e5 2.Nf3 d6 3.d4 Bg4 4.dxe5 Bxf3 5.Qxf3 dxe5 6.Bc4 Nf6 7.Qb3 Qe7 8.Nc3 c6 9.Bg5  b5 10.Nxb5 cxb5 11.Bxb5+ Nbd7 12.O-O-O Rd8 13.Rxd7 Rxd7 14.Rd1 Qe6 15.Bxd7+ Nxd7 16.Qb8+ Nxb8 17.Rd8# 1-0
+actualPgn :: Text
+actualPgn =
+    [text|
+[Event "F/S Return Match"]
+[Site "Belgrade, Serbia JUG"]
+[Date "1992.11.04"]
+[Round "29"]
+[White "Fischer, Robert J."]
+[Black "Spassky, Boris V."]
+[Result "1/2-1/2"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 {This opening is called the Ruy Lopez.}
+4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7
+11. c4 c6 12. cxb5 axb5 13. Nc3 Bb7 14. Bg5 b4 15. Nb1 h6 16. Bh4 c5 17. dxe5
+Nxe4 18. Bxe7 Qxe7 19. exd6 Qf6 20. Nbd2 Nxd6 21. Nc4 Nxc4 22. Bxc4 Nb6
+23. Ne5 Rae8 24. Bxf7+ Rxf7 25. Nxf7 Rxe1+ 26. Qxe1 Kxf7 27. Qe3 Qg5 28. Qxg5
+hxg5 29. b3 Ke6 30. a3 Kd6 31. axb4 cxb4 32. Ra5 Nd5 33. f3 Bc8 34. Kf2 Bf5
+35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5 40. Rd6 Kc5 41. Ra6
+Nf2 42. g4 Bd3 43. Re6 1/2-1/2    
 |]

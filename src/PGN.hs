@@ -7,7 +7,6 @@ import Control.Monad (join)
 import Data.Attoparsec.Text (Parser)
 import qualified Data.Attoparsec.Text as AT
 import Data.Maybe (fromMaybe)
-import Data.Scientific (toBoundedInteger)
 import Data.Text (Text, pack)
 import qualified Data.Text.IO as TIO
 import Move (playMoves, squareParser)
@@ -206,7 +205,7 @@ whiteBlackParser = do
     result = AT.string "*" <|> AT.string "1/2-1/2" <|> AT.string "1-0" <|> AT.string "0-1"
 
 intParser :: Parser Int
-intParser = fromMaybe 0 . toBoundedInteger <$> AT.scientific
+intParser = AT.decimal
 
 testPgn :: Text
 testPgn = [text|
