@@ -2,11 +2,8 @@
 
 module Tree (set, Tree, (?!), empty64, searchIdx, diff) where
 
-import Control.Parallel.Strategies (NFData)
 import Data.Bits (Bits (shift, testBit))
-import Data.Monoid (Sum (Sum, getSum))
-import Data.Word (Word8)
-import GHC.Generics (Generic)
+import Relude
 
 data Tree a = Leaf a | Node (Tree a) (Tree a)
     deriving stock (Eq, Ord, Show, Generic)

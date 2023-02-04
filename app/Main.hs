@@ -1,18 +1,20 @@
 module Main where
 
 import AppContext (AppContext (..))
-import Control.Monad.Trans.Reader (runReaderT)
-import Data.Attoparsec.Text
-import qualified Data.Attoparsec.Text as AT
-import Data.Either (partitionEithers)
-import Data.Text (pack, unpack)
-import qualified Data.Text.IO as TIO
 import GameLoop
 import PGN (parsePgn)
 import Position (Color (..), Position)
 import Printer
 import Style (Style, brightTheme, darkTheme)
 import qualified System.Console.ANSI as ANSI
+
+import Control.Monad.Trans.Reader (runReaderT)
+import Data.Attoparsec.Text
+import qualified Data.Attoparsec.Text as AT
+import Data.Either (partitionEithers)
+import Data.Text (pack, unpack)
+import qualified Data.Text.IO as TIO
+import Relude
 import System.Environment (getArgs)
 
 main :: IO ()

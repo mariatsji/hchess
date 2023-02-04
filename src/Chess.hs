@@ -4,6 +4,9 @@
 module Chess where
 
 import Board (diff, searchIdx)
+import Position
+
+import GHC.Generics (Generic)
 import Control.DeepSeq (force)
 import Control.Parallel (par, pseq)
 import Control.Parallel.Strategies (NFData)
@@ -11,9 +14,7 @@ import Data.List
 import Data.Maybe (isNothing)
 import qualified Data.Set as Set
 import qualified Debug.Trace as Debug
-import GHC.Generics (Generic)
-import Position
-import Prelude hiding (foldr)
+import Relude
 
 data Status
     = WhiteToPlay

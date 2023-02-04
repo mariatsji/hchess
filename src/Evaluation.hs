@@ -18,13 +18,15 @@ import Chess (
     toSquaresRook',
     (<-$->),
  )
+import Position
+
 import Control.DeepSeq (force)
 import Control.Parallel (par)
 import Control.Parallel.Strategies (NFData)
 import Data.Maybe (fromMaybe)
 import GHC.Conc (pseq)
 import GHC.Generics (Generic)
-import Position
+import Relude
 
 data Evaluated = Evaluated
     { pos :: Position

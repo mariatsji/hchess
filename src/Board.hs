@@ -1,8 +1,7 @@
 module Board (Board, set, (?!), empty64, searchIdx, diff) where
 
-import Control.DeepSeq (NFData)
 import qualified Data.IntMap.Strict as IMap
-import Data.Word (Word8)
+import Relude
 
 type Board a = IMap.IntMap a
 

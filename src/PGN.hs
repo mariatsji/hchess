@@ -2,15 +2,7 @@ module PGN where
 
 import Board (searchIdx)
 import Chess (Status (..), determineStatus, isCheckMate, isInCheck, movePiece, playIfLegal, positionTree)
-import Control.Applicative (many, (<|>))
-import Data.Attoparsec.Text (Parser)
-import qualified Data.Attoparsec.Text as AT
-import Data.Functor (void)
-import Data.Maybe (fromMaybe)
-import Data.Text (Text, pack)
-import qualified Data.Text.IO as TIO
 import Move (colParser, playMoves, rowParser, squareParser)
-import NeatInterpolation
 import Position (
     Color (..),
     Move (..),
@@ -25,6 +17,16 @@ import Position (
     searchForPieces,
     startPosition,
  )
+
+import Control.Applicative (many, (<|>))
+import Data.Attoparsec.Text (Parser)
+import qualified Data.Attoparsec.Text as AT
+import Data.Functor (void)
+import Data.Maybe (fromMaybe)
+import Data.Text (Text, pack)
+import qualified Data.Text.IO as TIO
+import NeatInterpolation
+import Relude
 
 renderPgn :: Position -> Text
 renderPgn pos' =
@@ -91,7 +93,7 @@ renderCheck snp mover =
                 , pristineLongBlack = True
                 , toPlay = next mover
                 }
-     in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck snp (next mover) then "!" else ""
+     in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck snp (next mover) then "+" else ""
 
 renderProm :: Piece -> Text
 renderProm = (<>) "=" . renderPiece
@@ -201,13 +203,13 @@ pgnMoveParser pos =
             promPiece <- pieceParser c
             let fromS = before toS {col = fromCol} c
                 piece = Pawn c
-                squarePred = (==) fromS 
+                squarePred = (==) fromS
                 move = Promotion fromS toS promPiece
             either
                 fail
                 pure
                 ( findPiece pos piece squarePred toS
-                    >>= (\_ -> playIfLegal move pos)
+                    >> playIfLegal move pos
                 )
         shortPromParser = do
             -- e8=Q
@@ -216,14 +218,12 @@ pgnMoveParser pos =
             promPiece <- pieceParser c
             let fromS = before toS c
                 piece = Pawn c
-                squarePred = (==) fromS 
+                squarePred = (==) fromS
                 move = Promotion fromS toS promPiece
             either
                 fail
                 pure
-                ( findPiece pos piece squarePred toS
-                    >>= (\_ -> playIfLegal move pos)
-                )
+                (findPiece pos piece squarePred toS >> playIfLegal move pos)
         regularOfficerMoveParser = do
             -- Qd1g4
             _ <- pieceParser c

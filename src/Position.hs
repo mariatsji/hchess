@@ -1,16 +1,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Position where
+module Position(Color(..), Piece(..), Col(..), Row(..), Square(..), Snapshot(..), Position(..), Move(..), movedFrom, next, mkPosition, hash, unHash, startPosition, colr, findMove, findFrom, findTo) where
 
 import Board
-import Control.Parallel.Strategies (NFData)
+
 import Data.Aeson
-import Data.Bifunctor (first)
-import Data.List (elemIndex, find)
-import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
-import Data.Word (Word8)
-import GHC.Generics (Generic)
+import Data.List (elemIndex)
+import Text.Show (Show(..))
+import Relude hiding (show)
 
 data Color = White | Black
     deriving stock (Eq, Ord, Enum, Show, Generic)

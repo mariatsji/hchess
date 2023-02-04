@@ -3,13 +3,8 @@ module GameLoop where
 import AI (bestDeepEval)
 import AppContext (App, AppContext (blackDepth, perspective, whiteDepth, startFrom), World (..))
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Reader (asks)
-import Data.Text (Text, pack)
-import qualified Data.Text.IO as TIO
 import Evaluation (terminal)
 import Move (parsedMove, playMove)
-import Numeric (showFFloat)
 import PGN
 import Position (
     Color (Black, White),
@@ -17,7 +12,14 @@ import Position (
     startPosition,
  )
 import qualified Printer
+
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Reader (asks)
+import Data.Text (Text, pack)
+import qualified Data.Text.IO as TIO
+import Numeric (showFFloat)
 import Data.Maybe (fromMaybe)
+import Relude
 
 start :: Text -> App ()
 start "1" = do

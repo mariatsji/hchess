@@ -8,9 +8,6 @@ module Move (
 ) where
 
 import Chess (playIfLegal)
-import Control.Applicative ((<|>))
-import Data.Attoparsec.Text (Parser, char, parseOnly, string)
-import Data.Text (Text)
 import Position (
     Col,
     Color,
@@ -20,7 +17,12 @@ import Position (
     Row,
     Square (Square),
     startPosition,
+
  )
+import Control.Applicative ((<|>))
+import Data.Attoparsec.Text (Parser, char, parseOnly, string)
+import Data.Text (Text)
+import Relude
 
 parsedMove :: Position -> Text -> Either String Move
 parsedMove pos = parseOnly $ moveParser pos

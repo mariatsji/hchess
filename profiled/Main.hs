@@ -1,15 +1,17 @@
 module Main where
 
 import qualified AI
-import Data.Text (Text)
-import NeatInterpolation
 import PGN (parsePgn)
 import Position (startPosition)
+
+import Data.Text (Text)
+import NeatInterpolation
+import Relude
 
 main :: IO ()
 main = do
     -- let res = AI.bestDeepEval startPosition 2    16.8GB, 2.5s elapsed
-    --let res = positionTree startPosition -- 600K
+    -- let res = positionTree startPosition -- 600K
     let (_, _, status) = AI.bestDeepEval startPosition 2
     print status
 

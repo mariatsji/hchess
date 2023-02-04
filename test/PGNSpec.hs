@@ -1,11 +1,12 @@
 module PGNSpec where
 
-import Data.Text (Text)
-import NeatInterpolation
-import PGN (parsePgn, renderPgn)
-import Position (startPosition, Position(gamehistory), Square (Square), Piece (Pawn), Color (White))
-import Test.Hspec (Spec, describe, it, shouldBe)
 import Chess (pieceAt)
+import PGN (parsePgn, renderPgn)
+import Position (Color (White), Piece (Pawn), Position (gamehistory), Square (Square), startPosition)
+
+import NeatInterpolation
+import Relude
+import Test.Hspec
 
 spec :: Spec
 spec = do

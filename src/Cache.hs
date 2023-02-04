@@ -1,10 +1,12 @@
 module Cache (Cache, fresh, mkKey, insert, lookup') where
 
+import Evaluation (Evaluated)
+import Position (Color, Position (m, toPlay), Snapshot)
+
 import Data.Coerce (coerce)
 import Data.Multimap (Multimap)
 import qualified Data.Multimap as M
-import Evaluation (Evaluated)
-import Position (Color, Position (m, toPlay), Snapshot)
+import Relude
 
 type Key = (Snapshot, Color)
 

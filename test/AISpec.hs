@@ -4,7 +4,9 @@ import AI
 import Evaluation
 import Move
 import Position
+
 import Test.Hspec
+import Relude
 
 spec :: Spec
 spec = describe "AI" $ do

@@ -1,10 +1,12 @@
 module CacheSpec where
 
 import Cache
-import Test.Hspec
 import Position (startPosition)
 import Evaluation (evaluate')
 import Chess (positionTree)
+
+import Test.Hspec
+import Relude
 
 spec :: Spec
 spec = describe "Cache" $ do

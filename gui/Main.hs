@@ -1,31 +1,35 @@
 module Main where
 
-import Data.Text (Text)
 import GI.GdkPixbuf.Enums (InterpType (InterpTypeBilinear))
 import qualified GI.GdkPixbuf.Objects.Pixbuf as Pixbuf
 import qualified GI.Gtk as Gtk
 import qualified GI.Gtk.Objects.Fixed as Gtk.Fixed
---legacy drag, replace with DragSource!
---import qualified GI.Gtk.Objects.GestureClick as GestureClick
---import qualified GI.Gtk.Objects.Widget as Widget
-import qualified GI.Gtk.Objects.Window as Window
+
+-- legacy drag, replace with DragSource!
+-- import qualified GI.Gtk.Objects.GestureClick as GestureClick
+-- import qualified GI.Gtk.Objects.Widget as Widget
+
+import GI.Gdk.Flags (DragAction (..))
+import GI.Gdk.Objects.Drag (Drag (..))
+import qualified GI.Gio.Objects.Application as Gio
 import qualified GI.Gtk.Objects.DragSource as DragSource
 import GI.Gtk.Objects.Image (imageGetPaintable)
-import GI.Gdk.Flags (DragAction(..))
-import GI.Gdk.Objects.Drag (Drag(..))
+import qualified GI.Gtk.Objects.Window as Window
 
 import AI (bestDeepEval)
 import Chess (identifyMove, pieceAt, playIfLegal)
+import Position
+
 import Control.Monad (when)
 import Data.Foldable (traverse_)
 import Data.Functor (void)
 import Data.Int (Int32)
 import Data.Maybe (listToMaybe)
+import Data.Text (Text)
 import Data.Word (Word32)
 import GHC.Conc (TVar, newTVarIO, readTVarIO, writeTVar)
 import GHC.Conc.Sync (atomically)
-import qualified GI.Gio.Objects.Application as Gio
-import Position
+import Relude
 
 data World = World
     { world :: Position
@@ -127,7 +131,10 @@ drawSquare fixed mHighlight (sq@(Square c r), mPiece) = do
             DragSource.onDragSourceDragBegin dragSource dragBegin
             mPaintable <- imageGetPaintable pieceImage
             DragSource.dragSourceSetIcon
-                dragSource mPaintable 0 0
+                dragSource
+                mPaintable
+                0
+                0
             Gtk.widgetAddController fixed dragSource
 
             Gtk.Fixed.fixedPut

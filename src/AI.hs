@@ -8,10 +8,12 @@ import Chess (
     positionTree,
     (<-&->),
  )
-import Data.Foldable (maximumBy, minimumBy)
-import Data.Ord (comparing)
 import Evaluation (deepEval)
 import Position (Color (White), Position (toPlay), next)
+
+import Data.Foldable (maximumBy, minimumBy)
+import Data.Ord (comparing)
+import Relude
 
 -- black to move
 bestDeepEval :: Position -> Int -> (Maybe Position, Maybe Float, Status)

@@ -1,9 +1,11 @@
 module AppContext where
 
-import Control.Monad.Trans.Reader (ReaderT)
-import Data.Text (Text)
 import Position (Color, Position)
 import Style (Style)
+
+import Control.Monad.Trans.Reader (ReaderT)
+import Data.Text (Text)
+import Relude
 
 data AppContext = AppContext
     { analysis :: Bool -- print scores

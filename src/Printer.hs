@@ -3,6 +3,9 @@ module Printer (render, infoTexts, line, clearTopScreen, exitText) where
 import AppContext (App, AppContext (analysis, perspective), World (..), style)
 import Board (diff)
 import Chess (captures, pieceAt)
+import Position
+import Style
+
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Reader (asks)
@@ -14,8 +17,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import GHC.IO.Handle (hFlush)
 import Numeric (showFFloat)
-import Position
-import Style
+import Relude
 import qualified System.Console.ANSI as ANSI
 import System.IO (stdout)
 
