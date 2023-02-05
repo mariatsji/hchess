@@ -60,11 +60,11 @@ playIfLegal move pos = do
                     let moveAttempt = case move of
                             MovedPiece from to -> movePiece pos from to
                             EnPassant from to -> movePiece pos from to
-                            CastleShort -> case castle' CastleShort pos of
-                                (pos1 : _) -> pos1
+                            CastleShort -> case castle CastleShort pos of
+                                Just pos1 -> pos1
                                 _ -> error "castle short failed"
-                            CastleLong -> case castle' CastleLong pos of
-                                (pos1 : _) -> pos1
+                            CastleLong -> case castle CastleLong pos of
+                                Just pos1 -> pos1
                                 _ -> error "castle long failed"
                             Promotion from to piece -> movePiecePromote pos from to piece
                         tree = positionTree pos
@@ -131,48 +131,47 @@ positionTreeIgnoreCheck pos =
     let c = toPlay pos
         allPieceSquares = searchForPieces pos (const True) (\p -> colr p == c)
         prPiece = positionsPrPiece pos =<< allPieceSquares -- flipped
-        castled = castle pos -- flipped
+        castled = possibleCastles pos -- flipped
      in prPiece <> castled
 
 -- flips toPlay, does promotions too
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
-positionsPrPiece pos@(Position snp _ _ _ _ _ _) (s, p) = case p of
+positionsPrPiece pos@(Position snp _ _ _ _ _ _) (fromS, p) = case p of
     Pawn _ ->
-        let squares = toSquaresPawn pos s
-            positions =
-                squares
-                    >>= ( \t ->
-                            let fromSquare = s
-                                toSquare = fst t
-                                promRow = if toPlay pos == White then 8 else 1 -- todo reuse
-                             in case snd t of
-                                    Nothing ->
-                                        if row toSquare == promRow
-                                            then
-                                                let naive = movePiece pos fromSquare toSquare
-                                                    snap = m naive
-                                                    color = toPlay pos
-                                                    replaced piece = naive {m = replacePieceAt snap toSquare piece}
-                                                 in [ replaced (Rook color)
-                                                    , replaced (Knight color)
-                                                    , replaced (Bishop color)
-                                                    , replaced (Queen color)
-                                                    ]
-                                            else [movePiece pos fromSquare toSquare]
-                                    Just s' ->
-                                        [movePiece pos {m = removePieceAt snp s'} s toSquare] -- En passant
-                        )
-         in positions
-    Knight _ ->
-        fmap (movePiece pos s) (toSquaresKnight' (m pos) (toPlay pos) s)
-    Bishop _ ->
-        fmap (movePiece pos s) (toSquaresBishop' (m pos) (toPlay pos) s)
-    Rook _ ->
-        fmap (movePiece pos s) (toSquaresRook' (m pos) (toPlay pos) s)
-    Queen _ ->
-        fmap (movePiece pos s) (toSquaresQueen' (m pos) (toPlay pos) s)
-    King _ ->
-        fmap (movePiece pos s) (toSquaresKing' (m pos) (toPlay pos) s)
+        let squares = toSquaresPawn pos fromS
+         in squares
+                >>= ( \(toS, enPassantS) ->
+                        let promRow = if toPlay pos == White then 8 else 1 -- todo reuse
+                         in case enPassantS of
+                                Nothing ->
+                                    if row toS == promRow
+                                        then
+                                            let naive = movePiece pos fromS toS
+                                                snap = m naive
+                                                color = toPlay pos
+                                                replaced piece = naive {m = replacePieceAt snap toS piece}
+                                             in replaced
+                                                    <$> [ Rook color
+                                                        , Knight color
+                                                        , Bishop color
+                                                        , Queen color
+                                                        ]
+                                        else [movePiece pos fromS toS]
+                                Just enPasS ->
+                                    [movePiece pos {m = removePieceAt snp enPasS} fromS toS] -- En passant
+                    )
+    officer ->
+        movePiece pos fromS
+            <$> ( case officer of
+                    Knight _ -> toSquaresKnight'
+                    Bishop _ -> toSquaresBishop'
+                    Rook _ -> toSquaresRook'
+                    Queen _ -> toSquaresQueen'
+                    King _ -> toSquaresKing'
+                )
+                (m pos)
+                (toPlay pos)
+                fromS
 
 -- pawns - returns new squares, along with an optional capture square (because of en passant)
 toSquaresPawn :: Position -> Square -> [(Square, Maybe Square)]
@@ -264,35 +263,25 @@ digger nextCol nextRow !acc snp (Square c r) color
             Just p -> [Square c r | colr p == next color]
     | otherwise = acc
 
--- kings
-toSquaresKing :: Square -> [Square]
-toSquaresKing s =
-    [ squareTo s a b
-    | a <- [-1, 0, 1]
-    , b <- [-1, 0, 1]
-    , (a, b) /= (0, 0)
-    , insideBoard $ squareTo s a b
-    ]
-
 -- flips! todo this is in context of positionTree.. not after a Move
-castle :: Position -> [Position]
-castle pos@Position {..} =
+possibleCastles :: Position -> [Position]
+possibleCastles pos@Position {..} =
     case toPlay of
         White ->
             ( if pristineShortWhite
-                then castle' CastleShort pos
+                then maybeToList $ castle CastleShort pos
                 else []
             )
-                <> (if pristineLongWhite then castle' CastleLong pos else [])
+                <> (if pristineLongWhite then maybeToList (castle CastleLong pos) else [])
         Black ->
             ( if pristineShortBlack
-                then castle' CastleShort pos
+                then maybeToList $ castle CastleShort pos
                 else []
             )
-                <> (if pristineLongBlack then castle' CastleLong pos else [])
+                <> (if pristineLongBlack then maybeToList (castle CastleLong pos) else [])
 
-castle' :: Move -> Position -> [Position]
-castle' move pos =
+castle :: Move -> Position -> Maybe Position
+castle move pos =
     let color = toPlay pos
         kingSquare = kingPos color
         rookSquare = case move of
@@ -314,13 +303,12 @@ castle' move pos =
         newSnapshot = case move of
             CastleShort -> doCastleShort (m pos) color
             _ -> doCastleLong (m pos) color -- todo illegal state if not castle move
-     in ( [ mkPosition pos newSnapshot
-          | hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck -- todo error state ?
-          ]
-        )
+     in if hasKingAtHome && hasRookAtHome && vacantBetweenKingAndRook && isNotInCheck && wontPassCheck
+            then Just $ mkPosition pos newSnapshot
+            else Nothing
 
 none :: Foldable t => forall a. (a -> Bool) -> t a -> Bool
-none f = all (not . f)
+none f = not . any f
 
 doCastleShort :: Snapshot -> Color -> Snapshot
 doCastleShort pos c =

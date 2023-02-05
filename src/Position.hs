@@ -23,7 +23,6 @@ module Position (
     hash,
     unHash,
     startPosition,
-    colr,
     findMove,
     findFrom,
     findTo,
@@ -48,12 +47,18 @@ data Color = White | Black
     deriving anyclass (NFData, FromJSON, ToJSON)
 
 data Piece
-    = Pawn Color
-    | Knight Color
-    | Bishop Color
-    | Rook Color
-    | Queen Color
-    | King Color
+    = Pawn 
+        { colr :: Color }
+    | Knight 
+        { colr :: Color }
+    | Bishop 
+        { colr :: Color }
+    | Rook
+        { colr :: Color }
+    | Queen
+        { colr :: Color }
+    | King
+        { colr :: Color }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData, FromJSON, ToJSON)
 
@@ -165,14 +170,6 @@ hash (Square col row) = (fromIntegral row - 1) * 8 + (fromIntegral col - 1)
 
 unHash :: Word8 -> Square
 unHash i = Square ((fromIntegral i `rem` 8) + 1) ((fromIntegral i `quot` 8) + 1)
-
-colr :: Piece -> Color
-colr (Pawn c) = c
-colr (Knight c) = c
-colr (Bishop c) = c
-colr (Rook c) = c
-colr (Queen c) = c
-colr (King c) = c
 
 startPosition :: Position
 startPosition =

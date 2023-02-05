@@ -83,7 +83,7 @@ spec = do
             pristineLongBlack p `shouldBe` True
         it "includes long castles for black after intermittent pieces moved out in positionTree" $ do
             let Right p = Move.playMoves ["e2-e4", "b8-c6", "d1-g4", "b7-b6", "b1-c3", "c8-b7", "g1-f3", "e7-e6", "g4-g5", "d8-f6", "f1-d3"]
-            length (castle p) `shouldBe` 1
+            length (possibleCastles p) `shouldBe` 1
         it "includes long castles for black after intermittent pieces moved out" $ do
             let Right p = Move.playMoves ["e2-e4", "b8-c6", "d1-g4", "b7-b6", "b1-c3", "c8-b7", "g1-f3", "e7-e6", "g4-g5", "d8-f6", "f1-d3"]
             length (positionTree p) `shouldBe` 42
@@ -111,7 +111,7 @@ spec = do
                 m2 = removePieceAt m1 (Square 3 8)
                 m3 = removePieceAt m2 (Square 4 8)
                 p = Position m3 [m2, m1, m startPosition] True True True True Black
-                [c] = castle' CastleLong p
+                Just c = castle CastleLong p
             pieceAt c (Square 3 8) `shouldBe` Just (King Black)
             pieceAt c (Square 4 8) `shouldBe` Just (Rook Black)
         it "includes long castle for white in legal moves" $ do
@@ -146,8 +146,8 @@ spec = do
                         , (Square 3 3, Square 4 5)
                         , (Square 7 5, Square 7 2)
                         ]
-            let p2 = castle' CastleShort p
-            p2 `shouldBe` []
+            let p2 = castle CastleShort p
+            p2 `shouldBe` Nothing
         it "lets white castle from moves out of the opening" $ do
             let p =
                     makeMoves
