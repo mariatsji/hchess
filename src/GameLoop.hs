@@ -13,12 +13,9 @@ import Position (
  )
 import qualified Printer
 
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Reader (asks)
-import Data.Text (Text, pack)
+import Data.Text (pack)
 import qualified Data.Text.IO as TIO
 import Numeric (showFFloat)
-import Data.Maybe (fromMaybe)
 import Relude
 
 start :: Text -> App ()

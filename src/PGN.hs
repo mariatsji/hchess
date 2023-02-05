@@ -18,12 +18,9 @@ import Position (
     startPosition,
  )
 
-import Control.Applicative (many, (<|>))
 import Data.Attoparsec.Text (Parser)
 import qualified Data.Attoparsec.Text as AT
-import Data.Functor (void)
-import Data.Maybe (fromMaybe)
-import Data.Text (Text, pack)
+import Data.Text (pack)
 import qualified Data.Text.IO as TIO
 import NeatInterpolation
 import Relude

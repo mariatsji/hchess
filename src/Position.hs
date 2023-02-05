@@ -1,14 +1,47 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Position(Color(..), Piece(..), Col(..), Row(..), Square(..), Snapshot(..), Position(..), Move(..), movedFrom, next, mkPosition, hash, unHash, startPosition, colr, findMove, findFrom, findTo) where
+module Position (
+    Color (..),
+    Piece (..),
+    Col,
+    Row,
+    Square (..),
+    Snapshot,
+    Position (..),
+    Move (..),
+    epfromSquare,
+    eptoSquare,
+    replacePieceAt,
+    pieceAt',
+    searchForPieces,
+    removePieceAt,
+    movePiece',
+    movedFrom,
+    next,
+    mkPosition,
+    hash,
+    unHash,
+    startPosition,
+    colr,
+    findMove,
+    findFrom,
+    findTo,
+    (<$.>),
+    emptyBoard,
+    fromLetter,
+    toLetter,
+    movedTo,
+    toList'',
+    toList'
+) where
 
 import Board
 
 import Data.Aeson
 import Data.List (elemIndex)
-import Text.Show (Show(..))
 import Relude hiding (show)
+import Text.Show (Show (..))
 
 data Color = White | Black
     deriving stock (Eq, Ord, Enum, Show, Generic)
@@ -39,10 +72,10 @@ instance Show Square where
 
 -- todo hack
 toLetter :: Int -> Char
-toLetter c = ('x' : ['a' ..]) !! c
+toLetter c = fromMaybe (error "not a row") $ ('x' : ['a' ..]) !!? c
 
 fromLetter :: Char -> Int
-fromLetter c = fromMaybe (error $ "Col " <> show c <> " is not a column on a chess board") $ elemIndex c ('x' : ['a' ..])
+fromLetter c = fromMaybe (error $ "Col " <> toText (show c) <> " is not a column on a chess board") $ elemIndex c ('x' : ['a' ..])
 
 type Snapshot = Board (Maybe Piece)
 
@@ -202,7 +235,7 @@ startBlackPieces =
 movePiece' :: Snapshot -> Square -> Square -> Snapshot
 movePiece' snp from to = case snp ?! hash from of
     Nothing ->
-        error $ "should be a piece at " <> show from <> " in pos " <> show snp
+        error $ "should be a piece at " <> toText (show from) <> " in pos " <> toText (show snp)
     (Just piece) ->
         let without = removePieceAt snp from
          in replacePieceAt without to piece
@@ -263,7 +296,7 @@ findMove a b =
             2
                 | pawnMovedIn changedSquaresAndPiece a b -> Promotion (promfromSquare changedSquaresAndPiece) (promtoSquare changedSquaresAndPiece) (promtoPiece changedSquaresAndPiece)
                 | otherwise -> MovedPiece (findFrom b changedSquares) (findTo b changedSquares)
-            _ -> error $ "could not determine changed position when diff length " <> show (length changedSquares)
+            _ -> error $ "could not determine changed position when diff length " <> toText (show (length changedSquares))
 
 findFrom :: Snapshot -> [Square] -> Square
 findFrom _ [] = error "Could not find from square in snapshot"

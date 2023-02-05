@@ -6,20 +6,13 @@ import Chess (captures, pieceAt)
 import Position
 import Style
 
-import Control.Monad (when)
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Reader (asks)
 import qualified Data.ByteString.Char8 as UP
 import qualified Data.ByteString.UTF8 as UF
-import Data.Foldable (traverse_)
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import GHC.IO.Handle (hFlush)
 import Numeric (showFFloat)
 import Relude
 import qualified System.Console.ANSI as ANSI
-import System.IO (stdout)
 
 render :: World -> App ()
 render World {..} = do
@@ -120,9 +113,9 @@ prettyANSI pos = do
     style <- asks style
     liftIO $ do
         ANSI.setCursorPosition 5 0
-        let highlighted =
-                unHash <$.>
-                    if null $ gamehistory pos then [] else head (gamehistory pos) `diff` m pos
+        let highlighted = case gamehistory pos of
+                pos1 : _ -> unHash <$.> (pos1 `diff` m pos)
+                _ -> []
         ANSI.setSGR (fonts style)
         let rows = case perspective' of
                 White -> flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8] -- a8, b8 ..

@@ -4,7 +4,6 @@ import qualified AI
 import PGN (parsePgn)
 import Position (startPosition)
 
-import Data.Text (Text)
 import NeatInterpolation
 import Relude
 

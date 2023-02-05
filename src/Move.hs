@@ -19,10 +19,9 @@ import Position (
     startPosition,
 
  )
-import Control.Applicative ((<|>))
 import Data.Attoparsec.Text (Parser, char, parseOnly, string)
-import Data.Text (Text)
 import Relude
+import Data.Foldable (foldl)
 
 parsedMove :: Position -> Text -> Either String Move
 parsedMove pos = parseOnly $ moveParser pos

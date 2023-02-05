@@ -111,10 +111,9 @@ spec = do
                 m2 = removePieceAt m1 (Square 3 8)
                 m3 = removePieceAt m2 (Square 4 8)
                 p = Position m3 [m2, m1, m startPosition] True True True True Black
-                c = castle' CastleLong p
-            length c `shouldBe` (1 :: Int)
-            pieceAt (head c) (Square 3 8) `shouldBe` Just (King Black)
-            pieceAt (head c) (Square 4 8) `shouldBe` Just (Rook Black)
+                [c] = castle' CastleLong p
+            pieceAt c (Square 3 8) `shouldBe` Just (King Black)
+            pieceAt c (Square 4 8) `shouldBe` Just (Rook Black)
         it "includes long castle for white in legal moves" $ do
             let moves = ["d2-d4", "d7-d5", "b1-c3", "e7-e5", "b2-b3", "f7-f5", "c1-b2", "g7-g5", "d1-d2", "h7-h5"]
             let p' = Move.playMoves moves
@@ -217,8 +216,8 @@ spec = do
             length bPawnMoves `shouldBe` (0 :: Int)
         it "records gamehistory correctly" $ do
             let p1 = startPosition
-            let p2 = head $ positionTree startPosition
-            head (gamehistory p2) `shouldBe` m p1
+            let (p2:_) = positionTree startPosition
+            gamehistory p2 `shouldBe` [m p1]
         it "knows black is in check" $ do
             let Right p = playMoves ["e2-e4", "e7-e5", "f1-c4", "b8-c6", "d1-h5", "g8-f6", "h5-f7"]
             isInCheck (m p) Black `shouldBe` True
@@ -281,4 +280,5 @@ spec = do
             enPassant p (Square 1 5) `shouldBe` True
         it "finds enPassant in move form as well" $ do
             let Right p = playMoves ["b2-b4", "h7-h5", "b4-b5", "a7-a5", "b5-a6"]
-            findMove (head (gamehistory p)) (m p) `shouldBe` EnPassant (Square 2 5) (Square 1 6)
+                (lastMove : _) = gamehistory p
+            findMove lastMove (m p) `shouldBe` EnPassant (Square 2 5) (Square 1 6)

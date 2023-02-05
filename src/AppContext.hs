@@ -3,8 +3,6 @@ module AppContext where
 import Position (Color, Position)
 import Style (Style)
 
-import Control.Monad.Trans.Reader (ReaderT)
-import Data.Text (Text)
 import Relude
 
 data AppContext = AppContext

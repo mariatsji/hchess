@@ -20,13 +20,10 @@ import Chess (
  )
 import Position
 
-import Control.DeepSeq (force)
 import Control.Parallel (par)
-import Control.Parallel.Strategies (NFData)
-import Data.Maybe (fromMaybe)
 import GHC.Conc (pseq)
-import GHC.Generics (Generic)
 import Relude
+import Data.List (maximum, minimum)
 
 data Evaluated = Evaluated
     { pos :: Position
@@ -59,8 +56,8 @@ terminal = flip elem [WhiteIsMate, BlackIsMate, Remis, WhiteResigns, BlackResign
 
 singleBest' :: Color -> [Float] -> Maybe Float
 singleBest' _ [] = Nothing
-singleBest' White fs = Just $ maximum fs
-singleBest' Black fs = Just $ minimum fs
+singleBest' White (f:fs) = Just $ maximum (f:fs)
+singleBest' Black (f:fs) = Just $ minimum (f:fs)
 
 evaluate' :: Position -> Evaluated
 evaluate' pos =

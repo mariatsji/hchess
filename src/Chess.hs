@@ -6,15 +6,12 @@ module Chess where
 import Board (diff, searchIdx)
 import Position
 
-import GHC.Generics (Generic)
-import Control.DeepSeq (force)
 import Control.Parallel (par, pseq)
-import Control.Parallel.Strategies (NFData)
-import Data.List
-import Data.Maybe (isNothing)
+import Data.Foldable (foldl)
+import Data.List (tail)
 import qualified Data.Set as Set
 import qualified Debug.Trace as Debug
-import Relude
+import Relude hiding (tail)
 
 data Status
     = WhiteToPlay
@@ -63,8 +60,12 @@ playIfLegal move pos = do
                     let moveAttempt = case move of
                             MovedPiece from to -> movePiece pos from to
                             EnPassant from to -> movePiece pos from to
-                            CastleShort -> head $ castle' CastleShort pos -- todo head..
-                            CastleLong -> head $ castle' CastleLong pos -- todo head..
+                            CastleShort -> case castle' CastleShort pos of
+                                (pos1 : _) -> pos1
+                                _ -> error "castle short failed"
+                            CastleLong -> case castle' CastleLong pos of
+                                (pos1 : _) -> pos1
+                                _ -> error "castle long failed"
                             Promotion from to piece -> movePiecePromote pos from to piece
                         tree = positionTree pos
                         isAmongLegalMoves = any (eqPosition moveAttempt) tree
@@ -196,7 +197,7 @@ toSquaresPawn pos s@(Square c r)
 enPassant :: Position -> Square -> Bool
 enPassant Position {..} captureSquare@(Square _ r) =
     let rightRow = r == if toPlay == White then 5 else 4
-        di = m `diff` head gamehistory
+        di = m `diff` fromMaybe m (gamehistory !!? 0)
         fromSquare = squareTo captureSquare 0 (if toPlay == White then 2 else -2)
         opPawn = Just $ Pawn (next toPlay)
         jumpedHereJustNow = Set.fromList di == Set.fromList [(hash fromSquare, opPawn), (hash captureSquare, Nothing)]
@@ -299,6 +300,7 @@ castle' move pos =
             _ -> longRookPos color -- todo illegal state if not castle move
         hasKingAtHome = pieceAt pos kingSquare == Just (King color)
         hasRookAtHome = pieceAt pos rookSquare == Just (Rook color)
+        relevantSquares :: [Square]
         relevantSquares = case (color, move) of
             (White, CastleShort) -> [Square 6 1, Square 7 1]
             (White, CastleLong) -> [Square 2 1, Square 3 1, Square 4 1]
@@ -431,10 +433,11 @@ infixr 4 <-&->
 
 captures :: Color -> Position -> [Piece]
 captures capturer Position {..} =
-    let chronological = reverse $ m : gamehistory
+    let chronological = reverse (m : gamehistory)
         transitions = chronological `zip` tail chronological
         f = if capturer == White then odd else even
-        relevantTransitions = snd <$> filter (f . fst) ([1 :: Int ..] `zip` transitions)
+        idx = (1 :: Int) : [2 ..]
+        relevantTransitions = snd <$> filter (f . fst) (idx `zip` transitions)
         checker from s newPiece = case pieceAt' from (unHash s) of
             Just oldPiece ->
                 [ oldPiece
