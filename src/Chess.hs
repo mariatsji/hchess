@@ -378,7 +378,7 @@ isDraw pos ptree = threefoldrepetition pos || isPatt pos ptree
 
 threefoldrepetition :: Position -> Bool
 threefoldrepetition Position {..} =
-    let occurrences = length $ filter (== m) gamehistory
+    let occurrences = length $ filter (== m) gamehistory -- todo also check toPlay is the same, castling rights the same and enpassant-moves are the same
      in occurrences > 2
 
 eqPosition :: Position -> Position -> Bool
