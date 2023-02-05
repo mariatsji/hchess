@@ -1,26 +1,27 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Tree (set, Tree, (?!), empty64, searchIdx, diff) where
+-- moves 80% more memory and uses 15-33% more time in profiling, compared to Board.hs
+module Tree (set, Board, (?!), empty64, searchIdx, diff) where
 
 import Data.Bits (Bits (shift, testBit))
 import Relude
 
-data Tree a = Leaf a | Node (Tree a) (Tree a)
+data Board a = Leaf a | Node (Board a) (Board a)
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 
-instance Functor Tree where
+instance Functor Board where
     fmap f (Leaf x) = Leaf (f x)
     fmap f (Node x y) = Node (fmap f x) (fmap f y)
 
-instance Semigroup (Tree a) where
+instance Semigroup (Board a) where
     (<>) = Node
 
-instance Foldable Tree where
+instance Foldable Board where
     foldr f b (Leaf a) = f a b
     foldr f b (Node t1 t2) = b `seq` foldr f (foldr f b t2) t1
 
-set :: Tree a -> Word8 -> a -> Tree a
+set :: Board a -> Word8 -> a -> Board a
 set (Leaf _) _ y = Leaf y
 set (Node l r) i y =
     let newI = shift i (-1)
@@ -28,7 +29,7 @@ set (Node l r) i y =
             then Node l (set r newI y)
             else Node (set l newI y) r
 
-(?!) :: Tree a -> Word8 -> a
+(?!) :: Board a -> Word8 -> a
 (?!) (Leaf x) _ = x
 (?!) (Node l r) i =
     if testBit i 0
@@ -38,10 +39,10 @@ set (Node l r) i y =
 infixr 9 ?!
 
 -- The two predicates are ANDed together - one based on Square and one based on Maybe Piece (could be smashed into one predicate, couldn't it?)
-searchIdx :: NFData a => Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
+searchIdx :: NFData a => Board a -> (Word8 -> Bool) -> (a -> Bool) -> [(Word8, a)]
 searchIdx tree' idxPred piecePred = go tree' idxPred piecePred []
   where
-    go :: NFData a => Tree a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
+    go :: NFData a => Board a -> (Word8 -> Bool) -> (a -> Bool) -> [Bool] -> [(Word8, a)]
     go (Leaf x) ip pp path =
         let bitify = bits6toNum path
          in [(bitify, x) | pp x && ip bitify]
@@ -63,12 +64,12 @@ bits6toNum [a, b, c, d, e, f] =
             <> (if a then Sum 32 else Sum 0)
 bits6toNum x = error $ "Cannot consider " <> show x <> " as 6 bits"
 
-empty64 :: a -> Tree a
+empty64 :: a -> Board a
 empty64 = go 6
   where
-    go :: Word8 -> a -> Tree a
+    go :: Word8 -> a -> Board a
     go 0 x = Leaf x
     go n x = Node (go (n - 1) x) (go (n - 1) x)
 
-diff :: (NFData a, Eq a) => Tree a -> Tree a -> [(Word8, a)]
+diff :: (NFData a, Eq a) => Board a -> Board a -> [(Word8, a)]
 diff a b = searchIdx b (\w8 -> a ?! w8 /= b ?! w8) (const True)
