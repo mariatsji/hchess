@@ -15,7 +15,7 @@ import Position (
     next,
     pieceAt',
     searchForPieces,
-    startPosition,
+    startPosition, toPlay,
  )
 
 import Data.Attoparsec.Text (Parser)
@@ -88,7 +88,6 @@ renderCheck snp mover =
                 , pristineLongWhite = True
                 , pristineShortBlack = True
                 , pristineLongBlack = True
-                , toPlay = next mover
                 }
      in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck snp (next mover) then "+" else ""
 

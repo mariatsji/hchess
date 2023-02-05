@@ -9,7 +9,7 @@ import Chess (
     (<-&->),
  )
 import Evaluation (deepEval)
-import Position (Color (White), Position (toPlay), next)
+import Position (Color (White), Position, toPlay, next)
 
 import Data.Foldable (maximumBy, minimumBy)
 import Relude

@@ -32,7 +32,8 @@ module Position (
     toLetter,
     movedTo,
     toList'',
-    toList'
+    toList',
+    toPlay,
 ) where
 
 import Board
@@ -47,18 +48,18 @@ data Color = White | Black
     deriving anyclass (NFData, FromJSON, ToJSON)
 
 data Piece
-    = Pawn 
-        { colr :: Color }
-    | Knight 
-        { colr :: Color }
-    | Bishop 
-        { colr :: Color }
+    = Pawn
+        {colr :: Color}
+    | Knight
+        {colr :: Color}
+    | Bishop
+        {colr :: Color}
     | Rook
-        { colr :: Color }
+        {colr :: Color}
     | Queen
-        { colr :: Color }
+        {colr :: Color}
     | King
-        { colr :: Color }
+        {colr :: Color}
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData, FromJSON, ToJSON)
 
@@ -91,7 +92,6 @@ data Position = Position
     , pristineLongWhite :: Bool
     , pristineShortBlack :: Bool
     , pristineLongBlack :: Bool
-    , toPlay :: Color
     }
     deriving (Eq, Show, Generic)
     deriving anyclass (NFData)
@@ -104,6 +104,9 @@ data Move
     | EnPassant Square Square
     deriving stock (Eq, Generic)
     deriving anyclass (NFData)
+
+toPlay :: Position -> Color
+toPlay Position {..} = if even (length gamehistory) then White else Black
 
 -- need Color because of castle notation is colorless atm..
 movedFrom :: Move -> Color -> Square
@@ -162,7 +165,6 @@ mkPosition pos@Position {..} snp =
             , pristineLongWhite = pristineLongWhite && not whiteKingSuddled && not whiteLongRookSuddled
             , pristineShortBlack = pristineShortBlack && not blackKingSuddled && not blackShortRookSuddled
             , pristineLongBlack = pristineLongBlack && not blackKingSuddled && not blackLongRookSuddled
-            , toPlay = next toPlay
             }
 
 hash :: Square -> Word8
@@ -180,7 +182,6 @@ startPosition =
         , pristineLongWhite = True
         , pristineShortBlack = True
         , pristineLongBlack = True
-        , toPlay = White
         }
 
 startTree :: Snapshot
@@ -272,7 +273,7 @@ catSndMaybes = mapMaybe sequenceA
 infixl 9 <$.>
 
 emptyBoard :: Position
-emptyBoard = Position (empty64 Nothing) [] True True True True White
+emptyBoard = Position (empty64 Nothing) [] True True True True
 
 -- [(35,Nothing),(36,Nothing),(43,Just (Pawn White))] (d5,e5,d6)
 findMove :: Snapshot -> Snapshot -> Move

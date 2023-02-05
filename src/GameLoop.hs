@@ -8,7 +8,8 @@ import Move (parsedMove, playMove)
 import PGN
 import Position (
     Color (Black, White),
-    Position (toPlay),
+    Position,
+    toPlay,
     startPosition,
  )
 import qualified Printer

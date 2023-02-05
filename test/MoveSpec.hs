@@ -50,7 +50,7 @@ spec = do
             let p1 = replacePieceAt (m emptyBoard) (Square 8 8) (King Black)
             let p2 = replacePieceAt p1 (Square 5 1) (King White)
             let p3 = replacePieceAt p2 (Square 8 7) (Pawn White)
-            let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], pristineLongWhite = True, pristineShortWhite = True, pristineShortBlack = True, pristineLongBlack = True, toPlay = Black}
+            let t = positionTreeIgnoreCheck Position {m = p3, gamehistory = [m emptyBoard], pristineLongWhite = True, pristineShortWhite = True, pristineShortBlack = True, pristineLongBlack = True}
             length t `shouldBe` (3 :: Int)
         it "knows that white is in check" $ do
             let p' = Move.playMoves ["e2-e4", "d7-d5", "e4-d5", "d8-d5", "h2-h4", "d5-e5"]
@@ -110,7 +110,7 @@ spec = do
             let m1 = removePieceAt (m startPosition) (Square 2 8)
                 m2 = removePieceAt m1 (Square 3 8)
                 m3 = removePieceAt m2 (Square 4 8)
-                p = Position m3 [m2, m1, m startPosition] True True True True Black
+                p = Position m3 [m2, m1, m startPosition] True True True True
                 Just c = castle CastleLong p
             pieceAt c (Square 3 8) `shouldBe` Just (King Black)
             pieceAt c (Square 4 8) `shouldBe` Just (Rook Black)

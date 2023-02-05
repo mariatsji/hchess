@@ -1,7 +1,7 @@
 module Cache (Cache, fresh, mkKey, insert, lookup') where
 
 import Evaluation (Evaluated)
-import Position (Color, Position (m, toPlay), Snapshot)
+import Position (Color, Position (m), toPlay, Snapshot)
 
 import Data.Multimap (Multimap)
 import qualified Data.Multimap as M

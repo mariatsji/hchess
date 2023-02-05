@@ -76,7 +76,7 @@ playIfLegal move pos = do
 
 -- flips toPlay
 movePiece :: Position -> Square -> Square -> Position
-movePiece pos@(Position m' _ _ _ _ _ _) from@(Square fc _) to@(Square tc tr)
+movePiece pos@(Position m' _ _ _ _ _) from@(Square fc _) to@(Square tc tr)
     | pieceAt pos from == Just (Pawn White) && (fc /= tc) && vacantAt pos to =
         let newSnapshot =
                 movePiece' (removePieceAt m' (Square tc (tr - 1))) from to -- todo danger (tr - 1)
@@ -136,7 +136,7 @@ positionTreeIgnoreCheck pos =
 
 -- flips toPlay, does promotions too
 positionsPrPiece :: Position -> (Square, Piece) -> [Position]
-positionsPrPiece pos@(Position snp _ _ _ _ _ _) (fromS, p) = case p of
+positionsPrPiece pos@(Position snp _ _ _ _ _) (fromS, p) = case p of
     Pawn _ ->
         let squares = toSquaresPawn pos fromS
          in squares
@@ -194,11 +194,11 @@ toSquaresPawn pos s@(Square c r)
 -- en passant
 -- the square arg is the capture square
 enPassant :: Position -> Square -> Bool
-enPassant Position {..} captureSquare@(Square _ r) =
-    let rightRow = r == if toPlay == White then 5 else 4
+enPassant pos@Position {..} captureSquare@(Square _ r) =
+    let rightRow = r == if toPlay pos == White then 5 else 4
         di = m `diff` fromMaybe m (gamehistory !!? 0)
-        fromSquare = squareTo captureSquare 0 (if toPlay == White then 2 else -2)
-        opPawn = Just $ Pawn (next toPlay)
+        fromSquare = squareTo captureSquare 0 (if toPlay pos == White then 2 else -2)
+        opPawn = Just $ Pawn (next $ toPlay pos)
         jumpedHereJustNow = Set.fromList di == Set.fromList [(hash fromSquare, opPawn), (hash captureSquare, Nothing)]
      in not (null gamehistory) && rightRow && jumpedHereJustNow
 
@@ -266,7 +266,7 @@ digger nextCol nextRow !acc snp (Square c r) color
 -- flips! todo this is in context of positionTree.. not after a Move
 possibleCastles :: Position -> [Position]
 possibleCastles pos@Position {..} =
-    case toPlay of
+    case toPlay pos of
         White ->
             ( if pristineShortWhite
                 then maybeToList $ castle CastleShort pos
@@ -382,7 +382,7 @@ threefoldrepetition Position {..} =
      in occurrences > 2
 
 eqPosition :: Position -> Position -> Bool
-eqPosition (Position m1 _ _ _ _ _ _) (Position m2 _ _ _ _ _ _) = m1 == m2
+eqPosition (Position m1 _ _ _ _ _) (Position m2 _ _ _ _ _) = m1 == m2
 
 isPatt :: Position -> [Position] -> Bool
 isPatt pos positiontree = null positiontree && not (isInCheck (m pos) (toPlay pos))
