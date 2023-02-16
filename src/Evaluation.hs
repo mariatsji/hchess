@@ -20,10 +20,11 @@ import Chess (
  )
 import Position
 
+import Board (searchIdx)
 import Control.Parallel (par)
+import Data.List (maximum, minimum)
 import GHC.Conc (pseq)
 import Relude
-import Data.List (maximum, minimum)
 
 data Evaluated = Evaluated
     { pos :: Position
@@ -56,8 +57,8 @@ terminal = flip elem [WhiteIsMate, BlackIsMate, Remis, WhiteResigns, BlackResign
 
 singleBest' :: Color -> [Float] -> Maybe Float
 singleBest' _ [] = Nothing
-singleBest' White (f:fs) = Just $ maximum (f:fs)
-singleBest' Black (f:fs) = Just $ minimum (f:fs)
+singleBest' White (f : fs) = Just $ maximum (f : fs)
+singleBest' Black (f : fs) = Just $ minimum (f : fs)
 
 evaluate' :: Position -> Evaluated
 evaluate' pos =
@@ -70,6 +71,8 @@ evaluate' pos =
                 then Evaluated pos 0.0 Remis
                 else Evaluated pos (evaluate (m pos)) playOn
 
+-- ideas:
+-- trade when leading
 evaluate :: Snapshot -> Float
 evaluate = caf
   where
@@ -83,7 +86,7 @@ evaluate = caf
                             impactVal = force $ impactArea snp pie (unHash w)
                          in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
             )
-            0
+            (bishopPair snp)
             (toList' snp)
 
 valueOf :: Piece -> Float
@@ -113,3 +116,9 @@ impactArea snp (Rook c) s =
 impactArea snp (Queen c) s =
     let reachables = fromIntegral . length $ toSquaresQueen' snp c s
      in colorFactor c * reachables * 0.01
+
+bishopPair :: Snapshot -> Float
+bishopPair snp =
+    let whiteBishops = searchIdx snp (const True) (== Just (Bishop White))
+        blackBishops = searchIdx snp (const True) (== Just (Bishop Black))
+     in (if length whiteBishops == 2 then 0.25 else 0.00) - (if length blackBishops == 2 then 0.25 else 0.00)
