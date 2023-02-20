@@ -286,20 +286,28 @@ castle move pos =
         kingSquare = kingPos color
         rookSquare = case move of
             CastleShort -> shortRookPos color
-            _ -> longRookPos color -- todo illegal state if not castle move
+            CastleLong -> longRookPos color -- todo illegal state if not castle move
+            otherMove -> error $ "cant ask for a castle when we want move " <> show otherMove
         hasKingAtHome = pieceAt pos kingSquare == Just (King color)
         hasRookAtHome = pieceAt pos rookSquare == Just (Rook color)
-        relevantSquares :: [Square]
-        relevantSquares = case (color, move) of
+        mustNotBeInCheckAtSquares :: [Square]
+        mustNotBeInCheckAtSquares = case (color, move) of
             (White, CastleShort) -> [Square 6 1, Square 7 1]
-            (White, CastleLong) -> [Square 2 1, Square 3 1, Square 4 1]
+            (White, CastleLong) -> [Square 4 1, Square 3 1]
             (Black, CastleShort) -> [Square 6 8, Square 7 8]
-            (Black, CastleLong) -> [Square 2 8, Square 3 8, Square 4 8]
+            (Black, CastleLong) -> [Square 4 8, Square 3 8]
             _ -> []
-        vacantBetweenKingAndRook = all (vacantAt pos) relevantSquares
+        mustBeEmptySquares :: [Square]
+        mustBeEmptySquares = mustNotBeInCheckAtSquares <> case (color, move) of
+            (White, CastleShort) -> []
+            (White, CastleLong) -> [Square 2 1]
+            (Black, CastleShort) -> []
+            (Black, CastleLong) -> [Square 2 8]
+            _ -> []
+        vacantBetweenKingAndRook = all (vacantAt pos) mustBeEmptySquares
         fakesnp s = removePieceAt (replacePieceAt (m pos) s (King color)) kingSquare
         isNotInCheck = not (isInCheck (m pos) color)
-        wontPassCheck = none (`isInCheck` color) (fakesnp <$> relevantSquares)
+        wontPassCheck = none (`isInCheck` color) (fakesnp <$> mustNotBeInCheckAtSquares)
         newSnapshot = case move of
             CastleShort -> doCastleShort (m pos) color
             _ -> doCastleLong (m pos) color -- todo illegal state if not castle move

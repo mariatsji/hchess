@@ -2,11 +2,12 @@ module PGNSpec where
 
 import Chess (pieceAt)
 import PGN (parsePgn, renderPgn)
-import Position (Color (White), Piece (Pawn), Position (gamehistory), Square (Square), startPosition)
+import Position (Color (White), Piece (Pawn, King), Position (gamehistory), Square (Square), startPosition)
 
 import NeatInterpolation
 import Relude
 import Test.Hspec
+import Move (playMove)
 
 spec :: Spec
 spec = do
@@ -21,6 +22,11 @@ spec = do
             let Right pos = parsePgn enPassant
             pieceAt pos (Square 1 5) `shouldBe` Nothing
             pieceAt pos (Square 1 6) `shouldBe` Just (Pawn White)
+        it "can castle long of a specific position" $ do
+            let Right pos = parsePgn castleLongFailed
+                Right castled = playMove "O-O-O" pos
+            pieceAt castled (Square 3 1) `shouldBe` Just (King White)
+
 
 longPgn :: Text
 longPgn =
@@ -47,4 +53,18 @@ enPassant =
 [Result "*"]
 
 1. b2b4 h7h5 2. b4b5 a7a5 3. b5xa6 *
+    |]
+
+castleLongFailed :: Text
+castleLongFailed =
+    [text|
+[Event "hChess match"]
+[Site "In front of computer"]
+[Date "2022-12-13"]
+[Round "1"]
+[White "Humanoid Contender"]
+[Black "Computer"]
+[Result "*"]
+
+1. c2c4 e7e6 2. d2d4 Qd8h4 3. Ng1f3 Bf8b4+ 4. Bc1d2 Bb4xd2+ 5. Qd1xd2 Qh4h5 6. Nb1c3 Qh5f5 *    
     |]
