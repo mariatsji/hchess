@@ -17,7 +17,7 @@ import Relude
 main :: IO ()
 main = do
     ANSI.clearScreen
-    ANSI.setCursorPosition 0 0
+    ANSI.setCursorPosition 5 0
     ANSI.setTitle "hChess"
     putStrLn "1 Human vs Human"
     putStrLn "2 Human vs Machine"

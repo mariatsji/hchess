@@ -38,10 +38,10 @@ start "2" = do
     Printer.clearTopScreen
     case perspective' of
         White -> do
-            depth <- asks whiteDepth
+            depth <- asks blackDepth
             gameLoopHM timeText (fromMaybe startPosition pos) depth
         Black -> do
-            depth <- asks blackDepth
+            depth <- asks whiteDepth
             let (Just opening, _, _) = AI.bestDeepEval (fromMaybe startPosition pos) depth
             gameLoopHM timeText opening depth
 start "3" = do

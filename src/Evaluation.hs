@@ -73,11 +73,8 @@ evaluate' pos =
 
 -- ideas:
 -- trade when leading
-evaluate :: Snapshot -> Float
-evaluate = caf
-  where
-    caf snp =
-        foldr
+_evaluateSlow :: Snapshot -> Float
+_evaluateSlow snp = foldr
             ( \(w, mP) acc ->
                 case mP of
                     Nothing -> acc
@@ -88,6 +85,14 @@ evaluate = caf
             )
             (bishopPair snp)
             (toList' snp)
+
+-- much faster evaluate function
+evaluate :: Snapshot -> Float
+evaluate snp=
+    sum $ fmap
+      (maybe 0 valueOf)
+      snp
+
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = colorFactor c * 1.0
