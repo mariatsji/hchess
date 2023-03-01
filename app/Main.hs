@@ -72,8 +72,4 @@ findPGN params = do
                 _ -> pure Nothing
 
 pgnLocation :: Parser FilePath
-pgnLocation = do
-    _ <- AT.string "pgn="
-    loc <- AT.takeTill (== '.')
-    _ <- AT.string ".pgn"
-    pure $ unpack loc <> ".pgn"
+pgnLocation = unpack <$> AT.string "pgn=" *> AT.many1 AT.anyChar

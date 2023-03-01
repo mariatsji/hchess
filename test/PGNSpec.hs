@@ -12,9 +12,13 @@ import Move (playMove)
 spec :: Spec
 spec = do
     describe "PGN" $ do
+            
         it "renders PGN of a position, and back into a position" $ do
             let pgn = renderPgn "2023-02-28" "Joe" "Jim" startPosition
             parsePgn pgn `shouldBe` Right startPosition
+        it "parses a sicilian PGN" $ do
+            let Right pos = parsePgn sicilian
+            length (gamehistory pos) `shouldBe` 2
         it "parses a long game PGN into a position" $ do
             let Right pos = parsePgn longPgn
             length (gamehistory pos) `shouldBe` 159
@@ -26,6 +30,20 @@ spec = do
             let Right pos = parsePgn castleLongFailed
                 Right castled = playMove "O-O-O" pos
             pieceAt castled (Square 3 1) `shouldBe` Just (King White)
+
+sicilian :: Text
+sicilian =
+    [text|
+[Event "hChess match"]
+[Site "In front of computer"]
+[Date "2023-03-01T08:19:39.895296Z"]
+[Round "1"]
+[White "human"]
+[Black "computer"]
+[Result "*"]
+
+1. e2e4 e7e5 *   
+|]
 
 
 longPgn :: Text

@@ -29,7 +29,7 @@ start "1" = do
     Printer.clearTopScreen
     Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
     pos <- asks startFrom
-    gameLoopHH  timeText $ fromMaybe startPosition pos
+    gameLoopHH timeText $ fromMaybe startPosition pos
 start "2" = do
     time <- liftIO getCurrentTime
     let timeText = T.pack $ iso8601Show time
