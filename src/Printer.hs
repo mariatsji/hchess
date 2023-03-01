@@ -17,10 +17,11 @@ import qualified System.Console.ANSI as ANSI
 render :: World -> App ()
 render World {..} = do
     title wTitle -- line 1
-    maybe (pure ()) prettyANSI wPos -- 5 to 13
-    renderScore wScore -- 14
-    infoTexts wInfo -- 15 and 16
+    maybe (pure ()) prettyANSI wPos -- 3 to 11
+    renderScore wScore -- 12
+    infoTexts wInfo -- 13 and 14
     maybe (pure ()) renderCaptures wPos
+    -- input at line 18
 
 renderCaptures :: Position -> App ()
 renderCaptures pos = do
@@ -31,8 +32,8 @@ renderCaptures pos = do
         blacksCaptures = captures Black pos
     liftIO $
         if perspective == White
-            then ANSI.setCursorPosition 5 26
-            else ANSI.setCursorPosition 12 26
+            then ANSI.setCursorPosition 3 26
+            else ANSI.setCursorPosition 10 26
     traverse_
         ( \p -> liftIO do
             let (pieceString, style') = prettyPiece style (Just p)
@@ -42,8 +43,8 @@ renderCaptures pos = do
         blacksCaptures
     liftIO $
         if perspective == White
-            then ANSI.setCursorPosition 12 26
-            else ANSI.setCursorPosition 5 26
+            then ANSI.setCursorPosition 10 26
+            else ANSI.setCursorPosition 3 26
     traverse_
         ( \p -> liftIO do
             let (pieceString, style') = prettyPiece style (Just p)
@@ -58,7 +59,7 @@ renderScore Nothing = pure ()
 renderScore (Just s) = do
     showAnalysis <- asks analysis
     liftIO $ do
-        ANSI.setCursorPosition 14 0
+        ANSI.setCursorPosition 12 0
         when showAnalysis $ putStrLn $ formatFloatN s
   where
     formatFloatN floatNum = showFFloat (Just 2) floatNum ""
@@ -83,18 +84,18 @@ infoTexts _ = pure ()
 exitText :: Text -> App ()
 exitText t = do
     liftIO $ do
-        ANSI.setCursorPosition 22 0
+        ANSI.setCursorPosition 18 0
         putStrLn $ T.unpack t
 
 clearTopScreen :: App ()
 clearTopScreen = do
     liftIO $ do
-        ANSI.setCursorPosition 4 0
+        ANSI.setCursorPosition 2 0
         ANSI.clearFromCursorToScreenBeginning
 
 clearInfo :: App ()
 clearInfo = liftIO $ do
-    ANSI.setCursorPosition 22 0
+    ANSI.setCursorPosition 18 0
     ANSI.clearLine
     ANSI.setCursorPosition infoLineX infoLineY
     ANSI.clearLine
@@ -102,7 +103,7 @@ clearInfo = liftIO $ do
     ANSI.clearLine
 
 infoLineX :: Int
-infoLineX = 15
+infoLineX = 13
 
 infoLineY :: Int
 infoLineY = 0
@@ -112,7 +113,7 @@ prettyANSI pos = do
     perspective' <- asks perspective
     style <- asks style
     liftIO $ do
-        ANSI.setCursorPosition 5 0
+        ANSI.setCursorPosition 3 0
         let highlighted = case gamehistory pos of
                 pos1 : _ -> unHash <$.> (pos1 `diff` m pos)
                 _ -> []
@@ -150,7 +151,7 @@ prettyANSI pos = do
 line :: App Text
 line = do
     liftIO $ do
-        ANSI.setCursorPosition 22 0
+        ANSI.setCursorPosition 18 0
         ANSI.clearLine
         hFlush stdout
         TIO.getLine
