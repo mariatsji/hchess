@@ -122,6 +122,9 @@ prettyANSI pos = do
                 Black -> flip Square <$> [1 :: Int .. 8] <*> [1 :: Int .. 8] -- a1, b1 ..
         mapM_
             ( \(Square c r) -> do
+                when (c == 1) $ do
+                    ANSI.setSGR (fonts style)
+                    UP.putStr $ show r <> " "
                 let mP = pieceAt pos (Square c r)
                 if Square c r `elem` (fst <$> highlighted)
                     then ANSI.setSGR (highlightedSquare style)
@@ -132,15 +135,16 @@ prettyANSI pos = do
 
                 let (pieceString, style') = prettyPiece style mP
                 ANSI.setSGR style'
+
                 ( if c == 8
                         then UP.putStrLn
                         else UP.putStr
                     )
                     $ " " <> UF.fromString pieceString <> " "
-
                 ANSI.setSGR (fonts style)
             )
             rows
+        UP.putStrLn "   a  b  c  d  e  f  g  h "
         ANSI.setSGR (fonts style)
 
 line :: App Text
