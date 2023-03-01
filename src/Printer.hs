@@ -32,8 +32,8 @@ renderCaptures pos = do
         blacksCaptures = captures Black pos
     liftIO $
         if perspective == White
-            then ANSI.setCursorPosition 3 26
-            else ANSI.setCursorPosition 10 26
+            then ANSI.setCursorPosition 3 28
+            else ANSI.setCursorPosition 10 28
     traverse_
         ( \p -> liftIO do
             let (pieceString, style') = prettyPiece style (Just p)
@@ -43,8 +43,8 @@ renderCaptures pos = do
         blacksCaptures
     liftIO $
         if perspective == White
-            then ANSI.setCursorPosition 10 26
-            else ANSI.setCursorPosition 3 26
+            then ANSI.setCursorPosition 10 28
+            else ANSI.setCursorPosition 3 28
     traverse_
         ( \p -> liftIO do
             let (pieceString, style') = prettyPiece style (Just p)

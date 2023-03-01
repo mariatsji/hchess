@@ -25,17 +25,17 @@ import qualified Data.Text.IO as TIO
 import NeatInterpolation
 import Relude
 
-renderPgn :: Position -> Text
-renderPgn pos' =
+renderPgn :: Text -> Text -> Text -> Position -> Text
+renderPgn date whiteName blackName pos' =
     let res = renderResult pos'
         mo = renderMoves pos'
      in [text|
         [Event "hChess match"]
         [Site "In front of computer"]
-        [Date "2022-12-13"]
+        [Date "$date"]
         [Round "1"]
-        [White "Humanoid Contender"]
-        [Black "Computer"]
+        [White "$whiteName"]
+        [Black "$blackName"]
         [Result "$res"]
 
         $mo $res
@@ -123,12 +123,12 @@ renderResult pos = case determineStatus pos (positionTree pos) of
 pgnTester :: IO ()
 pgnTester = do
     let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
-    print $ renderPgn testPos
+    print $ renderPgn "2023-02-28" "Joe" "Jim" testPos
 
 pgnWriteTest :: IO ()
 pgnWriteTest = do
     let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
-    TIO.writeFile "game.pgn" (renderPgn testPos)
+    TIO.writeFile "game.pgn" (renderPgn "2023-02-28" "Joe" "Jim" testPos)
 
 roll :: a -> (a -> Parser a) -> Parser a
 roll seed p = do

@@ -16,40 +16,47 @@ import qualified Printer
 
 import Data.Text (pack)
 import qualified Data.Text.IO as TIO
+import Data.Time.Clock
+import Data.Time.Format.ISO8601
 import Numeric (showFFloat)
 import Relude
+import qualified Data.Text as T
 
 start :: Text -> App ()
 start "1" = do
+    time <- liftIO getCurrentTime
+    let timeText = T.pack $ iso8601Show time
     Printer.clearTopScreen
     Printer.infoTexts ["Examples of moves are e2-e4 O-O-O d7-d8Q", ""]
     pos <- asks startFrom
-    gameLoopHH $ fromMaybe startPosition pos
+    gameLoopHH  timeText $ fromMaybe startPosition pos
 start "2" = do
+    time <- liftIO getCurrentTime
+    let timeText = T.pack $ iso8601Show time
     perspective' <- asks perspective
     pos <- asks startFrom
     Printer.clearTopScreen
     case perspective' of
         White -> do
             depth <- asks whiteDepth
-            gameLoopHM (fromMaybe startPosition pos) depth
+            gameLoopHM timeText (fromMaybe startPosition pos) depth
         Black -> do
             depth <- asks blackDepth
             let (Just opening, _, _) = AI.bestDeepEval (fromMaybe startPosition pos) depth
-            gameLoopHM opening depth
+            gameLoopHM timeText opening depth
 start "3" = do
+    time <- liftIO getCurrentTime
+    let timeText = T.pack $ iso8601Show time
     Printer.clearTopScreen
     wdepth <- asks whiteDepth
     bdepth <- asks blackDepth
     pos <- asks startFrom
-    gameLoopMM (fromMaybe startPosition pos) wdepth bdepth
+    gameLoopMM timeText (fromMaybe startPosition pos) wdepth bdepth
 start _ = exit
 
-gameLoopHM :: Position -> Int -> App ()
-gameLoopHM pos depth = do
-    let record p = do
-            let filepath = "human-machine-" <> show depth <> ".pgn"
-            flightRecorder filepath p
+gameLoopHM :: Text -> Position -> Int -> App ()
+gameLoopHM timeText pos depth = do
+    let record = flightRecorder timeText "human" ("machine-" <> show depth)
     record pos
     let world =
             World
@@ -67,12 +74,12 @@ gameLoopHM pos depth = do
         case parsedMove pos l of
             Left e -> do
                 Printer.render world {wInfo = ["Could not parse move", showt e]}
-                gameLoopHM pos depth
+                gameLoopHM timeText pos depth
             Right humanMove -> do
                 case playIfLegal humanMove pos of
                     Left s -> do
                         Printer.render world {wInfo = [showt humanMove <> " not playable: " <> pack s, "example of syntax: e2-e4 h7-h8Q"]}
-                        gameLoopHM pos depth
+                        gameLoopHM timeText pos depth
                     Right newPos -> do
                         record newPos
                         Printer.render world {wInfo = ["thinking..", ""], wPos = Just newPos}
@@ -90,7 +97,7 @@ gameLoopHM pos depth = do
                                         exit
                                     else do
                                         Printer.render world {wInfo = ["Your move", ""], wPos = Just responsePos, wScore = scoreM}
-                                        gameLoopHM responsePos depth
+                                        gameLoopHM timeText responsePos depth
                             )
                             aiReplyPosM
 
@@ -100,11 +107,9 @@ prettyScore (Just s) = formatFloatN s
   where
     formatFloatN floatNum = showFFloat (Just 2) floatNum ""
 
-gameLoopMM :: Position -> Int -> Int -> App ()
-gameLoopMM pos whiteDepth blackDepth = do
-    let record p = do
-            let filepath = "machine-" <> show whiteDepth <> "-machine-" <> show blackDepth <> ".pgn"
-            flightRecorder filepath p
+gameLoopMM :: Text -> Position -> Int -> Int -> App ()
+gameLoopMM timeText pos whiteDepth blackDepth = do
+    let record = flightRecorder timeText ("machine-" <> show whiteDepth) ("machine-" <> show blackDepth)
     record pos
     let world =
             World
@@ -127,13 +132,13 @@ gameLoopMM pos whiteDepth blackDepth = do
         ( \responsePos -> do
             record responsePos
             Printer.render world {wPos = Just responsePos, wScore = scoreM}
-            gameLoopMM responsePos whiteDepth blackDepth
+            gameLoopMM timeText responsePos whiteDepth blackDepth
         )
         pos'
 
-gameLoopHH :: Position -> App ()
-gameLoopHH pos = do
-    let record = flightRecorder "human-vs-human.pgn"
+gameLoopHH :: Text -> Position -> App ()
+gameLoopHH timeText pos = do
+    let record = flightRecorder timeText "human" "human"
     record pos
     let world =
             World
@@ -147,17 +152,17 @@ gameLoopHH pos = do
     case playMove l pos of
         Left s -> do
             Printer.render world {wInfo = [pack s, "Valid syntax examples: e2-e4, d7-d8Q"]}
-            gameLoopHH pos
+            gameLoopHH timeText pos
         Right pos' ->
             let newStatus = determineStatus pos' (positionTree pos')
              in if newStatus == WhiteToPlay || newStatus == BlackToPlay
                     then
                         if l == ""
                             then exit
-                            else gameLoopHH pos'
+                            else gameLoopHH timeText pos'
                     else do
                         Printer.render world {wInfo = ["Game over: ", showt newStatus]}
-                        flightRecorder "human-vs-human.pgn" pos'
+                        flightRecorder timeText "human" "human" pos'
                         exit
 
 showt :: Show a => a -> Text
@@ -166,7 +171,8 @@ showt = pack . show
 exit :: App ()
 exit = Printer.exitText "Thank you for playing"
 
-flightRecorder :: FilePath -> Position -> App ()
-flightRecorder file pos = liftIO $ do
-    let content = renderPgn pos
+flightRecorder :: Text -> Text -> Text -> Position -> App ()
+flightRecorder timeText whiteName blackName pos = liftIO $ do
+    let file = T.unpack $ whiteName <> "-" <> blackName <> "-" <> timeText <> ".pgn"
+    let content = renderPgn timeText whiteName blackName pos
     TIO.writeFile ("pgn/" <> file) content

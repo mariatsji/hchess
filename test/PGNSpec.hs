@@ -13,7 +13,7 @@ spec :: Spec
 spec = do
     describe "PGN" $ do
         it "renders PGN of a position, and back into a position" $ do
-            let pgn = renderPgn startPosition
+            let pgn = renderPgn "2023-02-28" "Joe" "Jim" startPosition
             parsePgn pgn `shouldBe` Right startPosition
         it "parses a long game PGN into a position" $ do
             let Right pos = parsePgn longPgn
