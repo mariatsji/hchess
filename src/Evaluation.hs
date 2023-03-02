@@ -73,8 +73,8 @@ evaluate' pos =
 
 -- ideas:
 -- trade when leading
-_evaluateSlow :: Snapshot -> Float
-_evaluateSlow snp = foldr
+evaluate :: Snapshot -> Float
+evaluate snp = foldr
             ( \(w, mP) acc ->
                 case mP of
                     Nothing -> acc
@@ -87,8 +87,8 @@ _evaluateSlow snp = foldr
             (toList' snp)
 
 -- much faster evaluate function
-evaluate :: Snapshot -> Float
-evaluate snp=
+_evaluate :: Snapshot -> Float
+_evaluate snp=
     sum $ fmap
       (maybe 0 valueOf)
       snp
