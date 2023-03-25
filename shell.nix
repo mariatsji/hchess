@@ -3,7 +3,7 @@
 let haskellStuff = with pkgs;
         [ 
             haskellPackages.haskell-language-server
-            ghc
+            haskell.compiler.ghc925
             haskellPackages.cabal-install
             haskellPackages.cabal2nix
             haskellPackages.implicit-hie

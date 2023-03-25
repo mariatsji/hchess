@@ -1,6 +1,6 @@
 module GameLoop where
 
-import AI (bestDeepEval)
+import AI (bestMove)
 import AppContext (App, AppContext (blackDepth, perspective, whiteDepth, startFrom), World (..))
 import Chess (Status (BlackToPlay, WhiteToPlay), determineStatus, playIfLegal, positionTree)
 import Evaluation (terminal)
@@ -42,7 +42,7 @@ start "2" = do
             gameLoopHM timeText (fromMaybe startPosition pos) depth
         Black -> do
             depth <- asks whiteDepth
-            let (Just opening, _, _) = AI.bestDeepEval (fromMaybe startPosition pos) depth
+            let (Just opening, _, _) = AI.bestMove (fromMaybe startPosition pos) depth
             gameLoopHM timeText opening depth
 start "3" = do
     time <- liftIO getCurrentTime
@@ -83,7 +83,7 @@ gameLoopHM timeText pos depth = do
                     Right newPos -> do
                         record newPos
                         Printer.render world {wInfo = ["thinking..", ""], wPos = Just newPos}
-                        let (aiReplyPosM, scoreM, status') = AI.bestDeepEval newPos depth
+                        let (aiReplyPosM, scoreM, status') = AI.bestMove newPos depth
                         maybe
                             ( do
                                 Printer.render world {wInfo = ["Game over: ", showt status'], wPos = Just newPos}
@@ -123,7 +123,7 @@ gameLoopMM timeText pos whiteDepth blackDepth = do
             if toPlay pos == White
                 then whiteDepth
                 else blackDepth
-        (pos', scoreM, status) = AI.bestDeepEval pos depth
+        (pos', scoreM, status) = AI.bestMove pos depth
     maybe
         ( do
             Printer.infoTexts ["Game over: ", showt status]

@@ -5,6 +5,7 @@ module Evaluation (
     evaluate',
     terminal,
     deepEval,
+    alfaBeta
 ) where
 
 import Chess (
@@ -25,6 +26,7 @@ import Control.Parallel (par)
 import Data.List (maximum, minimum)
 import GHC.Conc (pseq)
 import Relude
+import Relude.Extra (Foldable1 (..))
 
 data Evaluated = Evaluated
     { pos :: Position
@@ -36,6 +38,30 @@ data Evaluated = Evaluated
 
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
+
+alfaBeta :: Int -> (Float, Float) -> Color -> Position -> Float
+alfaBeta depth (alfa, beta) perspective pos =
+    let candidates = positionTree pos
+        status = determineStatus pos candidates
+        evaluated = evaluate . m <-$-> candidates
+        (newAlfa, newBeta) = case nonEmpty evaluated of
+            Nothing -> (alfa, beta)
+            Just ne -> (minimum1 ne, maximum1 ne)
+     in if terminal status -- tie this with nonEmpty evaluated case, should be forced to correspond
+            then score $ evaluate' pos
+            else
+                if perspective == White && newBeta <= alfa
+                    then newBeta
+                    else
+                        if perspective == Black && newAlfa >= beta
+                            then newAlfa
+                            else
+                                fromMaybe (error "Not terminal status, so there should be candidates")
+                                    $ singleBest'
+                                        perspective
+                                    $ if depth == 0
+                                        then evaluated
+                                        else alfaBeta (depth - 1) (newAlfa, newBeta) (next perspective) <$> candidates
 
 deepEval :: Int -> Color -> Position -> Float
 deepEval depth perspective pos =
@@ -73,26 +99,27 @@ evaluate' pos =
 
 -- ideas:
 -- trade when leading
-evaluate :: Snapshot -> Float
-evaluate snp = foldr
-            ( \(w, mP) acc ->
-                case mP of
-                    Nothing -> acc
-                    Just pie ->
-                        let pieceVal = force $ valueOf pie
-                            impactVal = force $ impactArea snp pie (unHash w)
-                         in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
-            )
-            (bishopPair snp)
-            (toList' snp)
+_evaluate :: Snapshot -> Float
+_evaluate snp =
+    foldr
+        ( \(w, mP) acc ->
+            case mP of
+                Nothing -> acc
+                Just pie ->
+                    let pieceVal = force $ valueOf pie
+                        impactVal = force $ impactArea snp pie (unHash w)
+                     in pieceVal `par` impactVal `pseq` acc + pieceVal + impactVal
+        )
+        (bishopPair snp)
+        (toList' snp)
 
 -- much faster evaluate function
-_evaluate :: Snapshot -> Float
-_evaluate snp=
-    sum $ fmap
-      (maybe 0 valueOf)
-      snp
-
+evaluate :: Snapshot -> Float
+evaluate snp =
+    sum $
+        fmap
+            (maybe 0 valueOf)
+            snp
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = colorFactor c * 1.0

@@ -16,7 +16,7 @@ import qualified GI.Gtk.Objects.DragSource as DragSource
 import GI.Gtk.Objects.Image (imageGetPaintable)
 import qualified GI.Gtk.Objects.Window as Window
 
-import AI (bestDeepEval)
+import AI (bestMove)
 import Chess (identifyMove, pieceAt, playIfLegal)
 import Position
 
@@ -184,7 +184,7 @@ clickEnd fixed worldVar nrClicks x y =
 computerThinking :: TVar World -> Gtk.Fixed.Fixed -> Gtk.Widget -> a -> IO Bool
 computerThinking worldVar fixed widget frameClock = do
     w@World {..} <- readTVarIO worldVar
-    case bestDeepEval world 3 of
+    case bestMove world 3 of
         (Nothing, stat) ->
             print stat -- todo
         (Just responsePos, status) -> do

@@ -10,7 +10,7 @@ main :: IO ()
 main = do
     -- let res = AI.bestDeepEval startPosition 2    13.0GB, 2.4s elapsed
     -- let res = positionTree startPosition -- 600K
-    let (_, _, status) = AI.bestDeepEval startPosition 2
+    let (_, _, status) = AI.bestMove startPosition 2
     print status
 
 testPgn :: Text

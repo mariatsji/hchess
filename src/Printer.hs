@@ -145,7 +145,9 @@ prettyANSI pos = do
                 ANSI.setSGR (fonts style)
             )
             rows
-        UP.putStrLn "   a  b  c  d  e  f  g  h "
+        UP.putStrLn case perspective' of
+            White -> "   a  b  c  d  e  f  g  h "
+            Black -> "   h  g  f  e  d  c  b  a "
         ANSI.setSGR (fonts style)
 
 line :: App Text
