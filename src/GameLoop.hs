@@ -42,7 +42,9 @@ start "2" = do
             gameLoopHM timeText (fromMaybe startPosition pos) depth
         Black -> do
             depth <- asks whiteDepth
-            let (Just opening, _, _) = AI.bestMove (fromMaybe startPosition pos) depth
+            let opening = case AI.bestMove (fromMaybe startPosition pos) depth of
+                  (Just opening', _, _) -> opening'
+                  _ -> error "No position found"
             gameLoopHM timeText opening depth
 start "3" = do
     time <- liftIO getCurrentTime
