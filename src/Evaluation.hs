@@ -5,7 +5,6 @@ module Evaluation (
     evaluate',
     terminal,
     deepEval,
-    alfaBeta
 ) where
 
 import Chess (
@@ -26,7 +25,6 @@ import Control.Parallel (par)
 import Data.List (maximum, minimum)
 import GHC.Conc (pseq)
 import Relude
-import Relude.Extra (Foldable1 (..))
 
 data Evaluated = Evaluated
     { pos :: Position
@@ -38,25 +36,6 @@ data Evaluated = Evaluated
 
 getPosition :: Evaluated -> Position
 getPosition (Evaluated p _ _) = p
-
-alfaBeta :: Int -> (Float, Float) -> Color -> Position -> Float
-alfaBeta depth (alfa, beta) perspective pos =
-    let candidates = positionTree pos
-        status = determineStatus pos candidates
-        evaluated = evaluate . m <-$-> candidates
-        (newAlfa, newBeta) = case nonEmpty evaluated of
-            Nothing -> (alfa, beta)
-            Just ne -> (minimum1 ne, maximum1 ne)
-     in if terminal status -- tie this with nonEmpty evaluated case, should be forced to correspond
-            then score $ evaluate' pos
-            else if perspective == White && newBeta <= alfa then newBeta
-            else if perspective == Black && newAlfa >= beta then newAlfa
-            else
-                fromMaybe (error "Not terminal status, so there should be candidates")
-                    $ singleBest'
-                        perspective
-                    $ if depth == 0 then evaluated
-                    else alfaBeta (depth - 1) (newAlfa, newBeta) (next perspective) <$> candidates
 
 deepEval :: Int -> Color -> Position -> Float
 deepEval depth perspective pos =
