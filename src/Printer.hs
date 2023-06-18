@@ -120,10 +120,13 @@ prettyANSI pos = do
         ANSI.setSGR (fonts style)
         let rows = case perspective' of
                 White -> flip Square <$> [8 :: Int, 7 .. 1] <*> [1 :: Int .. 8] -- a8, b8 ..
-                Black -> flip Square <$> [1 :: Int .. 8] <*> [1 :: Int .. 8] -- a1, b1 ..
+                Black -> flip Square <$> [1 :: Int .. 8] <*> [8 :: Int, 7 .. 1] -- h1, g1 ..
         mapM_
             ( \(Square c r) -> do
-                when (c == 1) $ do
+                let (startPrintCol, endPrintCol) = case perspective' of
+                        White -> (1 :: Col, 8 :: Col)
+                        Black -> (8 :: Col, 1 :: Col)
+                when (c == startPrintCol) $ do
                     ANSI.setSGR (fonts style)
                     UP.putStr $ show r <> " "
                 let mP = pieceAt pos (Square c r)
@@ -137,7 +140,7 @@ prettyANSI pos = do
                 let (pieceString, style') = prettyPiece style mP
                 ANSI.setSGR style'
 
-                ( if c == 8
+                ( if c == endPrintCol
                         then UP.putStrLn
                         else UP.putStr
                     )
