@@ -49,19 +49,14 @@ alfaBeta depth (alfa, beta) perspective pos =
             Just ne -> (minimum1 ne, maximum1 ne)
      in if terminal status -- tie this with nonEmpty evaluated case, should be forced to correspond
             then score $ evaluate' pos
+            else if perspective == White && newBeta <= alfa then newBeta
+            else if perspective == Black && newAlfa >= beta then newAlfa
             else
-                if perspective == White && newBeta <= alfa
-                    then newBeta
-                    else
-                        if perspective == Black && newAlfa >= beta
-                            then newAlfa
-                            else
-                                fromMaybe (error "Not terminal status, so there should be candidates")
-                                    $ singleBest'
-                                        perspective
-                                    $ if depth == 0
-                                        then evaluated
-                                        else alfaBeta (depth - 1) (newAlfa, newBeta) (next perspective) <$> candidates
+                fromMaybe (error "Not terminal status, so there should be candidates")
+                    $ singleBest'
+                        perspective
+                    $ if depth == 0 then evaluated
+                    else alfaBeta (depth - 1) (newAlfa, newBeta) (next perspective) <$> candidates
 
 deepEval :: Int -> Color -> Position -> Float
 deepEval depth perspective pos =

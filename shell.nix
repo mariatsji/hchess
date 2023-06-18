@@ -1,35 +1,23 @@
-{ pkgs ? import ./nixpkgs.nix }:
+let pkgs = import ./nixpkgs.nix;
 
-let haskellStuff = with pkgs;
-        [ 
-            haskellPackages.haskell-language-server
-            haskell.compiler.ghc925
-            haskellPackages.cabal-install
-            haskellPackages.cabal2nix
-            haskellPackages.implicit-hie
-            ghcid
-            haskellPackages.fourmolu
-            haskellPackages.hp2pretty
-        ];
-    tools = with pkgs;
-        [ 
-            nixfmt
-            git
-            curl
-        ];
-    ux = with pkgs;[ gtk4 atk ];
-    
-    all = haskellStuff ++ tools ++ ux;
+in pkgs.haskellPackages.shellFor {
+  packages = hpkgs: [];
 
+  # development tools we use
+  nativeBuildInputs = with pkgs; [
+    cabal-install
+    ghc
+    haskell-language-server
+    ghcid
+    haskellPackages.fourmolu
+    nixfmt
+    git
+    openssh
+    coreutils
+  ];
 
-in pkgs.mkShell {
-  # specify which packages to add to the shell environment
-  packages = all;
-  libPath = pkgs.lib.makeLibraryPath all;
   shellHook = ''
-        export LD_LIBRARY_PATH=$libPath}:$LD_LIBRARY_PATH
-        export LANG=en_US.UTF-8
-    '';
-  # add all the dependencies, of the given packages, to the shell environment
-  inputsFrom = with pkgs; all;
+    export PATH=$PATH:${pkgs.haskell-language-server}/bin
+  '';
+
 }
