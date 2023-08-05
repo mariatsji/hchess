@@ -85,7 +85,7 @@ executable hchess-profiled
     -Wall
     -threaded
     -fprof-auto
-    "-with-rtsopts=-N6 -xc -p -s -h -i0.1"
+    "-with-rtsopts=-N6 -xc -p -s -hc -i0.1 --nonmoving-gc"
   hs-source-dirs:
       profiled
   default-extensions:
@@ -121,7 +121,7 @@ executable hchess
     -O2
     -Wall
     -threaded
-    "-with-rtsopts=-N4"
+    "-with-rtsopts=-N4 --nonmoving-gc"
   hs-source-dirs:
       app
   default-extensions:
