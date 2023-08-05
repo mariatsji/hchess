@@ -1,19 +1,22 @@
 let pkgs = import ./nixpkgs.nix;
+    my-cabal-install = (import ./cabalinstall.nix) pkgs;
+    haskellPackages = pkgs.haskell.packages.ghc962;
 
-in pkgs.haskellPackages.shellFor {
+in haskellPackages.shellFor {
   packages = hpkgs: [];
 
   # development tools we use
   nativeBuildInputs = with pkgs; [
-    cabal-install
+    my-cabal-install
     ghc
     haskell-language-server
     ghcid
-    haskellPackages.fourmolu
     nixfmt
     git
     openssh
     coreutils
+    nano
+    less
   ];
 
   shellHook = ''

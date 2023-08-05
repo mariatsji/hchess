@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ghcid -T=":!cabal test"
+ghcid --command='cabal repl --enable-multi-repl=all' --test 'main' --setup ":set args --hide-successes"

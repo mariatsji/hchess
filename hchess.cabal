@@ -71,7 +71,7 @@ library
     , multi-containers
     , neat-interpolation
     , parallel
-    , relude
+    , relude >= 1.2.0.0
     , text
     , time
     , transformers
@@ -110,7 +110,7 @@ executable hchess-profiled
   build-depends:
       base >= 4.7 && < 5 
     , hchess
-    , relude
+    , relude >= 1.2.0.0
     , neat-interpolation
     , text
   default-language: Haskell2010
@@ -148,7 +148,7 @@ executable hchess
     , attoparsec
     , ansi-terminal
     , hchess
-    , relude
+    , relude >= 1.2.0.0
     , text
     , transformers
   default-language: Haskell2010
@@ -188,7 +188,7 @@ test-suite hchess-test
     , hchess
     , hspec
     , neat-interpolation
-    , relude
+    , relude >= 1.2.0.0
     , text
   default-language: Haskell2010
 
