@@ -1,5 +1,6 @@
 let pkgs = import ./nixpkgs.nix;
     my-cabal-install = (import ./cabalinstall.nix) pkgs;
+    my-haskell-language-server = (builtins.getFlake "github:haskell/haskell-language-server").allPackages.x86_64-darwin.haskell-language-server-96;
     haskellPackages = pkgs.haskell.packages.ghc962;
 
 in haskellPackages.shellFor {
@@ -9,7 +10,7 @@ in haskellPackages.shellFor {
   nativeBuildInputs = with pkgs; [
     my-cabal-install
     ghc
-    haskell-language-server
+    my-haskell-language-server
     ghcid
     nixfmt
     git
@@ -17,10 +18,7 @@ in haskellPackages.shellFor {
     coreutils
     nano
     less
+    which
   ];
-
-  shellHook = ''
-    export PATH=$PATH:${pkgs.haskell-language-server}/bin
-  '';
 
 }
