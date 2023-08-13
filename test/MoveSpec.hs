@@ -40,7 +40,7 @@ spec = do
                 p7 = movePiece p6 (Square 8 5) (Square 6 7) -- mate
             toPlay p7 `shouldBe` Black
         it "parses a move text command" $ do
-            let newP = Move.playMove "e2-e4" startPosition
+            let newP = Move.playMove "e2-e4z" startPosition
             newP `shouldSatisfy` isRight
             newP `shouldNotBe` Right startPosition
         it "finds toSquares for pawns in startrow" $ do

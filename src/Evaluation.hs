@@ -5,6 +5,7 @@ module Evaluation (
     evaluate',
     terminal,
     deepEval,
+    alphaBeta
 ) where
 
 import Chess (
@@ -51,6 +52,18 @@ deepEval depth perspective pos =
                     $ if depth == 0
                         then evaluated
                         else deepEval (depth - 1) (next perspective) <$> candidates
+
+alphaBeta :: Int -> Float -> Float -> Color -> Position -> Float
+alphaBeta depth alpha beta perspective pos =
+    let candidates = positionTree pos
+    in if terminal (determineStatus pos candidates)
+        then evaluate (m pos)
+        else go candidates alpha beta
+    where
+        go [] _ _ = beta
+        go (p:ps) alpha' beta' =
+            let newBeta = max beta' (-alphaBeta (depth - 1) (-beta') (-alpha') (next perspective) p)
+            in if newBeta >= alpha' then newBeta else go ps alpha' newBeta
 
 terminal :: Status -> Bool
 terminal = flip elem [WhiteIsMate, BlackIsMate, Remis, WhiteResigns, BlackResigns]

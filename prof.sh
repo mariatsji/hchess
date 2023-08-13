@@ -1,1 +1,1 @@
-cabal run --enable-library-profiling --enable-profiling hchess-profiled
+cabal run --enable-library-profiling --enable-profiling hchess-profiled -- +RTS -p -s -RTS
