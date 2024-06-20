@@ -1,7 +1,9 @@
-let pkgs = import ./nixpkgs.nix;
-    my-cabal-install = (import ./cabalinstall.nix) pkgs;
-    my-haskell-language-server = (builtins.getFlake "github:haskell/haskell-language-server").packages.x86_64-darwin.haskell-language-server-96;
-    haskellPackages = pkgs.haskell.packages.ghc962;
+let pkgs = (import (builtins.fetchTarball {
+        url = "https://github.com/NixOS/nixpkgs/archive/refs/tags/24.05.tar.gz";
+    }) {});
+    my-cabal-install = pkgs.cabal-install;
+    my-haskell-language-server = pkgs.haskell-language-server;
+    haskellPackages = pkgs.haskellPackages;
 
 in haskellPackages.shellFor {
   packages = hpkgs: [];

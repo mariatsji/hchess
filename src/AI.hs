@@ -9,7 +9,7 @@ import Chess (
     positionTree,
     (<-&->),
  )
-import Evaluation (deepEval, alphaBeta)
+import Evaluation (alphaBeta)
 import Position (Color (White), Position, next, toPlay)
 
 import Data.Foldable (maximumBy, minimumBy)

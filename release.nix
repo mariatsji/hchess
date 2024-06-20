@@ -1,5 +1,7 @@
 let
-  pkgs = import ./nixpkgs.nix;
+  pkgs = (import (builtins.fetchTarball {
+        url = "https://github.com/NixOS/nixpkgs/archive/refs/tags/24.05.tar.gz";
+    }) {});
   haskellPackages = pkgs.haskell.packages.ghc962;
   hchess = haskellPackages.callCabal2nix "hchess-gui" ./. { };
   thinner = x:
