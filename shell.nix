@@ -14,6 +14,7 @@ in haskellPackages.shellFor {
     ghc
     my-haskell-language-server
     ghcid
+    haskellPackages.cabal-fmt
     nixfmt
     git
     openssh
