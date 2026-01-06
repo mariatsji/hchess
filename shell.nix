@@ -1,5 +1,5 @@
 let pkgs = (import (builtins.fetchTarball {
-        url = "https://github.com/NixOS/nixpkgs/archive/refs/tags/24.05.tar.gz";
+        url = "https://github.com/NixOS/nixpkgs/archive/refs/tags/25.11.tar.gz";
     }) {});
     my-cabal-install = pkgs.cabal-install;
     my-haskell-language-server = pkgs.haskell-language-server;

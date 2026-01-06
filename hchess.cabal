@@ -26,11 +26,9 @@ library
   exposed-modules:
       AppContext
       Board
-      Cache
       Chess
       Printer
       Evaluation
-      GUI
       Move
       AI
       Position
@@ -68,7 +66,6 @@ library
     , bytestring
     , containers
     , deepseq
-    , multi-containers
     , neat-interpolation
     , parallel
     , relude >= 1.2.0.0
@@ -159,7 +156,6 @@ test-suite hchess-test
   main-is: Main.hs
   other-modules:
       AISpec
-      CacheSpec
       MoveSpec
       PGNSpec
   hs-source-dirs:

@@ -1,11 +1,17 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+
 module PGN where
 
 import Board (searchIdx)
 import Chess (Status (..), determineStatus, isCheckMate, isInCheck, movePiece, playIfLegal, positionTree)
+import Data.Attoparsec.Text (Parser)
+import qualified Data.Attoparsec.Text as AT
+import Data.Text (pack)
+import qualified Data.Text.IO as TIO
 import Move (colParser, playMoves, rowParser, squareParser)
-import Position (
-    Color (..),
+import NeatInterpolation
+import Position
+  ( Color (..),
     Move (..),
     Piece (..),
     Position (..),
@@ -16,21 +22,16 @@ import Position (
     next,
     pieceAt',
     searchForPieces,
-    startPosition, toPlay,
- )
-
-import Data.Attoparsec.Text (Parser)
-import qualified Data.Attoparsec.Text as AT
-import Data.Text (pack)
-import qualified Data.Text.IO as TIO
-import NeatInterpolation
+    startPosition,
+    toPlay,
+  )
 import Relude
 
 renderPgn :: Text -> Text -> Text -> Position -> Text
 renderPgn date whiteName blackName pos' =
-    let res = renderResult pos'
-        mo = renderMoves pos'
-     in [text|
+  let res = renderResult pos'
+      mo = renderMoves pos'
+   in [text|
         [Event "hChess match"]
         [Site "In front of computer"]
         [Date "$date"]
@@ -44,9 +45,9 @@ renderPgn date whiteName blackName pos' =
 
 renderMoves :: Position -> Text
 renderMoves Position {..} =
-    let indices = repeatEntries [1 ..]
-        snapshots = reverse (m : gamehistory) `zip` indices
-     in go snapshots
+  let indices = repeatEntries [1 ..]
+      snapshots = reverse (m : gamehistory) `zip` indices
+   in go snapshots
   where
     go [] = ""
     go [(_, i)] = renderNr i i
@@ -62,262 +63,262 @@ repeatEntries (x : xs) = x : x : repeatEntries xs
 
 renderMove :: Snapshot -> Snapshot -> Text
 renderMove from to =
-    let move' = findMove from to
-     in case move' of
-            CastleShort -> "O-O"
-            CastleLong -> "O-O-O"
-            MovedPiece fromSq toSq ->
-                let fromPiece' = fromPiece from fromSq
-                    fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
-                 in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderCheck to fromColor' -- todo duplication
-            EnPassant fromSq toSq ->
-                let fromPiece' = fromPiece from fromSq
-                    fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
-                 in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderCheck to fromColor' -- todo duplication
-            Promotion fromSq toSq piece ->
-                let fromPiece' = fromPiece from fromSq
-                    fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
-                 in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderProm piece <> renderCheck to fromColor'
+  let move' = findMove from to
+   in case move' of
+        CastleShort -> "O-O"
+        CastleLong -> "O-O-O"
+        MovedPiece fromSq toSq ->
+          let fromPiece' = fromPiece from fromSq
+              fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
+           in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderCheck to fromColor' -- todo duplication
+        EnPassant fromSq toSq ->
+          let fromPiece' = fromPiece from fromSq
+              fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
+           in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderCheck to fromColor' -- todo duplication
+        Promotion fromSq toSq piece ->
+          let fromPiece' = fromPiece from fromSq
+              fromColor' = maybe (error "PGN missing color in from piece") colr (pieceAt' from fromSq)
+           in renderPiece fromPiece' <> pack (show fromSq) <> renderTakes from to <> pack (show toSq) <> renderProm piece <> renderCheck to fromColor'
 
 renderCheck :: Snapshot -> Color -> Text
 renderCheck snp mover =
-    let fakePos =
-            Position
-                { m = snp
-                , gamehistory = [m startPosition]
-                , pristineShortWhite = True
-                , pristineLongWhite = True
-                , pristineShortBlack = True
-                , pristineLongBlack = True
-                }
-     in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck snp (next mover) then "+" else ""
+  let fakePos =
+        Position
+          { m = snp,
+            gamehistory = [m startPosition],
+            pristineShortWhite = True,
+            pristineLongWhite = True,
+            pristineShortBlack = True,
+            pristineLongBlack = True
+          }
+   in if isCheckMate fakePos (positionTree fakePos) then "#" else if isInCheck snp (next mover) then "+" else ""
 
 renderProm :: Piece -> Text
 renderProm = (<>) "=" . renderPiece
 
 renderTakes :: Snapshot -> Snapshot -> Text
 renderTakes from to =
-    if countPieces from White == countPieces to White && countPieces from Black == countPieces to Black then "" else "x"
+  if countPieces from White == countPieces to White && countPieces from Black == countPieces to Black then "" else "x"
   where
     countPieces :: Snapshot -> Color -> Int
     countPieces s c = length $ searchIdx s (const True) (\mp -> fmap colr mp == Just c)
 
 renderPiece :: Piece -> Text
 renderPiece = \case
-    Pawn _ -> ""
-    Knight _ -> "N"
-    Bishop _ -> "B"
-    Rook _ -> "R"
-    Queen _ -> "Q"
-    King _ -> "K"
+  Pawn _ -> ""
+  Knight _ -> "N"
+  Bishop _ -> "B"
+  Rook _ -> "R"
+  Queen _ -> "Q"
+  King _ -> "K"
 
 fromPiece :: Snapshot -> Square -> Piece
 fromPiece snp s = fromMaybe (error "PGN found no fromPiece in snapshot") (pieceAt' snp s)
 
 renderResult :: Position -> Text
 renderResult pos = case determineStatus pos (positionTree pos) of
-    WhiteIsMate -> "0-1"
-    BlackIsMate -> "1-0"
-    Remis -> "1/2-1/2"
-    _ -> "*"
+  WhiteIsMate -> "0-1"
+  BlackIsMate -> "1-0"
+  Remis -> "1/2-1/2"
+  _ -> "*"
 
 pgnTester :: IO ()
 pgnTester = do
-    let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
-    print $ renderPgn "2023-02-28" "Joe" "Jim" testPos
+  let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
+  print $ renderPgn "2023-02-28" "Joe" "Jim" testPos
 
 pgnWriteTest :: IO ()
 pgnWriteTest = do
-    let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
-    TIO.writeFile "game.pgn" (renderPgn "2023-02-28" "Joe" "Jim" testPos)
+  let Right testPos = playMoves ["e2-e3", "f7-f6", "f2-f4", "g7-g5", "d1-h5"]
+  TIO.writeFile "game.pgn" (renderPgn "2023-02-28" "Joe" "Jim" testPos)
 
 roll :: a -> (a -> Parser a) -> Parser a
 roll seed p = do
-    new <- p seed
-    (new <$ AT.endOfInput) <|> roll new p
+  new <- p seed
+  (new <$ AT.endOfInput) <|> roll new p
 
 parsePgn :: Text -> Either String Position
 parsePgn =
-    AT.parseOnly
-        ( do
-            _ <- many metaLine
-            _ <- AT.skipWhile AT.isEndOfLine
-            _ <- AT.skipSpace
-            movesParser
-        )
+  AT.parseOnly
+    ( do
+        _ <- many metaLine
+        _ <- AT.skipWhile AT.isEndOfLine
+        _ <- AT.skipSpace
+        movesParser
+    )
 
 data Meta = Meta Text Text
-    deriving stock (Show)
+  deriving stock (Show)
 
 metaLine :: Parser Meta
 metaLine = do
-    _ <- AT.char '['
-    key <- AT.takeTill AT.isHorizontalSpace
-    _ <- AT.space
-    val <- AT.takeTill (== ']')
-    _ <- AT.char ']'
-    _ <- AT.endOfLine
-    pure $ Meta key val
+  _ <- AT.char '['
+  key <- AT.takeTill AT.isHorizontalSpace
+  _ <- AT.space
+  val <- AT.takeTill (== ']')
+  _ <- AT.char ']'
+  _ <- AT.endOfLine
+  pure $ Meta key val
 
 movesParser :: Parser Position
 movesParser =
-    roll startPosition whiteBlackParser
+  roll startPosition whiteBlackParser
 
 pgnMoveParser :: Position -> Parser Position
 pgnMoveParser pos =
-    let c = toPlay pos
-        castleLongParser = do
-            _ <- AT.string "O-O-O"
-            either
-                fail
-                pure
-                (playIfLegal CastleLong pos)
-        castleShortParser = do
-            _ <- AT.string "O-O"
-            either
-                fail
-                pure
-                (playIfLegal CastleShort pos)
-        promParser = do
-            -- c7-c8=Q  Bc7c8#
-            _ <- AT.skipWhile (`elem` ['N', 'B', 'R', 'Q', 'K'])
-            fromS <- squareParser
-            _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
-            toS <- squareParser
-            _ <- AT.char '='
-            piece <- pieceParser c
-            let move = Promotion fromS toS piece
-            either
-                fail
-                pure
-                (playIfLegal move pos)
-        shortPawnTakesPromParser = do
-            -- bxc8=K
-            fromCol <- colParser
-            _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
-            toS <- squareParser
-            _ <- AT.char '='
-            promPiece <- pieceParser c
-            let fromS = before toS {col = fromCol} c
-                piece = Pawn c
-                squarePred = (==) fromS
-                move = Promotion fromS toS promPiece
-            either
-                fail
-                pure
-                ( findPiece pos piece squarePred toS
-                    >> playIfLegal move pos
-                )
-        shortPromParser = do
-            -- e8=Q
-            toS <- squareParser
-            _ <- AT.char '='
-            promPiece <- pieceParser c
-            let fromS = before toS c
-                piece = Pawn c
-                squarePred = (==) fromS
-                move = Promotion fromS toS promPiece
-            either
-                fail
-                pure
-                (findPiece pos piece squarePred toS >> playIfLegal move pos)
-        regularOfficerMoveParser = do
-            -- Qd1g4
-            _ <- pieceParser c
-            fromS <- squareParser
-            _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
-            toS <- squareParser
-            let move = MovedPiece fromS toS
-            either
-                fail
-                pure
-                (playIfLegal move pos)
-        regularPawnMoveParser = do
-            -- e1-e2
-            fromS <- squareParser
-            _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
-            toS <- squareParser
-            let move = MovedPiece fromS toS
-            either
-                fail
-                pure
-                (playIfLegal move pos)
-        shortOfficerColMove = do
-            -- Kdc4 / Kdxc4
-            piece <- pieceParser c
-            fromCol <- colParser
-            _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
-            toS <- squareParser
-            let squarePred (Square col' _) = col' == fromCol
-            either
-                fail
-                pure
-                ( findPiece pos piece squarePred toS
-                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
-                )
-        shortOfficerRowMove = do
-            -- K5c5 / K5xc5
-            piece <- pieceParser c
-            fromRow <- rowParser
-            _ <- AT.skipWhile (== 'x')
-            toS <- squareParser
-            let squarePred (Square _ row') = row' == fromRow
-            either
-                fail
-                pure
-                ( findPiece pos piece squarePred toS
-                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
-                )
-        shortOfficerMove = do
-            -- Kc4 / Kxc4
-            piece <- pieceParser c
-            _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
-            toS <- squareParser
-            let squarePred = const True
-            either
-                fail
-                pure
-                ( findPiece pos piece squarePred toS
-                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
-                )
-        shortPawnTakes = do
-            -- bxc4
-            fromCol <- colParser
-            _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
-            toS <- squareParser
-            let piece = Pawn c
-                squarePred (Square col' _) = col' == fromCol
-            either
-                fail
-                pure
-                ( findPiece pos piece squarePred toS
-                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
-                )
-        shortPawnMove = do
-            -- e4
-            toS@(Square toCol _) <- squareParser
-            let piece = Pawn c
-                squarePred (Square col' _) = col' == toCol
-            either
-                fail
-                pure
-                ( findPiece pos piece squarePred toS
-                    >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
-                )
-     in ( castleLongParser
-            <|> castleShortParser
-            <|> promParser
-            <|> shortPawnTakesPromParser
-            <|> shortPromParser
-            <|> regularOfficerMoveParser
-            <|> regularPawnMoveParser
-            <|> shortOfficerColMove
-            <|> shortOfficerRowMove
-            <|> shortOfficerMove
-            <|> shortPawnTakes
-            <|> shortPawnMove
-        )
-            <* checkParser
+  let c = toPlay pos
+      castleLongParser = do
+        _ <- AT.string "O-O-O"
+        either
+          fail
+          pure
+          (playIfLegal CastleLong pos)
+      castleShortParser = do
+        _ <- AT.string "O-O"
+        either
+          fail
+          pure
+          (playIfLegal CastleShort pos)
+      promParser = do
+        -- c7-c8=Q  Bc7c8#
+        _ <- AT.skipWhile (`elem` ['N', 'B', 'R', 'Q', 'K'])
+        fromS <- squareParser
+        _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
+        toS <- squareParser
+        _ <- AT.char '='
+        piece <- pieceParser c
+        let move = Promotion fromS toS piece
+        either
+          fail
+          pure
+          (playIfLegal move pos)
+      shortPawnTakesPromParser = do
+        -- bxc8=K
+        fromCol <- colParser
+        _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
+        toS <- squareParser
+        _ <- AT.char '='
+        promPiece <- pieceParser c
+        let fromS = before toS {col = fromCol} c
+            piece = Pawn c
+            squarePred = (==) fromS
+            move = Promotion fromS toS promPiece
+        either
+          fail
+          pure
+          ( findPiece pos piece squarePred toS
+              >> playIfLegal move pos
+          )
+      shortPromParser = do
+        -- e8=Q
+        toS <- squareParser
+        _ <- AT.char '='
+        promPiece <- pieceParser c
+        let fromS = before toS c
+            piece = Pawn c
+            squarePred = (==) fromS
+            move = Promotion fromS toS promPiece
+        either
+          fail
+          pure
+          (findPiece pos piece squarePred toS >> playIfLegal move pos)
+      regularOfficerMoveParser = do
+        -- Qd1g4
+        _ <- pieceParser c
+        fromS <- squareParser
+        _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
+        toS <- squareParser
+        let move = MovedPiece fromS toS
+        either
+          fail
+          pure
+          (playIfLegal move pos)
+      regularPawnMoveParser = do
+        -- e1-e2
+        fromS <- squareParser
+        _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
+        toS <- squareParser
+        let move = MovedPiece fromS toS
+        either
+          fail
+          pure
+          (playIfLegal move pos)
+      shortOfficerColMove = do
+        -- Kdc4 / Kdxc4
+        piece <- pieceParser c
+        fromCol <- colParser
+        _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
+        toS <- squareParser
+        let squarePred (Square col' _) = col' == fromCol
+        either
+          fail
+          pure
+          ( findPiece pos piece squarePred toS
+              >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+          )
+      shortOfficerRowMove = do
+        -- K5c5 / K5xc5
+        piece <- pieceParser c
+        fromRow <- rowParser
+        _ <- AT.skipWhile (== 'x')
+        toS <- squareParser
+        let squarePred (Square _ row') = row' == fromRow
+        either
+          fail
+          pure
+          ( findPiece pos piece squarePred toS
+              >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+          )
+      shortOfficerMove = do
+        -- Kc4 / Kxc4
+        piece <- pieceParser c
+        _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
+        toS <- squareParser
+        let squarePred = const True
+        either
+          fail
+          pure
+          ( findPiece pos piece squarePred toS
+              >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+          )
+      shortPawnTakes = do
+        -- bxc4
+        fromCol <- colParser
+        _ <- AT.skipWhile (\ch -> ch == 'x' || ch == '-')
+        toS <- squareParser
+        let piece = Pawn c
+            squarePred (Square col' _) = col' == fromCol
+        either
+          fail
+          pure
+          ( findPiece pos piece squarePred toS
+              >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+          )
+      shortPawnMove = do
+        -- e4
+        toS@(Square toCol _) <- squareParser
+        let piece = Pawn c
+            squarePred (Square col' _) = col' == toCol
+        either
+          fail
+          pure
+          ( findPiece pos piece squarePred toS
+              >>= (\fromS -> playIfLegal (MovedPiece fromS toS) pos)
+          )
+   in ( castleLongParser
+          <|> castleShortParser
+          <|> promParser
+          <|> shortPawnTakesPromParser
+          <|> shortPromParser
+          <|> regularOfficerMoveParser
+          <|> regularPawnMoveParser
+          <|> shortOfficerColMove
+          <|> shortOfficerRowMove
+          <|> shortOfficerMove
+          <|> shortPawnTakes
+          <|> shortPawnMove
+      )
+        <* checkParser
 
 pieceParser :: Color -> Parser Piece
 pieceParser c = Knight c <$ AT.char 'N' <|> Bishop c <$ AT.char 'B' <|> Rook c <$ AT.char 'R' <|> Queen c <$ AT.char 'Q' <|> King c <$ AT.char 'K'
@@ -327,16 +328,16 @@ checkParser = AT.skipWhile (`elem` ['+', '!', '#'])
 
 findPiece :: Position -> Piece -> (Square -> Bool) -> Square -> Either String Square
 findPiece pos piece squarePred toS = case searchForPieces pos squarePred piecePred of
+  [(s, _)] -> Right s
+  cands -> case filter (legal pos toS) cands of
     [(s, _)] -> Right s
-    cands -> case filter (legal pos toS) cands of
-        [(s, _)] -> Right s
-        _ -> Left $ "No satisfactory " <> show piece <> " found"
+    _ -> Left $ "No satisfactory " <> show piece <> " found"
   where
     piecePred p = p == piece
 
 legal :: Position -> Square -> (Square, Piece) -> Bool
 legal pos toS (fromS, _) =
-    m (movePiece pos fromS toS) `elem` (m <$> positionTree pos)
+  m (movePiece pos fromS toS) `elem` (m <$> positionTree pos)
 
 before :: Square -> Color -> Square
 before (Square c r) White = Square (c - 1) r
@@ -344,32 +345,32 @@ before (Square c r) Black = Square (c + 1) r
 
 whiteBlackParser :: Position -> Parser Position
 whiteBlackParser pos = do
-    _ <- intParser
-    _ <- AT.skipWhile (\c -> c == '.' || c == ' ')
-    (pos <$ result) <|> withReplyTerminated <|> withoutReplyTerminated <|> withReply <|> withoutReply
+  _ <- intParser
+  _ <- AT.skipWhile (\c -> c == '.' || c == ' ')
+  (pos <$ result) <|> withReplyTerminated <|> withoutReplyTerminated <|> withReply <|> withoutReply
   where
     withReplyTerminated = do
-        whiteMoved <- pgnMoveParser pos
-        _ <- sep
-        blackMoved <- pgnMoveParser whiteMoved
-        _ <- sep
-        _ <- result
-        pure blackMoved
+      whiteMoved <- pgnMoveParser pos
+      _ <- sep
+      blackMoved <- pgnMoveParser whiteMoved
+      _ <- sep
+      _ <- result
+      pure blackMoved
     withoutReplyTerminated = do
-        whiteMoved <- pgnMoveParser pos
-        _ <- sep
-        _ <- result
-        pure whiteMoved
+      whiteMoved <- pgnMoveParser pos
+      _ <- sep
+      _ <- result
+      pure whiteMoved
     withReply = do
-        whiteMoved <- pgnMoveParser pos
-        _ <- sep
-        blackMoved <- pgnMoveParser whiteMoved
-        _ <- sep
-        pure blackMoved
+      whiteMoved <- pgnMoveParser pos
+      _ <- sep
+      blackMoved <- pgnMoveParser whiteMoved
+      _ <- sep
+      pure blackMoved
     withoutReply = do
-        whiteMoved <- pgnMoveParser pos
-        _ <- sep
-        pure whiteMoved
+      whiteMoved <- pgnMoveParser pos
+      _ <- sep
+      pure whiteMoved
 
 result :: Parser Text
 result = AT.string "*" <|> AT.string "1/2-1/2" <|> AT.string "1-0" <|> AT.string "0-1"
@@ -379,14 +380,14 @@ intParser = AT.decimal
 
 sep :: Parser ()
 sep = do
-    void $ AT.many1 (void AT.space <|> AT.endOfLine <|> comment)
+  void $ AT.many1 (void AT.space <|> AT.endOfLine <|> comment)
 
 comment :: Parser ()
 comment = AT.try . void $ AT.char '{' *> AT.manyTill' AT.anyChar (AT.char '}')
 
 longPgn :: Text
 longPgn =
-    [text|
+  [text|
 [Event "hChess match"]
 [Site "In front of computer"]
 [Date "2022-12-13"]
@@ -408,7 +409,7 @@ Kh6h5 47. Rf6f5! Kh5h6 48. Rf5f6! Kh6h5 49. Rf6f5! Kh5h6 50. Bd4f6 Rc2xh2 51. Bf
 
 enPassant :: Text
 enPassant =
-    [text|
+  [text|
 [Event "hChess match"]
 [Site "In front of computer"]
 [Date "2022-12-13"]
@@ -422,7 +423,7 @@ enPassant =
 
 startPos :: Text
 startPos =
-    [text|
+  [text|
 [Event "hChess match"]
 [Site "In front of computer"]
 [Date "2022-12-13"]
@@ -436,7 +437,7 @@ startPos =
 
 immortalGame :: Text
 immortalGame =
-    [text|
+  [text|
 [Event "Casual game"]
 [Site "London ENG"]
 [Date "1851.06.21"]

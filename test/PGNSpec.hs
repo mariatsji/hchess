@@ -1,39 +1,37 @@
 module PGNSpec where
 
 import Chess (pieceAt)
-import PGN (parsePgn, renderPgn)
-import Position (Color (White), Piece (Pawn, King), Position (gamehistory), Square (Square), startPosition)
-
+import Move (playMove)
 import NeatInterpolation
+import PGN (parsePgn, renderPgn)
+import Position (Color (White), Piece (King, Pawn), Position (gamehistory), Square (Square), startPosition)
 import Relude
 import Test.Hspec
-import Move (playMove)
 
 spec :: Spec
 spec = do
-    describe "PGN" $ do
-            
-        it "renders PGN of a position, and back into a position" $ do
-            let pgn = renderPgn "2023-02-28" "Joe" "Jim" startPosition
-            parsePgn pgn `shouldBe` Right startPosition
-        it "parses a sicilian PGN" $ do
-            let Right pos = parsePgn sicilian
-            length (gamehistory pos) `shouldBe` 2
-        it "parses a long game PGN into a position" $ do
-            let Right pos = parsePgn longPgn
-            length (gamehistory pos) `shouldBe` 159
-        it "parses an en passant PGN into a position" $ do
-            let Right pos = parsePgn enPassant
-            pieceAt pos (Square 1 5) `shouldBe` Nothing
-            pieceAt pos (Square 1 6) `shouldBe` Just (Pawn White)
-        it "can castle long of a specific position" $ do
-            let Right pos = parsePgn castleLongFailed
-                Right castled = playMove "O-O-O" pos
-            pieceAt castled (Square 3 1) `shouldBe` Just (King White)
+  describe "PGN" $ do
+    it "renders PGN of a position, and back into a position" $ do
+      let pgn = renderPgn "2023-02-28" "Joe" "Jim" startPosition
+      parsePgn pgn `shouldBe` Right startPosition
+    it "parses a sicilian PGN" $ do
+      let Right pos = parsePgn sicilian
+      length (gamehistory pos) `shouldBe` 2
+    it "parses a long game PGN into a position" $ do
+      let Right pos = parsePgn longPgn
+      length (gamehistory pos) `shouldBe` 159
+    it "parses an en passant PGN into a position" $ do
+      let Right pos = parsePgn enPassant
+      pieceAt pos (Square 1 5) `shouldBe` Nothing
+      pieceAt pos (Square 1 6) `shouldBe` Just (Pawn White)
+    it "can castle long of a specific position" $ do
+      let Right pos = parsePgn castleLongFailed
+          Right castled = playMove "O-O-O" pos
+      pieceAt castled (Square 3 1) `shouldBe` Just (King White)
 
 sicilian :: Text
 sicilian =
-    [text|
+  [text|
 [Event "hChess match"]
 [Site "In front of computer"]
 [Date "2023-03-01T08:19:39.895296Z"]
@@ -45,10 +43,9 @@ sicilian =
 1. e2e4 e7e5 *   
 |]
 
-
 longPgn :: Text
 longPgn =
-    [text|
+  [text|
 [Event "hChess match"]
 [Site "In front of computer"]
 [Date "2022-12-13"]
@@ -61,7 +58,7 @@ longPgn =
 
 enPassant :: Text
 enPassant =
-    [text|
+  [text|
 [Event "hChess match"]
 [Site "In front of computer"]
 [Date "2022-12-13"]
@@ -75,7 +72,7 @@ enPassant =
 
 castleLongFailed :: Text
 castleLongFailed =
-    [text|
+  [text|
 [Event "hChess match"]
 [Site "In front of computer"]
 [Date "2022-12-13"]

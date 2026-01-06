@@ -1,28 +1,28 @@
-module Move (
-    playMove,
+module Move
+  ( playMove,
     playMoves,
     parsedMove,
     squareParser,
     colParser,
-    rowParser
-) where
+    rowParser,
+  )
+where
 
 import Chess (playIfLegal)
-import Position (
-    Col,
+import Data.Attoparsec.Text (Parser, char, parseOnly, string)
+import Data.Foldable (foldl)
+import Position
+  ( Col,
     Color,
     Move (..),
     Piece (Bishop, Knight, Queen, Rook),
     Position,
-    toPlay,
     Row,
     Square (Square),
     startPosition,
-
- )
-import Data.Attoparsec.Text (Parser, char, parseOnly, string)
+    toPlay,
+  )
 import Relude
-import Data.Foldable (foldl)
 
 parsedMove :: Position -> Text -> Either String Move
 parsedMove pos = parseOnly $ moveParser pos
@@ -32,9 +32,9 @@ moveParser pos = promParser pos <|> castleParser <|> regularMoveParser
 
 regularMoveParser :: Parser Move
 regularMoveParser = do
-    from <- squareParser
-    _ <- char '-'
-    MovedPiece from <$> squareParser
+  from <- squareParser
+  _ <- char '-'
+  MovedPiece from <$> squareParser
 
 castleParser :: Parser Move
 castleParser = castleLongParser <|> castleShortParser
@@ -44,14 +44,14 @@ castleParser = castleLongParser <|> castleShortParser
 
 promParser :: Position -> Parser Move
 promParser pos = do
-    from <- squareParser
-    _ <- char '-'
-    to <- squareParser
-    Promotion from to <$> pieceParser (toPlay pos)
+  from <- squareParser
+  _ <- char '-'
+  to <- squareParser
+  Promotion from to <$> pieceParser (toPlay pos)
 
 squareParser :: Parser Square
 squareParser =
-    Square <$> colParser <*> rowParser
+  Square <$> colParser <*> rowParser
 
 colParser :: Parser Col
 colParser = colAparser <|> colBparser <|> colCparser <|> colDparser <|> colEparser <|> colFparser <|> colGparser <|> colHparser
@@ -87,11 +87,11 @@ pieceParser color = knightParser <|> bishopParser <|> rookParser <|> queenParser
 
 playMove :: Text -> Position -> Either String Position
 playMove s pos = do
-    move <- parseOnly (moveParser pos) s
-    playIfLegal move pos
+  move <- parseOnly (moveParser pos) s
+  playIfLegal move pos
 
 playMoves :: [Text] -> Either String Position
 playMoves =
-    foldl
-        (\acc c -> acc >>= playMove c)
-        (Right startPosition :: Either String Position)
+  foldl
+    (\acc c -> acc >>= playMove c)
+    (Right startPosition :: Either String Position)
