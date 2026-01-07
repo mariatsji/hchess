@@ -15,6 +15,7 @@ in haskellPackages.shellFor {
     my-haskell-language-server
     ghcid
     haskellPackages.cabal-fmt
+    ormolu
     nixfmt
     git
     openssh

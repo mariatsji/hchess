@@ -20,6 +20,7 @@ import Position
   )
 import qualified Printer
 import Relude
+import System.IO.Temp (getCanonicalTemporaryDirectory )
 
 start :: Text -> App ()
 start "1" = do
@@ -175,6 +176,7 @@ exit = Printer.exitText "Thank you for playing"
 
 flightRecorder :: Text -> Text -> Text -> Position -> App ()
 flightRecorder timeText whiteName blackName pos = liftIO $ do
+  tmpDir <- getCanonicalTemporaryDirectory 
   let file = T.unpack $ whiteName <> "-" <> blackName <> "-" <> timeText <> ".pgn"
-  let content = renderPgn timeText whiteName blackName pos
-  TIO.writeFile ("pgn/" <> file) content
+      content = renderPgn timeText whiteName blackName pos
+  TIO.writeFile (tmpDir <> "/" <> file) content

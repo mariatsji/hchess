@@ -56,11 +56,13 @@ library
     , base                >=4.7     && <5
     , bytestring
     , containers
+    , filepath
     , deepseq
     , neat-interpolation
     , parallel
     , relude              >=1.2.0.0
     , text
+    , temporary
     , time
     , transformers
     , utf8-string
@@ -86,7 +88,6 @@ executable hchess-profiled
     , hchess
     , neat-interpolation
     , relude              >=1.2.0.0
-    , temporary
     , text
 
   default-language:   GHC2024
@@ -111,7 +112,6 @@ executable hchess
     , base           >=4.7     && <5
     , hchess
     , relude         >=1.2.0.0
-    , temporary
     , text
     , transformers
 
