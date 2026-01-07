@@ -54,12 +54,12 @@ start "3" = do
   bdepth <- asks blackDepth
   pos <- asks startFrom
   gameLoopMM timeText (fromMaybe startPosition pos) wdepth bdepth
-start _ = exit
+start _ = exit mempty
 
 gameLoopHM :: Text -> Position -> Int -> App ()
 gameLoopHM timeText pos depth = do
-  let record = flightRecorder timeText "human" ("machine-" <> show depth)
-  record pos
+  pgn <- liftIO $ flightRecorderPath timeText "human" ("machine-" <> show depth)
+  flightRecorder timeText "human" ("machine-" <> show depth) pos
   let world =
         World
           { wTitle = "Human player vs Machine at depth " <> showt depth,
@@ -72,7 +72,7 @@ gameLoopHM timeText pos depth = do
   if l == "resign"
     then do
       Printer.render world {wInfo = ["Game over: ", "computer wins"]}
-      exit
+      exit pgn
     else do
       case parsedMove pos l of
         Left e -> do
@@ -84,20 +84,20 @@ gameLoopHM timeText pos depth = do
               Printer.render world {wInfo = [showt humanMove <> " not playable: " <> pack s, "example of syntax: e2-e4 h7-h8Q"]}
               gameLoopHM timeText pos depth
             Right newPos -> do
-              record newPos
+              flightRecorder timeText "human" ("machine-" <> show depth) newPos
               Printer.render world {wInfo = ["thinking..", ""], wPos = Just newPos}
               let (aiReplyPosM, scoreM, status') = AI.bestMove newPos depth
               maybe
                 ( do
                     Printer.render world {wInfo = ["Game over: ", showt status'], wPos = Just newPos}
-                    exit
+                    exit pgn
                 )
                 ( \responsePos -> do
-                    record responsePos
+                    flightRecorder timeText "human" ("machine-" <> show depth) responsePos
                     if terminal status'
                       then do
                         Printer.render world {wInfo = ["Game over: ", showt status'], wPos = Just responsePos, wScore = scoreM}
-                        exit
+                        exit pgn
                       else do
                         Printer.render world {wInfo = ["Your move", ""], wPos = Just responsePos, wScore = scoreM}
                         gameLoopHM timeText responsePos depth
@@ -112,8 +112,8 @@ prettyScore (Just s) = formatFloatN s
 
 gameLoopMM :: Text -> Position -> Int -> Int -> App ()
 gameLoopMM timeText pos whiteDepth blackDepth = do
-  let record = flightRecorder timeText ("machine-" <> show whiteDepth) ("machine-" <> show blackDepth)
-  record pos
+  pgn <- liftIO $ flightRecorderPath timeText ("machine-" <> show whiteDepth) ("machine-" <> show blackDepth)
+  flightRecorder timeText ("machine-" <> show whiteDepth) ("machine-" <> show blackDepth) pos
   let world =
         World
           { wTitle = "machine at depth " <> showt whiteDepth <> " vs machine at depth " <> showt blackDepth,
@@ -130,10 +130,10 @@ gameLoopMM timeText pos whiteDepth blackDepth = do
   maybe
     ( do
         Printer.infoTexts ["Game over: ", showt status]
-        exit
+        exit pgn
     )
     ( \responsePos -> do
-        record responsePos
+        flightRecorder timeText ("machine-" <> show whiteDepth) ("machine-" <> show blackDepth) responsePos
         Printer.render world {wPos = Just responsePos, wScore = scoreM}
         gameLoopMM timeText responsePos whiteDepth blackDepth
     )
@@ -141,8 +141,8 @@ gameLoopMM timeText pos whiteDepth blackDepth = do
 
 gameLoopHH :: Text -> Position -> App ()
 gameLoopHH timeText pos = do
-  let record = flightRecorder timeText "human" "human"
-  record pos
+  pgn <- liftIO $ flightRecorderPath timeText "human" "human"
+  flightRecorder timeText "human" "human" pos
   let world =
         World
           { wTitle = "human-human",
@@ -161,22 +161,26 @@ gameLoopHH timeText pos = do
        in if newStatus == WhiteToPlay || newStatus == BlackToPlay
             then
               if l == ""
-                then exit
+                then exit pgn
                 else gameLoopHH timeText pos'
             else do
               Printer.render world {wInfo = ["Game over: ", showt newStatus]}
               flightRecorder timeText "human" "human" pos'
-              exit
+              exit pgn
 
 showt :: (Show a) => a -> Text
 showt = pack . show
 
-exit :: App ()
-exit = Printer.exitText "Thank you for playing"
+exit :: FilePath -> App ()
+exit pgn = Printer.exitText $ "Thank you for playing. PGN written to " <> pack pgn
+
+flightRecorderPath :: Text -> Text -> Text -> IO FilePath
+flightRecorderPath timeText whiteName blackName = do
+  tmpDir <- getCanonicalTemporaryDirectory 
+  let file = T.unpack $ whiteName <> "-" <> blackName <> "-" <> timeText <> ".pgn"
+  pure (tmpDir <> "/" <> file)
 
 flightRecorder :: Text -> Text -> Text -> Position -> App ()
 flightRecorder timeText whiteName blackName pos = liftIO $ do
-  tmpDir <- getCanonicalTemporaryDirectory 
-  let file = T.unpack $ whiteName <> "-" <> blackName <> "-" <> timeText <> ".pgn"
-      content = renderPgn timeText whiteName blackName pos
-  TIO.writeFile (tmpDir <> "/" <> file) content
+  fileName <- flightRecorderPath timeText whiteName blackName
+  TIO.writeFile fileName (renderPgn timeText whiteName blackName pos)

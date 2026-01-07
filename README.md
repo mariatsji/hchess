@@ -9,7 +9,7 @@
 
 # PGN support
 
-hChess supports a subset of PGN - all games are saved to ./pgn
+hChess supports a subset of PGN - all games are saved to a .pgn file in system temp dir (/tmp/ on unix systems).
 A PGN can be loaded into the engine at startup via command line options, see _Start app with settings_
 
 An example of the recognized subset of PGN is
