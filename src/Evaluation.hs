@@ -6,6 +6,7 @@ module Evaluation
     terminal,
     deepEval,
     alphaBeta,
+    centralization,
   )
 where
 
@@ -85,10 +86,8 @@ evaluate' pos =
 -- much faster evaluate function
 evaluate :: Snapshot -> Float
 evaluate snp =
-  sum
-    $ fmap
-      (maybe 0 valueOf)
-      snp
+  let material = sum $ fmap (maybe 0 valueOf) snp
+   in material + centralization snp
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = colorFactor c * 1.0
@@ -100,3 +99,19 @@ valueOf (King c) = colorFactor c * 100.0
 
 colorFactor :: Color -> Float
 colorFactor c = if c == Black then (-1) else 1
+
+-- | Centralization bonus between -0.99 and +0.99.
+-- Pieces closer to the center score higher. Kings are excluded.
+centralization :: Snapshot -> Float
+centralization snp =
+  let pieces = mapMaybe (\(w, mp) -> (unHash w,) <$> mp) $ toList' snp
+      total = sum [colorFactor (colr p) * centralWeight p s | (s, p) <- pieces]
+      maxPossible = 16 * 0.12 -- theoretical max (all 16 pieces in center)
+   in clamp $ total / maxPossible
+  where
+    centralWeight (King _) _ = 0
+    centralWeight _ (Square c r) =
+      let cDist = abs (fromIntegral c - 4.5 :: Float)
+          rDist = abs (fromIntegral r - 4.5 :: Float)
+       in max 0 (2.0 - cDist) * max 0 (2.0 - rDist) * 0.04
+    clamp x = max (-0.99) (min 0.99 x)
