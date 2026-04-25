@@ -47,14 +47,26 @@ findWhite params
   | "w0" `elem` params = 0
   | "w1" `elem` params = 1
   | "w3" `elem` params = 3
-  | otherwise = 2
+  | "w4" `elem` params = 4
+  | "w5" `elem` params = 5
+  | "w6" `elem` params = 6
+  | "w7" `elem` params = 7
+  | "w8" `elem` params = 8
+  | "w9" `elem` params = 9
+  | otherwise = 4
 
 findBlack :: [String] -> Int
 findBlack params
   | "b0" `elem` params = 0
   | "b1" `elem` params = 1
   | "b3" `elem` params = 3
-  | otherwise = 2
+  | "b4" `elem` params = 4
+  | "b5" `elem` params = 5
+  | "b6" `elem` params = 6
+  | "b7" `elem` params = 7
+  | "b8" `elem` params = 8
+  | "b9" `elem` params = 9
+  | otherwise = 4
 
 findStyle :: [String] -> IO Style
 findStyle params = pure if "bright" `elem` params then brightTheme else darkTheme
