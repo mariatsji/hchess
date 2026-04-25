@@ -7,6 +7,7 @@ module Evaluation
     deepEval,
     alphaBeta,
     centralization,
+    kingSafety,
   )
 where
 
@@ -87,7 +88,7 @@ evaluate' pos =
 evaluate :: Snapshot -> Float
 evaluate snp =
   let material = sum $ fmap (maybe 0 valueOf) snp
-   in material + centralization snp
+   in material + centralization snp + kingSafety snp
 
 valueOf :: Piece -> Float
 valueOf (Pawn c) = colorFactor c * 1.0
@@ -115,3 +116,26 @@ centralization snp =
           rDist = abs (fromIntegral r - 4.5 :: Float)
        in max 0 (2.0 - cDist) * max 0 (2.0 - rDist) * 0.04
     clamp x = max (-0.99) (min 0.99 x)
+
+-- | King safety bonus between -0.99 and +0.99.
+-- Rewards a king on a typical castled square (g1/c1/g8/c8) with sheltering pawns.
+kingSafety :: Snapshot -> Float
+kingSafety snp = whiteKing - blackKing
+  where
+    whiteKing = safety snp White
+    blackKing = safety snp Black
+    safety s c =
+      let kingSquares = mapMaybe (\(w, mp) -> if mp == Just (King c) then Just (unHash w) else Nothing) $ toList' s
+       in case kingSquares of
+            [ks] -> castledBonus c ks + pawnShield s c ks
+            _ -> 0
+    castledBonus White (Square 7 1) = 0.2
+    castledBonus White (Square 3 1) = 0.2
+    castledBonus Black (Square 7 8) = 0.2
+    castledBonus Black (Square 3 8) = 0.2
+    castledBonus _ _ = 0
+    pawnShield s c (Square kc kr) =
+      let dir = if c == White then 1 else -1
+          shieldSquares = [Square cc (kr + dir) | cc <- [kc - 1, kc, kc + 1], cc >= 1, cc <= 8]
+          pawns = length $ filter (\sq -> pieceAt' s sq == Just (Pawn c)) shieldSquares
+       in fromIntegral pawns * 0.1
