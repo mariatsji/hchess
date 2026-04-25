@@ -5,6 +5,7 @@ module Evaluation
     evaluate',
     terminal,
     deepEval,
+    alphaBeta,
   )
 where
 
@@ -41,7 +42,6 @@ deepEval :: Int -> Color -> Position -> Float
 deepEval depth perspective pos =
   let candidates = positionTree pos
       status = determineStatus pos candidates
-      evaluated = evaluate . m <-$-> candidates
    in if terminal status
         then score $ evaluate' pos
         else
@@ -49,8 +49,26 @@ deepEval depth perspective pos =
             $ singleBest'
               perspective
             $ if depth == 0
-              then evaluated
+              then evaluate . m <-$-> candidates
               else deepEval (depth - 1) (next perspective) <$> candidates
+
+-- | Negamax with alpha-beta pruning. Much faster than plain minimax (deepEval)
+-- because it prunes branches that can't affect the outcome.
+alphaBeta :: Int -> Float -> Float -> Color -> Position -> Float
+alphaBeta depth alpha beta perspective pos =
+  let candidates = positionTree pos
+      status = determineStatus pos candidates
+   in if depth == 0 || terminal status
+        then colorFactor perspective * evaluate (m pos)
+        else go candidates alpha
+  where
+    go [] a = a
+    go (p : ps) a =
+      let val = -alphaBeta (depth - 1) (-beta) (-a) (next perspective) p
+          newA = max a val
+       in if newA >= beta
+            then newA -- beta cutoff
+            else go ps newA
 
 terminal :: Status -> Bool
 terminal = flip elem [WhiteIsMate, BlackIsMate, Remis, WhiteResigns, BlackResigns]
