@@ -136,6 +136,7 @@ kingSafety snp = whiteKing - blackKing
     castledBonus _ _ = 0
     pawnShield s c (Square kc kr) =
       let dir = if c == White then 1 else -1
-          shieldSquares = [Square cc (kr + dir) | cc <- [kc - 1, kc, kc + 1], cc >= 1, cc <= 8]
+          shieldRow = kr + dir
+          shieldSquares = [Square cc shieldRow | cc <- [kc - 1, kc, kc + 1], cc >= 1, cc <= 8, shieldRow >= 1, shieldRow <= 8]
           pawns = length $ filter (\sq -> pieceAt' s sq == Just (Pawn c)) shieldSquares
        in fromIntegral pawns * 0.1

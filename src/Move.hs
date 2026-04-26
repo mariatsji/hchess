@@ -54,28 +54,10 @@ squareParser =
   Square <$> colParser <*> rowParser
 
 colParser :: Parser Col
-colParser = colAparser <|> colBparser <|> colCparser <|> colDparser <|> colEparser <|> colFparser <|> colGparser <|> colHparser
-  where
-    colAparser = 1 <$ char 'a'
-    colBparser = 2 <$ char 'b'
-    colCparser = 3 <$ char 'c'
-    colDparser = 4 <$ char 'd'
-    colEparser = 5 <$ char 'e'
-    colFparser = 6 <$ char 'f'
-    colGparser = 7 <$ char 'g'
-    colHparser = 8 <$ char 'h'
+colParser = asum [i <$ char c | (c, i) <- zip ['a'..'h'] [1..8]]
 
 rowParser :: Parser Row
-rowParser = rowAparser <|> rowBparser <|> rowCparser <|> rowDparser <|> rowEparser <|> rowFparser <|> rowGparser <|> rowHparser
-  where
-    rowAparser = 1 <$ char '1'
-    rowBparser = 2 <$ char '2'
-    rowCparser = 3 <$ char '3'
-    rowDparser = 4 <$ char '4'
-    rowEparser = 5 <$ char '5'
-    rowFparser = 6 <$ char '6'
-    rowGparser = 7 <$ char '7'
-    rowHparser = 8 <$ char '8'
+rowParser = asum [i <$ char c | (c, i) <- zip ['1'..'8'] [1..8]]
 
 pieceParser :: Color -> Parser Piece
 pieceParser color = knightParser <|> bishopParser <|> rookParser <|> queenParser

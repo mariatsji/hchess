@@ -32,21 +32,15 @@ squareTo (Square c r) cols rows = Square (c + cols) (r + rows)
 
 -- MovedPiece Square Square | Promotion Square Square Piece | CastleShort | CastleLong
 identifyMove :: Position -> Square -> Square -> Maybe Piece -> Move
-identifyMove pos from to mPromPiece =
-  let kingpos = kingPos (toPlay pos) -- todo reuse these
-      shortcastlekingpos = squareTo kingpos 2 0
-      longcastlekingpos = squareTo kingpos (-2) 0
-      promRow = if toPlay pos == White then 8 else 1
-      isProm = pieceAt pos from == Just (Pawn (toPlay pos)) && row to == promRow
-   in case (isProm, mPromPiece) of
-        (True, Just piece) -> Promotion from to piece
-        _ ->
-          if from == kingpos && to == shortcastlekingpos
-            then CastleShort
-            else
-              if from == kingpos && to == longcastlekingpos
-                then CastleLong
-                else MovedPiece from to
+identifyMove pos from to mPromPiece
+  | isProm, Just piece <- mPromPiece = Promotion from to piece
+  | from == kingpos, to == squareTo kingpos 2 0 = CastleShort
+  | from == kingpos, to == squareTo kingpos (-2) 0 = CastleLong
+  | otherwise = MovedPiece from to
+  where
+    kingpos = kingPos (toPlay pos)
+    promRow = if toPlay pos == White then 8 else 1
+    isProm = pieceAt pos from == Just (Pawn (toPlay pos)) && row to == promRow
 
 -- todo express shorter plz
 playIfLegal :: Move -> Position -> Either String Position
@@ -265,19 +259,11 @@ digger nextCol nextRow !acc snp (Square c r) color
 -- flips! todo this is in context of positionTree.. not after a Move
 possibleCastles :: Position -> [Position]
 possibleCastles pos@Position {..} =
-  case toPlay pos of
-    White ->
-      ( if pristineShortWhite
-          then maybeToList $ castle CastleShort pos
-          else []
-      )
-        <> (if pristineLongWhite then maybeToList (castle CastleLong pos) else [])
-    Black ->
-      ( if pristineShortBlack
-          then maybeToList $ castle CastleShort pos
-          else []
-      )
-        <> (if pristineLongBlack then maybeToList (castle CastleLong pos) else [])
+  let (pristineShort, pristineLong) = case toPlay pos of
+        White -> (pristineShortWhite, pristineLongWhite)
+        Black -> (pristineShortBlack, pristineLongBlack)
+   in [c | pristineShort, c <- maybeToList $ castle CastleShort pos]
+        <> [c | pristineLong, c <- maybeToList $ castle CastleLong pos]
 
 castle :: Move -> Position -> Maybe Position
 castle move pos =
@@ -396,20 +382,10 @@ isPatt :: Position -> [Position] -> Bool
 isPatt pos positiontree = null positiontree && not (isInCheck (m pos) (toPlay pos))
 
 determineStatus :: Position -> [Position] -> Status
-determineStatus pos ptree =
-  let isMate = isCheckMate pos ptree
-   in if toPlay pos == White && isMate
-        then WhiteIsMate
-        else
-          if isMate
-            then BlackIsMate
-            else
-              if isDraw pos ptree
-                then Remis
-                else
-                  if toPlay pos == White
-                    then WhiteToPlay
-                    else BlackToPlay
+determineStatus pos ptree
+  | isCheckMate pos ptree = if toPlay pos == White then WhiteIsMate else BlackIsMate
+  | isDraw pos ptree = Remis
+  | otherwise = if toPlay pos == White then WhiteToPlay else BlackToPlay
 
 -- par/pseq fmap
 paraMap :: (NFData a, NFData b) => (a -> b) -> [a] -> [b]
